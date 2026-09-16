@@ -16,11 +16,11 @@ assert.ok(Math.max(...Object.values(result.travel))-Math.min(...Object.values(re
 reset();dispatch('keydown',{code:'ArrowUp',target:{tagName:'BUTTON'}});frames();
 assert.equal(40-run('player.position.z'),0,'focused controls retain native keyboard behavior');
 result.focusRecovery={};
-for(const selector of ['#soundToggle','#effectsToggle','#soundVolume','#paceInput']){
+for(const selector of ['#soundToggle','#effectsToggle','#soundVolume','#paceInput','#characterSelect']){
   reset();dispatch('keydown',{code:'ArrowUp'});
   const target=document.querySelector(selector);target.focus();
   assert.equal(run('Object.keys(keys).length'),0,'entering settings clears held input');
-  dispatch(selector.endsWith('Toggle')?'click':'pointerup',{target});
+  dispatch(selector==='#characterSelect'?'change':selector.endsWith('Toggle')?'click':'pointerup',{target});
   assert.equal(document.activeElement,run('renderer.domElement'),'pointer settings return focus to game');
   dispatch('keydown',{code:'ArrowUp'});frames();
   result.focusRecovery[selector]=40-run('player.position.z');
@@ -54,7 +54,7 @@ reset();run('player.position.set(-69.5,10,-68);flying=true;keys.Space=true');fra
 result.bridgeCeilingY=run('player.position.y');assert.ok(Math.abs(result.bridgeCeilingY-(result.deckAtCrossing-.3-run('PLAYER_HEIGHT')))<.001,'bridge underside stops upward flight above the hat');
 run('keys.Space=false;keys.ShiftLeft=true');frames(30);assert.ok(run('player.position.y')<17,'can descend away from ceiling');
 reset();run('player.position.set(-69.5,30,-68)');frames(120);
-result.bridgeLandingY=run('player.position.y');assert.equal(result.bridgeLandingY,20.5,'can land on bridge from above');
+result.bridgeLandingY=run('player.position.y');assert.equal(result.bridgeLandingY,result.deckAtCrossing,'can land on bridge from above');
 for(const b of run('BRIDGES')){
   const [ax,az,bx,bz]=b,t=.4,x=ax+(bx-ax)*t,z=az+(bz-az)*t;
   reset();run(`player.position.set(${x},groundAt(${x},${z}),${z});yaw=${Math.atan2(ax-bx,az-bz)};keys.ArrowUp=true`);frames(60);

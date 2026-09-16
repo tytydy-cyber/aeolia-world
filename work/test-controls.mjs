@@ -10,7 +10,7 @@ import {MotionEffects} from '../outputs/effects.js';
 const listeners=new Map(),elements=new Map();
 const on=(name,fn)=>{if(!listeners.has(name))listeners.set(name,[]);listeners.get(name).push(fn)};
 function element(tagName='DIV'){return {tagName,events:new Map(),style:{},classList:{add(){},remove(){}},addEventListener(type,fn){if(!this.events.has(type))this.events.set(type,[]);this.events.get(type).push(fn)},setAttribute(){},focus(){document.activeElement=this;dispatch('focusin',{target:this})},setPointerCapture(){},remove(){},querySelector(){return element()},getContext(){return {createRadialGradient(){return {addColorStop(){}}},createLinearGradient(){return {addColorStop(){}}},fillRect(){}}}}}
-const document={body:{tagName:'BODY',prepend(){}},hidden:false,addEventListener:on,createElement:element,querySelector(s){if(!elements.has(s))elements.set(s,element(['#paceInput','#soundVolume','#effectsToggle'].includes(s)?'INPUT':['#enter','#soundToggle'].includes(s)?'BUTTON':'DIV'));return elements.get(s)}};
+const document={body:{tagName:'BODY',prepend(){}},hidden:false,addEventListener:on,createElement:element,querySelector(s){if(!elements.has(s))elements.set(s,element(['#paceInput','#soundVolume','#effectsToggle'].includes(s)?'INPUT':s==='#characterSelect'?'SELECT':['#enter','#soundToggle'].includes(s)?'BUTTON':'DIV'));return elements.get(s)}};
 class Renderer{constructor(){this.domElement=element('CANVAS');this.shadowMap={}}setPixelRatio(){}setSize(){}render(){}}
 class TextureLoader{load(path){assert.ok(readFileSync(new URL('../outputs/'+path,import.meta.url)).length>100,'texture file exists');return new Core.Texture()}}
 const houseAsset=await loadHouse();
@@ -49,6 +49,7 @@ assert.equal(run('paveCount<3000'),true);
 assert.equal(run('groundAt(500,500)'),-Infinity);
 assert.equal(run('groundAt(-30,-52)'),3);assert.equal(run('groundAt(30,52)'),-Infinity,'main island boundary is strongly asymmetric');
 assert.equal(run('groundAt(112,-92)'),54);
+assert.ok(run('Math.hypot(BRIDGES[0][2]+105,BRIDGES[0][3]+105)')>27,'tower bridge ends at the island rim');
 assert.equal(run('treeBatches.length'),5,'all trees share five draw batches');assert.ok(run('treeParts.branch.length')>=150);assert.ok(run('treeParts.leaf0.length+treeParts.leaf1.length+treeParts.leaf2.length')>=350);
 for(const m of run('scene.children').filter(m=>m.isMesh))assert.ok(Number.isFinite(m.position.y),'finite scene position');
 
@@ -75,6 +76,7 @@ reset();run('yaw=1;keys.ArrowUp=true');frames(30);run('keys.ArrowUp=false;yaw=-1
 // Every bridge collision height is generated from the same profile as its deck.
 for(const b of run('BRIDGES'))for(let i=0;i<=100;i++){const t=i/100,[ax,az,bx,bz,y1,y2]=b,x=ax+(bx-ax)*t,z=az+(bz-az)*t;const y=run(`groundAt(${x},${z})`);assert.ok(Math.abs(y-(y1+(y2-y1)*t+Math.sin(t*Math.PI)*2))<.001,'bridge height')}
 assert.ok(run('bridgeRails.length')>20);assert.ok(run('bridgeRails.filter(r=>Math.abs(r.rotation.z)>.01).length')>20,'rails follow bridge slopes');
+run("setCharacterStyle('mist')");assert.equal(run('cloth.color.getHex()'),0x527b83,'character design changes without another rig');
 
 reset();run('player.position.set(28,3,39);keys.ArrowUp=true');frames(390);assert.ok(run('player.position.y')>17,'stairs reach upper terrace');
 reset();run('player.position.set(-43,3,-23);keys.ArrowUp=true');frames(100);assert.ok(run('player.position.z')>=-26.35,'wall collision');

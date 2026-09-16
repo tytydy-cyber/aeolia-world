@@ -18,6 +18,7 @@
 #soundControls{position:fixed;z-index:11;left:34px;bottom:93px;display:flex;gap:9px;align-items:center;font:11px system-ui;color:#fff;text-shadow:0 1px 5px #16313d}#soundControls button{font:inherit;color:inherit;background:#16313db0;border:1px solid #e7ba6790;border-radius:3px;padding:5px 9px;cursor:pointer}#soundControls input{width:95px;accent-color:#e7ba67}#soundControls button:focus-visible,#soundControls input:focus-visible{outline:2px solid #e7ba67;outline-offset:3px}#soundNotice{max-width:210px;font-size:10px}#soundControls label{display:flex;align-items:center;gap:6px}
 @media(max-width:650px){#hud{padding:20px}.brand{font-size:13px}.place{font-size:11px}#help{right:20px;bottom:20px;max-width:60%;flex-wrap:wrap;justify-content:flex-end}#mode{left:20px;bottom:20px}.opening{padding:25px}}
 #effectsControl{position:fixed;z-index:11;left:34px;bottom:130px;display:flex;gap:6px;align-items:center;font:11px system-ui;color:#fff;text-shadow:0 1px 5px #16313d}#effectsControl input{accent-color:#e7ba67}
+#characterControl{position:fixed;z-index:11;left:34px;bottom:160px;display:flex;gap:8px;align-items:center;font:11px system-ui;color:#fff;text-shadow:0 1px 5px #16313d}#characterControl select{color:#fff;background:#16313dcc;border:1px solid #e7ba6790;border-radius:3px;padding:5px 8px;font:inherit}#characterControl select:focus-visible{outline:2px solid #e7ba67;outline-offset:3px}
 #perf{position:fixed;z-index:30;right:12px;top:12px;padding:7px 9px;background:#102b3add;color:#fff;font:11px 'Space Mono';white-space:pre;pointer-events:none}
 @media(prefers-reduced-motion:reduce){#veil,#discovery{transition:none}}
 </style>
@@ -30,6 +31,7 @@
 <div id="soundControls"><button id="soundToggle" type="button" aria-pressed="false">消音</button><label>音量<input id="soundVolume" type="range" min="0" max="100" value="35" aria-label="音量"></label><span id="soundNotice" role="status"></span></div>
 <span id="assetState" role="status">建物を読み込み中…</span>
 <label id="effectsControl"><input id="effectsToggle" type="checkbox" checked>移動エフェクト</label>
+<label id="characterControl">旅人 <select id="characterSelect" aria-label="主人公のデザイン"><option value="ember">黄昏の旅人</option><option value="mist">霧青の旅人</option><option value="lilac">夢紫の旅人</option></select></label>
 <output id="perf" hidden></output>
 <div id="help"><b class="key">↑ ↓ ← →</b> 移動 <b class="key">ドラッグ</b> 見渡す <b class="key">Q E</b> 旋回 <b class="key">C</b> 正面 <b class="key">F</b> 飛行 <b class="key">SPACE / SHIFT</b> 上昇 / 下降 <b class="key">Ctrl</b> 加速 <b class="key">Esc</b> 設定終了</div>
 <div id="discovery"><small>DISCOVERED</small><div></div></div>
@@ -128,7 +130,7 @@ function island(px,top,pz,r,depth,organic=false){
 const mathTau=Math.PI*2;
 island(0,3,0,67,48,true);island(-105,34,-105,29,45);island(112,54,-92,25,58);island(78,7,100,22,32);
 cameraBlockers.push(cyl(35,15,[28,10.5,-18],MAT.stone,48));
-const BRIDGES=[[-48,-45,-91,-91,3,34],[47,-43,93,-78,18,54],[49,44,70,84,3,7]];
+const BRIDGES=[[-48,-45,-86,-85,3,34],[47,-43,93,-78,18,54],[49,44,70,84,3,7]];
 function bridgeSample(x,z,b){
   const [ax,az,bx,bz,y1,y2]=b,vx=bx-ax,vz=bz-az;
   const t=((x-ax)*vx+(z-az)*vz)/(vx*vx+vz*vz);
@@ -372,13 +374,23 @@ const scarfMat=new THREE.MeshStandardMaterial({color:0xe1b967,side:THREE.DoubleS
 const scarf=avatarPart(new THREE.PlaneGeometry(.34,2.45,3,18),scarfMat);scarf.position.set(.2,2.58,-1.48);scarf.rotation.x=Math.PI/2;
 const scarfKnot=avatarPart(new THREE.TorusGeometry(.35,.07,10,28),scarfMat);scarfKnot.rotation.x=Math.PI/2;scarfKnot.position.y=2.7;
 const scarfRest=Float32Array.from(scarf.geometry.attributes.position.array);
-let avatarMixer=null,avatarActions={},avatarState='';
+const characterStyles={
+  ember:{coat:0x9f413b,mantle:0x642f35,scarf:0xe1b967,leather:0x72513d},
+  mist:{coat:0x527b83,mantle:0x274c59,scarf:0xd8ddd0,leather:0x55463d},
+  lilac:{coat:0x756183,mantle:0x433750,scarf:0xe4b7c8,leather:0x60483e}
+};
+let avatarMixer=null,avatarActions={},avatarState='',avatarModel=null;
+function setCharacterStyle(name){
+  const style=characterStyles[name]||characterStyles.ember;
+  cloth.color.setHex(style.coat);clothDark.color.setHex(style.mantle);scarfMat.color.setHex(style.scarf);
+  avatarModel?.traverse(o=>{if(!o.isMesh)return;const color={Coat:style.coat,Mantle:style.mantle,Scarf:style.scarf,Leather:style.leather}[o.material.name];if(color!==undefined)o.material.color.setHex(color)});
+}
 function setAvatarAction(name){
   if(name===avatarState||!avatarActions[name])return;
   const next=avatarActions[name],previous=avatarActions[avatarState];next.reset().fadeIn(.2).play();if(previous)previous.fadeOut(.2);avatarState=name;
 }
 new GLTFLoader().load('assets/aeolia-traveler.glb',gltf=>{
-  const model=gltf.scene;model.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true}});player.add(model);body.visible=false;
+  const model=gltf.scene;avatarModel=model;model.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true}});player.add(model);body.visible=false;setCharacterStyle(document.querySelector('#characterSelect').value);
   avatarMixer=new THREE.AnimationMixer(model);for(const clip of gltf.animations)avatarActions[clip.name]=avatarMixer.clipAction(clip);
   setAvatarAction('Idle');
 },undefined,error=>console.error('Traveler asset could not load; using fallback',error));
@@ -386,6 +398,7 @@ player.position.set(-25,3,5);
 const motionEffects=new MotionEffects(THREE,scene,camera);
 document.querySelector('#effectsToggle').checked=motionEffects.enabled;
 document.querySelector('#effectsToggle').addEventListener('change',e=>{motionEffects.enabled=e.target.checked});
+document.querySelector('#characterSelect').addEventListener('change',e=>{setCharacterStyle(e.target.value);focusWorld()});
 
 const keys={},velocity=new THREE.Vector3(),targetCam=new THREE.Vector3(),cameraRay=new THREE.Raycaster();
 const sound=new WorldAudio();
