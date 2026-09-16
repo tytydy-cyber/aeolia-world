@@ -20,8 +20,9 @@ assert.ok(assetMeshes<=15,'asset draw-call budget');assert.ok(assetTriangles<700
 console.log(`Blender asset: ${assetMeshes} material batches, ${assetTriangles} triangles`);
 let assetCallback;
 class Loader{load(url,callback){assert.ok(['assets/aeolia-house.glb','assets/aeolia-traveler.glb'].includes(url));if(url.endsWith('house.glb'))assetCallback=callback}}
-const context=vm.createContext({THREE:{...Core,WebGLRenderer:Renderer,TextureLoader},GLTFLoader:Loader,WorldAudio,MotionEffects,document,innerWidth:1280,innerHeight:800,devicePixelRatio:1,addEventListener:on,requestAnimationFrame(){},setTimeout(){},console:{...console,assert(condition,message){assert.ok(condition,message)}},performance});
-const html=readFileSync(new URL('../outputs/index.html',import.meta.url),'utf8');
+const localStorage={data:new Map(),getItem(k){return this.data.get(k)||null},setItem(k,v){this.data.set(k,String(v))}};
+const context=vm.createContext({THREE:{...Core,WebGLRenderer:Renderer,TextureLoader},GLTFLoader:Loader,WorldAudio,MotionEffects,document,localStorage,innerWidth:1280,innerHeight:800,devicePixelRatio:1,addEventListener:on,requestAnimationFrame(){},setTimeout(){},console:{...console,assert(condition,message){assert.ok(condition,message)}},performance});
+const html=readFileSync(new URL('../outputs/aeolia.html',import.meta.url),'utf8');
 const script=html.match(/<script type="module">([\s\S]*?)<\/script>/)[1].replace(/^import .*$/gm,'');
 vm.runInContext(script,context);
 assetCallback(houseAsset);
