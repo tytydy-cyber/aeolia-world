@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
 import {WorldAudio} from './audio.js';
 import {MotionEffects} from './effects.js';
+import {applyTravelerDesign} from './character-designs.js';
 
 const stageKey=new URLSearchParams(location.search).get('stage')==='somnia'?'somnia':'parallax';
 const STAGES={
@@ -83,7 +84,7 @@ for(let i=0;i<8;i++)makeGroundCreature(i);for(let i=0;i<18;i++)makeBird(i);
 const player=new THREE.Group(),coat=new THREE.MeshStandardMaterial({color:0x526e78,roughness:.9}),skin=new THREE.MeshStandardMaterial({color:0xd9ad88,roughness:.8});scene.add(player);
 const robe=new THREE.Mesh(new THREE.CapsuleGeometry(.52,1.45,8,16),coat);robe.position.y=1.35;player.add(robe);const head=new THREE.Mesh(new THREE.SphereGeometry(.42,20,14),skin);head.position.y=2.65;player.add(head);const hat=new THREE.Mesh(new THREE.CylinderGeometry(.72,.78,.12,28),mats.wood);hat.position.y=3.02;player.add(hat);const crown=new THREE.Mesh(new THREE.CylinderGeometry(.38,.48,.34,24),mats.wood);crown.position.y=3.2;player.add(crown);player.traverse(o=>{if(o.isMesh)o.castShadow=true});player.position.set(...cfg.spawn);
 let avatarMixer=null,avatarActions={},avatarState='';function setAvatarAction(name){if(name===avatarState||!avatarActions[name])return;const next=avatarActions[name],previous=avatarActions[avatarState];next.reset().fadeIn(.2).play();if(previous)previous.fadeOut(.2);avatarState=name}
-new GLTFLoader().load('assets/aeolia-traveler.glb',gltf=>{const model=gltf.scene,styles={ember:{Coat:0x9f413b,Mantle:0x642f35,Scarf:0xe1b967,Leather:0x72513d},mist:{Coat:0x527b83,Mantle:0x274c59,Scarf:0xd8ddd0,Leather:0x55463d},lilac:{Coat:0x756183,Mantle:0x433750,Scarf:0xe4b7c8,Leather:0x60483e}},style=styles[localStorage.getItem('aeolia-character')]||styles.ember;model.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true;if(style[o.material.name]!==undefined)o.material.color.setHex(style[o.material.name])}});player.add(model);for(const o of [robe,head,hat,crown])o.visible=false;avatarMixer=new THREE.AnimationMixer(model);for(const clip of gltf.animations)avatarActions[clip.name]=avatarMixer.clipAction(clip);setAvatarAction('Idle')},undefined,error=>console.warn('Traveler model fallback in use',error));
+new GLTFLoader().load('assets/aeolia-traveler.glb',gltf=>{const model=gltf.scene;model.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true}});player.add(model);applyTravelerDesign(THREE,player,model,localStorage.getItem('aeolia-character')||'ember');for(const o of [robe,head,hat,crown])o.visible=false;avatarMixer=new THREE.AnimationMixer(model);for(const clip of gltf.animations)avatarActions[clip.name]=avatarMixer.clipAction(clip);setAvatarAction('Idle')},undefined,error=>console.warn('Traveler model fallback in use',error));
 const sound=new WorldAudio(),motionEffects=new MotionEffects(THREE,scene,camera);
 const keys={},velocity=new THREE.Vector3(),lastSafe=player.position.clone(),targetCam=new THREE.Vector3();let yaw=0,pitch=.25,flying=false,started=false,dragging=false,previous=null,bob=0,nextAnomaly=performance.now()+360000+Math.random()*240000,recenterYaw=null,travelYaw=0;
 function contains(c,x,z,margin=.55){return Math.abs(x-c.x)<c.w+margin&&Math.abs(z-c.z)<c.d+margin}

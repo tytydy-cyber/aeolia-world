@@ -42,6 +42,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.186.0/build/three.m
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { WorldAudio } from './audio.js';
 import { MotionEffects } from './effects.js';
+import { applyTravelerDesign } from './character-designs.js';
 
 const scene=new THREE.Scene();
 scene.background=new THREE.Color(0xbacbd0);scene.fog=new THREE.FogExp2(0xbacbd0,.0028);
@@ -374,16 +375,11 @@ const scarfMat=new THREE.MeshStandardMaterial({color:0xe1b967,side:THREE.DoubleS
 const scarf=avatarPart(new THREE.PlaneGeometry(.34,2.45,3,18),scarfMat);scarf.position.set(.2,2.58,-1.48);scarf.rotation.x=Math.PI/2;
 const scarfKnot=avatarPart(new THREE.TorusGeometry(.35,.07,10,28),scarfMat);scarfKnot.rotation.x=Math.PI/2;scarfKnot.position.y=2.7;
 const scarfRest=Float32Array.from(scarf.geometry.attributes.position.array);
-const characterStyles={
-  ember:{coat:0x9f413b,mantle:0x642f35,scarf:0xe1b967,leather:0x72513d},
-  mist:{coat:0x527b83,mantle:0x274c59,scarf:0xd8ddd0,leather:0x55463d},
-  lilac:{coat:0x756183,mantle:0x433750,scarf:0xe4b7c8,leather:0x60483e}
-};
 let avatarMixer=null,avatarActions={},avatarState='',avatarModel=null;
 function setCharacterStyle(name){
-  const style=characterStyles[name]||characterStyles.ember;
-  cloth.color.setHex(style.coat);clothDark.color.setHex(style.mantle);scarfMat.color.setHex(style.scarf);
-  avatarModel?.traverse(o=>{if(!o.isMesh)return;const color={Coat:style.coat,Mantle:style.mantle,Scarf:style.scarf,Leather:style.leather}[o.material.name];if(color!==undefined)o.material.color.setHex(color)});
+  const style=applyTravelerDesign(THREE,player,avatarModel,name),classic=name==='ember';
+  cloth.color.setHex(style.Coat);clothDark.color.setHex(style.Mantle);scarfMat.color.setHex(style.Scarf);
+  for(const o of [hat,hatCrown,hatBand,satchel,strap,scarf,scarfKnot])o.visible=classic;hair.visible=name!=='mist';
 }
 function setAvatarAction(name){
   if(name===avatarState||!avatarActions[name])return;
@@ -399,6 +395,7 @@ const motionEffects=new MotionEffects(THREE,scene,camera);
 document.querySelector('#effectsToggle').checked=motionEffects.enabled;
 document.querySelector('#effectsToggle').addEventListener('change',e=>{motionEffects.enabled=e.target.checked});
 const characterSelect=document.querySelector('#characterSelect');characterSelect.value=localStorage.getItem('aeolia-character')||'ember';
+setCharacterStyle(characterSelect.value);
 characterSelect.addEventListener('change',e=>{localStorage.setItem('aeolia-character',e.target.value);setCharacterStyle(e.target.value);focusWorld()});
 
 const keys={},velocity=new THREE.Vector3(),targetCam=new THREE.Vector3(),cameraRay=new THREE.Raycaster();
@@ -565,4 +562,5 @@ camera.position.set(-25,9,14);camera.lookAt(player.position.clone().add(new THRE
 console.assert(groundAt(0,40)===3&&groundAt(500,500)===-Infinity,'walkable-world bounds');
 </script>
 <script>setTimeout(()=>{if(!document.querySelector('canvas'))document.querySelector('#error').style.display='block'},5000)</script>
+<script type="module" src="mobile-controls.js"></script>
 </body></html>
