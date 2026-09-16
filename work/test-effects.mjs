@@ -1,0 +1,18 @@
+import assert from 'node:assert/strict';
+import * as THREE from './three.core.mjs';
+import {MotionEffects} from '../outputs/effects.js';
+const scene=new THREE.Scene(),camera=new THREE.PerspectiveCamera(),fx=new MotionEffects(THREE,scene,camera);
+const p=new THREE.Vector3(0,3,40),v=new THREE.Vector3();
+const alive=pool=>pool.items.filter(p=>p.age<p.life).length;
+const advance=(seconds,flying,grounded)=>{for(let i=0;i<seconds*60;i++){p.addScaledVector(v,1/60);fx.update(1/60,p,v,flying,grounded)}};
+assert.equal(scene.children.length,2,'only two draw objects');
+advance(1,false,true);assert.equal(alive(fx.dust),0,'idle does not emit');
+v.z=-10;advance(1,false,true);assert.ok(alive(fx.dust)>0,'walking emits dust');assert.equal(alive(fx.air),0);
+v.z=-28;advance(2,true,false);assert.ok(alive(fx.air)>0,'flight emits a trail');assert.equal(alive(fx.dust),0,'dust expires during flight');
+v.set(0,0,0);advance(1,true,false);assert.equal(alive(fx.air),0,'stopping clears the trail');
+fx.update(1/60,p,v,false,true);assert.ok(alive(fx.dust)>=12,'landing burst');advance(2,false,true);assert.equal(alive(fx.dust),0);
+v.z=-70;advance(30,true,false);assert.ok(alive(fx.air)<=64);assert.equal(fx.air.position.length,384,'pool capacity is fixed');
+for(const pool of [fx.dust,fx.air])for(const name of ['position','aAlpha','aSize'])assert.ok([...pool.geometry.attributes[name].array].every(Number.isFinite));
+fx.enabled=false;advance(1,true,false);assert.equal(fx.air.object.visible,false);assert.equal(alive(fx.air),0,'reduced effects stop spawning');
+assert.equal(camera.fov,50,'effects never alter the field of view');
+console.log('PASS: idle/walk/fly/stop/landing, bounded particle count, finite geometry, reduced effects, unchanged camera. Shader rendering is not tested.');
