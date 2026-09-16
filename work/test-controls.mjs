@@ -50,7 +50,9 @@ assert.equal(run('paveCount<3000'),true);
 assert.equal(run('groundAt(500,500)'),-Infinity);
 assert.equal(run('groundAt(-30,-52)'),3);assert.equal(run('groundAt(30,52)'),-Infinity,'main island boundary is strongly asymmetric');
 assert.equal(run('groundAt(112,-92)'),54);
+for(const island of run('Object.values(ISLANDS)')){const scales=Array.from({length:360},(_,i)=>run(`minorIslandScale(${i}*Math.PI/180,${island.phase})`));assert.ok(Math.max(...scales)-Math.min(...scales)>.45,'satellite island outline is strongly asymmetric')}
 assert.ok(run('Math.hypot(BRIDGES[0][2]+105,BRIDGES[0][3]+105)')>27,'tower bridge ends at the island rim');
+assert.ok(run('ISLANDS.tower.r*minorIslandScale(Math.atan2(BRIDGES[0][3]-ISLANDS.tower.z,BRIDGES[0][2]-ISLANDS.tower.x),ISLANDS.tower.phase)-Math.hypot(BRIDGES[0][2]-ISLANDS.tower.x,BRIDGES[0][3]-ISLANDS.tower.z)')<1,'tower bridge overlaps the irregular rim only enough for safe walking');
 assert.equal(run('treeBatches.length'),5,'all trees share five draw batches');assert.ok(run('treeParts.branch.length')>=150);assert.ok(run('treeParts.leaf0.length+treeParts.leaf1.length+treeParts.leaf2.length')>=350);
 for(const m of run('scene.children').filter(m=>m.isMesh))assert.ok(Number.isFinite(m.position.y),'finite scene position');
 

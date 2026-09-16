@@ -107,12 +107,13 @@ const cyl=(r,h,p,mat=MAT.stone,n=24)=>mesh(new THREE.CylinderGeometry(r,r*1.08,h
 let seed=8128;
 function random(){seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/4294967296}
 function mainIslandScale(a){return Math.max(.83,1+.22*Math.sin(a*3+.7)+.12*Math.sin(a*5-1.1)+.055*Math.sin(a*9+.3))}
-function island(px,top,pz,r,depth,organic=false){
+function minorIslandScale(a,phase=0){return Math.max(.76,1+.19*Math.sin(a*2+phase)+.11*Math.sin(a*5-phase*.7)+.06*Math.sin(a*9+phase*1.3))}
+function island(px,top,pz,r,depth,organic=false,phase=0){
   const g=new THREE.CylinderGeometry(r,r*.18,depth,56,7),v=g.attributes.position;
   const colors=[];
   for(let i=0;i<v.count;i++){
     const xx=v.getX(i),zz=v.getZ(i),yy=v.getY(i),a=Math.atan2(zz,xx);
-    const rough=(organic?mainIslandScale(a):1+.05*Math.sin(a*9)+.035*Math.sin(a*17))*(1+.018*Math.sin(yy*.21+a*4));
+    const rough=(organic?mainIslandScale(a):minorIslandScale(a,phase))*(1+.022*Math.sin(yy*.21+a*4));
     v.setXYZ(i,xx*rough,yy,zz*rough);
     const shade=.63+(yy/depth+.5)*.35+.055*Math.sin(a*12+yy*.3);
     colors.push(shade,shade*.89,shade*.75);
@@ -121,14 +122,13 @@ function island(px,top,pz,r,depth,organic=false){
   const rock=new THREE.MeshStandardMaterial({vertexColors:true,roughness:1,map:surfaceMaps.cliff.color,bumpMap:surfaceMaps.cliff.height,bumpScale:.24});
   const uv=g.attributes.uv;for(let i=0;i<uv.count;i++)uv.setXY(i,uv.getX(i)*r*mathTau/7,uv.getY(i)*depth/7);
   mesh(g,rock,[px,top-depth/2-1,pz]);
-  if(organic){
-    const cap=new THREE.CylinderGeometry(r,r,1,64,1),cv=cap.attributes.position;
-    for(let i=0;i<cv.count;i++){const x=cv.getX(i),z=cv.getZ(i),scale=mainIslandScale(Math.atan2(z,x));cv.setXYZ(i,x*scale,cv.getY(i),z*scale)}
-    cap.computeVertexNormals();cameraBlockers.push(mesh(cap,MAT.grass,[px,top-.5,pz]));
-  }else cameraBlockers.push(cyl(r,1,[px,top-.5,pz],MAT.grass,64));
+  const cap=new THREE.CylinderGeometry(r,r,1,64,1),cv=cap.attributes.position;
+  for(let i=0;i<cv.count;i++){const x=cv.getX(i),z=cv.getZ(i),a=Math.atan2(z,x),scale=organic?mainIslandScale(a):minorIslandScale(a,phase);cv.setXYZ(i,x*scale,cv.getY(i),z*scale)}
+  cap.computeVertexNormals();cameraBlockers.push(mesh(cap,MAT.grass,[px,top-.5,pz]));
 }
 const mathTau=Math.PI*2;
-island(0,3,0,67,48,true);island(-105,34,-105,29,45);island(112,54,-92,25,58);island(78,7,100,22,32);
+const ISLANDS={tower:{x:-105,z:-105,r:29,phase:1.8},mill:{x:112,z:-92,r:25,phase:0},palace:{x:78,z:100,r:22,phase:3.7}};
+island(0,3,0,67,48,true);island(-105,34,-105,29,45,false,ISLANDS.tower.phase);island(112,54,-92,25,58,false,ISLANDS.mill.phase);island(78,7,100,22,32,false,ISLANDS.palace.phase);
 cameraBlockers.push(cyl(35,15,[28,10.5,-18],MAT.stone,48));
 const BRIDGES=[[-48,-45,-86,-85,3,34],[47,-43,93,-78,18,54],[49,44,70,84,3,7]];
 function bridgeSample(x,z,b){
@@ -341,7 +341,7 @@ for(const [x,z,r] of [[-55,18,.2],[57,-8,-.35],[-20,58,1.9],[31,45,2.75]]){
 const orbMat=new THREE.MeshStandardMaterial({color:0xffd7dc,emissive:0xff8faa,emissiveIntensity:1.2,transparent:true,opacity:.72,roughness:.2});
 for(let i=0;i<7;i++){const orb=new THREE.Mesh(new THREE.SphereGeometry(.7+random()*1.1,24,16),orbMat);const a=random()*mathTau,r=38+random()*28;orb.position.set(Math.cos(a)*r,8+random()*17,Math.sin(a)*r);scene.add(orb);dreamObjects.push({object:orb,baseY:orb.position.y,phase:random()*mathTau})}
 // Distant silhouettes.
-for(let i=0;i<12;i++){const a=i/12*Math.PI*2,r=280+random()*110;island(Math.cos(a)*r,-5+random()*35,Math.sin(a)*r,18+random()*28,45+random()*30)}
+for(let i=0;i<12;i++){const a=i/12*Math.PI*2,r=280+random()*110;island(Math.cos(a)*r,-5+random()*35,Math.sin(a)*r,18+random()*28,45+random()*30,false,random()*mathTau)}
 
 // Traveler avatar.
 const player=new THREE.Group();scene.add(player);
@@ -428,9 +428,7 @@ const discoveries=[
 function groundAt(x,z,maxBridgeHeight=Infinity){
   for(const b of BRIDGES){const y=bridgeSample(x,z,b);if(y!==null&&y<=maxBridgeHeight)return y}
   if(Math.abs(x-28)<=4&&z>=9&&z<=39)return 3+(39-z)*.5;
-  if(Math.hypot(x-112,z+92)<25)return 54;
-  if(Math.hypot(x+105,z+105)<29)return 34;
-  if(Math.hypot(x-78,z-100)<22)return 7;
+  for(const [island,y] of [[ISLANDS.mill,54],[ISLANDS.tower,34],[ISLANDS.palace,7]]){const dx=x-island.x,dz=z-island.z,a=Math.atan2(dz,dx);if(Math.hypot(dx,dz)<island.r*minorIslandScale(a,island.phase))return y}
   if(Math.hypot(x-28,z+18)<35)return 18;
   const mainDistance=Math.hypot(x,z);if(mainDistance<67*mainIslandScale(Math.atan2(z,x)))return 3;
   return -Infinity;
