@@ -42,7 +42,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.186.0/build/three.m
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { WorldAudio } from './audio.js';
 import { MotionEffects } from './effects.js';
-import { applyTravelerDesign, updateTravelerTraces } from './character-designs.js';
+import { applyTravelerDesign } from './character-designs.js';
 
 const scene=new THREE.Scene();
 scene.background=new THREE.Color(0xbacbd0);scene.fog=new THREE.FogExp2(0xbacbd0,.0028);
@@ -490,7 +490,6 @@ function update(dt,t){
   if(horizontalSpeed>.2)travelYaw=Math.atan2(-velocity.x,-velocity.z);
   let turn=0;
   if(moving){const angle=Math.atan2(velocity.x,velocity.z);turn=Math.atan2(Math.sin(angle-player.rotation.y),Math.cos(angle-player.rotation.y));player.rotation.y+=turn*(1-Math.exp(-7*dt))}
-  updateTravelerTraces(player,t,Math.hypot(velocity.x,velocity.z),flying);
   flightBlend=THREE.MathUtils.damp(flightBlend,flying?1:0,3,dt);
   bob+=Math.min(horizontalSpeed,11)*dt*1.5;
   const stride=Math.min(1,horizontalSpeed/5.8)*(1-flightBlend),swing=Math.sin(bob)*stride;

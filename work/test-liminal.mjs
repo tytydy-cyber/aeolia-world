@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import vm from 'node:vm';
 import * as THREE from './three.core.mjs';
-import {applyTravelerDesign,updateTravelerTraces} from '../outputs/character-designs.js';
+import {applyTravelerDesign} from '../outputs/character-designs.js';
 
 const js=readFileSync(new URL('../outputs/liminal.js',import.meta.url),'utf8');
 const html=readFileSync(new URL('../outputs/liminal.html',import.meta.url),'utf8');
@@ -26,5 +26,4 @@ assert.ok(mobile.includes('pointerdown')&&mobile.includes('pointercancel')&&mobi
 const player=new THREE.Group(),model=new THREE.Group(),coat=new THREE.Mesh(new THREE.BoxGeometry(),new THREE.MeshStandardMaterial());coat.name='Sculpted coat';coat.material.name='Coat';const hat=new THREE.Mesh(new THREE.BoxGeometry(),new THREE.MeshStandardMaterial());hat.name='Hat brim';model.add(coat,hat);
 applyTravelerDesign(THREE,player,model,'mist');assert.equal(hat.visible,false);assert.equal(player.userData.designVariants.mist.visible,true);assert.equal(player.userData.designVariants.lilac.visible,false);
 applyTravelerDesign(THREE,player,model,'lilac');assert.equal(player.userData.designVariants.mist.visible,false);assert.equal(player.userData.designVariants.lilac.visible,true);assert.ok(player.userData.designVariants.lilac.children.length>=4,'lilac changes silhouette');
-updateTravelerTraces(player,1000,20,true);
 console.log('PASS: two independent worlds, 10 discoveries, station routes, shared movement/audio/effects controls.');

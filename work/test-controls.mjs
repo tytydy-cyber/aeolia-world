@@ -5,7 +5,7 @@ import * as Core from './three.core.mjs';
 import {loadHouse} from './asset-loader.mjs';
 import {WorldAudio} from '../outputs/audio.js';
 import {MotionEffects} from '../outputs/effects.js';
-import {applyTravelerDesign,updateTravelerTraces} from '../outputs/character-designs.js';
+import {applyTravelerDesign} from '../outputs/character-designs.js';
 
 // Actual scene and movement code, actual Three.js geometry; only DOM/GPU are mocked.
 const listeners=new Map(),elements=new Map();
@@ -13,7 +13,7 @@ const on=(name,fn)=>{if(!listeners.has(name))listeners.set(name,[]);listeners.ge
 function element(tagName='DIV'){return {tagName,events:new Map(),style:{},classList:{add(){},remove(){}},addEventListener(type,fn){if(!this.events.has(type))this.events.set(type,[]);this.events.get(type).push(fn)},setAttribute(){},focus(){document.activeElement=this;dispatch('focusin',{target:this})},setPointerCapture(){},remove(){},querySelector(){return element()},getContext(){return {createRadialGradient(){return {addColorStop(){}}},createLinearGradient(){return {addColorStop(){}}},fillRect(){}}}}}
 const document={body:{tagName:'BODY',prepend(){}},hidden:false,addEventListener:on,createElement:element,querySelector(s){if(!elements.has(s))elements.set(s,element(['#paceInput','#soundVolume','#effectsToggle'].includes(s)?'INPUT':s==='#characterSelect'?'SELECT':['#enter','#soundToggle'].includes(s)?'BUTTON':'DIV'));return elements.get(s)}};
 class Renderer{constructor(){this.domElement=element('CANVAS');this.shadowMap={}}setPixelRatio(){}setSize(){}render(){}}
-class TextureLoader{load(path){assert.ok(readFileSync(new URL('../outputs/'+path,import.meta.url)).length>100,'texture file exists');return new Core.Texture()}}
+class TextureLoader{load(path){assert.ok(readFileSync(new URL('../outputs/'+path.split('?')[0],import.meta.url)).length>100,'texture file exists');return new Core.Texture()}}
 const houseAsset=await loadHouse();
 let assetMeshes=0,assetTriangles=0;
 houseAsset.scene.traverse(o=>{if(o.isMesh){assetMeshes++;assetTriangles+=(o.geometry.index?.count??o.geometry.attributes.position.count)/3}});
@@ -22,7 +22,7 @@ console.log(`Blender asset: ${assetMeshes} material batches, ${assetTriangles} t
 let assetCallback;
 class Loader{load(url,callback){assert.ok(['assets/aeolia-house.glb','assets/aeolia-traveler.glb'].includes(url));if(url.endsWith('house.glb'))assetCallback=callback}}
 const localStorage={data:new Map(),getItem(k){return this.data.get(k)||null},setItem(k,v){this.data.set(k,String(v))}};
-const context=vm.createContext({THREE:{...Core,WebGLRenderer:Renderer,TextureLoader},GLTFLoader:Loader,WorldAudio,MotionEffects,applyTravelerDesign,updateTravelerTraces,document,localStorage,innerWidth:1280,innerHeight:800,devicePixelRatio:1,addEventListener:on,requestAnimationFrame(){},setTimeout(){},console:{...console,assert(condition,message){assert.ok(condition,message)}},performance});
+const context=vm.createContext({THREE:{...Core,WebGLRenderer:Renderer,TextureLoader},GLTFLoader:Loader,WorldAudio,MotionEffects,applyTravelerDesign,document,localStorage,innerWidth:1280,innerHeight:800,devicePixelRatio:1,addEventListener:on,requestAnimationFrame(){},setTimeout(){},console:{...console,assert(condition,message){assert.ok(condition,message)}},performance});
 const html=readFileSync(new URL('../outputs/aeolia.html',import.meta.url),'utf8');
 const script=html.match(/<script type="module">([\s\S]*?)<\/script>/)[1].replace(/^import .*$/gm,'');
 vm.runInContext(script,context);
