@@ -20,7 +20,7 @@ for(const [key,stage] of Object.entries(stages)){
 for(const code of ['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','KeyW','KeyA','KeyS','KeyD','KeyF','KeyC','KeyQ','KeyE','ControlLeft'])assert.ok(js.includes(code),`${code} remains supported`);
 assert.ok(js.includes("new MotionEffects")&&js.includes("new WorldAudio"),'existing effects and audio are shared');
 assert.ok(hub.includes('aeolia.html')&&hub.includes('stage=parallax')&&hub.includes('stage=somnia'),'station exposes all worlds');
-assert.ok(html.includes('停留所へ戻る')&&html.includes('SPACE / SHIFT'),'worlds retain return and flight controls');
+assert.ok(html.includes('世界選択へ')&&html.includes('SPACE / SHIFT'),'worlds retain return and flight controls');
 for(const code of ['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','KeyF','Space','ShiftLeft'])assert.ok(mobile.includes(code),`mobile control exposes ${code}`);
 assert.ok(mobile.includes('pointerdown')&&mobile.includes('pointercancel')&&mobile.includes('touch-action:none'),'mobile press-and-hold and swipe coexist safely');
 const player=new THREE.Group(),model=new THREE.Group(),coat=new THREE.Mesh(new THREE.BoxGeometry(),new THREE.MeshStandardMaterial());coat.name='Sculpted coat';coat.material.name='Coat';const hat=new THREE.Mesh(new THREE.BoxGeometry(),new THREE.MeshStandardMaterial());hat.name='Hat brim';model.add(coat,hat);

@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>雲海停留所 — AEOLIA</title>
+<title>世界選択 — AEOLIA</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;600&family=Space+Mono&display=swap');
 *{box-sizing:border-box}html,body{margin:0;min-height:100%;background:#bacbd0;color:#f8f1dc;font-family:'Shippori Mincho',serif}body{overflow-x:hidden}
@@ -10,17 +10,17 @@ main{position:relative;min-height:100vh;padding:7vh 7vw 6vh}.head{display:grid;g
 .foot{display:flex;justify-content:space-between;gap:24px;margin-top:20px;font:10px 'Space Mono';letter-spacing:.09em;color:#1e3a46}.journal{border:0;background:none;color:inherit;font:inherit;cursor:pointer;text-decoration:underline}.sheet{position:fixed;inset:auto 6vw 6vh;z-index:5;max-height:76vh;overflow:auto;padding:30px;background:#102a38f2;border:1px solid #e8d8aa88;box-shadow:0 16px 80px #17303d99}.sheet[hidden]{display:none}.sheet button{float:right;background:none;border:1px solid #f4d37e;color:#fff;padding:7px 11px;cursor:pointer}.entries{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;clear:both;padding-top:20px}.entry{min-height:110px;padding:15px;border:1px solid #e8d8aa55}.entry small{font:9px 'Space Mono';color:#f5d488}.entry p{font-size:12px;line-height:1.7}
 @media(max-width:800px){main{padding:5vh 5vw}.platform{grid-template-columns:1fr}.gate{min-height:34vh}.clock{display:none}}
 </style></head><body><div class="sky"></div><main>
-<header class="head"><div><span class="eyebrow">THE TERMINUS ABOVE CLOUDS</span><h1>雲海停留所</h1></div><div class="clock">行先はすべて開通<br><span id="found">記録 0</span></div></header>
+<header class="head"><div><span class="eyebrow">WORLD SELECT</span><h1>世界選択</h1></div><div class="clock">3つのエリア<br><span id="found">発見 0</span></div></header>
 <section class="platform" aria-label="世界を選ぶ">
-<a class="gate aeolia" href="aeolia.html"><span class="number">ARCHIPELAGO 01</span><h2>AEOLIA</h2><p>風が記憶する街。雲海の島々を歩き、飛ぶ。</p></a>
-<a class="gate parallax" href="liminal.html?stage=parallax"><span class="number">CLOSED COMPLEX 02</span><h2>パララックス</h2><p>閉館した複数の施設が、ひとつの建物として続いている。</p></a>
-<a class="gate somnia" href="liminal.html?stage=somnia"><span class="number">FORGOTTEN SUBURB 03</span><h2>ソムニア</h2><p>夕方の学校から、朝の来ない公園へ。</p></a>
+<a class="gate aeolia" href="aeolia.html"><span class="number">FLOATING ISLANDS 01</span><h2>浮島の街</h2><p>街と浮島を歩き、空を飛ぶ。</p></a>
+<a class="gate parallax" href="liminal.html?stage=parallax"><span class="number">CLOSED COMPLEX 02</span><h2>閉鎖施設</h2><p>ホテル、学校、浴場、商業施設がつながっている。</p></a>
+<a class="gate somnia" href="liminal.html?stage=somnia"><span class="number">SUBURB 03</span><h2>郊外</h2><p>学校、団地、公園を歩く。</p></a>
 </section>
-<footer class="foot"><span>扉を選んで世界へ</span><button class="journal" id="journal">旅の記録を見る</button></footer>
-</main><section class="sheet" id="sheet" hidden><button id="close">閉じる</button><span class="status">FIELD NOTES</span><h2>旅の記録</h2><div class="entries" id="entries"></div></section>
+<footer class="foot"><span>エリアを選ぶ</span><button class="journal" id="journal">発見記録を見る</button></footer>
+</main><section class="sheet" id="sheet" hidden><button id="close">閉じる</button><span class="status">DISCOVERIES</span><h2>発見記録</h2><div class="entries" id="entries"></div></section>
 <script>
-const notes=JSON.parse(localStorage.getItem('aeolia-notes')||'[]'),found=document.querySelector('#found');found.textContent=`記録 ${notes.length}`;
+const notes=JSON.parse(localStorage.getItem('aeolia-notes')||'[]'),found=document.querySelector('#found');found.textContent=`発見 ${notes.length}`;
 const sheet=document.querySelector('#sheet'),entries=document.querySelector('#entries');
-document.querySelector('#journal').onclick=()=>{entries.innerHTML=notes.length?notes.map(n=>`<article class="entry"><small>${n.world}</small><h3>${n.name}</h3><p>${n.text}</p></article>`).join(''):'<p>記録はまだありません。</p>';sheet.hidden=false};
+document.querySelector('#journal').onclick=()=>{entries.innerHTML=notes.length?notes.map(n=>`<article class="entry"><small>${n.world}</small><h3>${n.name}</h3><p>${n.text}</p></article>`).join(''):'<p>まだ発見はありません。</p>';sheet.hidden=false};
 document.querySelector('#close').onclick=()=>sheet.hidden=true;addEventListener('keydown',e=>{if(e.code==='Escape')sheet.hidden=true});
 </script></body></html>

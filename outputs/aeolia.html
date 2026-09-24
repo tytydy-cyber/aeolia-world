@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>AEOLIA — 雲海紀行</title>
+<title>AEOLIA — 浮島の街</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;600&family=Space+Mono&display=swap');
 *{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#8da9b5;color:#f7f0dc;font-family:'Shippori Mincho',serif}canvas{display:block;cursor:grab}
@@ -24,14 +24,14 @@
 </style>
 </head>
 <body>
-<div id="veil"><section class="opening"><div class="eyebrow">A journey above the clouds</div><h1>AEOLIA<i>風が記憶する街</i></h1><p>十字キーで歩く。Fで空へ。<br>ドラッグで見渡し、Cで進行方向へ戻せます。</p><button id="enter">世界に入る　↗</button></section></div>
-<div id="hud"><div class="brand"><small>ARCHIPELAGO 01</small>雲海紀行</div><div class="place"><small>NOW PASSING</small><span id="place">風見のテラス</span></div></div>
+<div id="veil"><section class="opening"><div class="eyebrow">FLOATING ISLANDS</div><h1>AEOLIA<i>浮島の街</i></h1><p>十字キーで歩く。Fで飛ぶ。<br>ドラッグで見渡し、Cで進行方向へ戻せます。</p><button id="enter">入る　↗</button></section></div>
+<div id="hud"><div class="brand"><small>FLOATING ISLANDS 01</small>浮島の街</div><div class="place"><small>NEARBY</small><span id="place">中央広場</span></div></div>
 <div id="mode"><i class="line"></i><span id="modeText">WALKING</span></div>
 <label id="pace">速さ <input id="paceInput" type="range" min="0.7" max="1.6" step="0.1" value="1" aria-label="移動速度の倍率"><output id="paceValue">1.0×</output></label>
 <div id="soundControls"><button id="soundToggle" type="button" aria-pressed="false">消音</button><label>音量<input id="soundVolume" type="range" min="0" max="100" value="35" aria-label="音量"></label><span id="soundNotice" role="status"></span></div>
 <span id="assetState" role="status">建物を読み込み中…</span>
 <label id="effectsControl"><input id="effectsToggle" type="checkbox" checked>移動エフェクト</label>
-<label id="characterControl">旅人 <select id="characterSelect" aria-label="主人公のデザイン"><option value="ember">黄昏の旅人</option><option value="mist">霧青の旅人</option><option value="lilac">夢紫の旅人</option></select></label>
+<label id="characterControl">主人公 <select id="characterSelect" aria-label="主人公のデザイン"><option value="ember">帽子の旅人</option><option value="mist">フードの旅人</option><option value="lilac">光輪の旅人</option></select></label>
 <output id="perf" hidden></output>
 <div id="help"><b class="key">↑ ↓ ← →</b> 移動 <b class="key">ドラッグ</b> 見渡す <b class="key">Q E</b> 旋回 <b class="key">C</b> 正面 <b class="key">F</b> 飛行 <b class="key">SPACE / SHIFT</b> 上昇 / 下降 <b class="key">Ctrl</b> 加速 <b class="key">Esc</b> 設定終了</div>
 <div id="discovery"><small>DISCOVERED</small><div></div></div>
@@ -417,10 +417,10 @@ function focusWorld(){if(started)renderer.domElement.focus({preventScroll:true})
 document.addEventListener('focusin',e=>{if(['INPUT','BUTTON','SELECT','TEXTAREA'].includes(e.target?.tagName))resetInput()});
 let yaw=0,pitch=.28,flying=false,started=false,bob=0,lastSafe=player.position.clone(),dragging=false,flightBlend=0,nextDiscovery=0,recenterYaw=null,travelYaw=0;
 const discoveries=[
-  {name:'風がほどける市場',p:new THREE.Vector3(-30,3,-30),done:false},
-  {name:'千年鐘の塔',p:new THREE.Vector3(-105,33,-105),done:false},
-  {name:'渡り鳥の風車',p:new THREE.Vector3(112,53,-92),done:false},
-  {name:'雲を映す離宮',p:new THREE.Vector3(78,6,100),done:false}
+  {name:'市場',p:new THREE.Vector3(-30,3,-30),done:false},
+  {name:'鐘楼',p:new THREE.Vector3(-105,33,-105),done:false},
+  {name:'風車',p:new THREE.Vector3(112,53,-92),done:false},
+  {name:'離宮',p:new THREE.Vector3(78,6,100),done:false}
 ];
 function groundAt(x,z,maxBridgeHeight=Infinity){
   for(const b of BRIDGES){const y=bridgeSample(x,z,b);if(y!==null&&y<=maxBridgeHeight)return y}
