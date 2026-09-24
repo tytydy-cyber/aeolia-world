@@ -28,6 +28,9 @@ def cube(name,loc,scale,material,bevel=.06):
 def cyl(name,loc,radius,depth,material,vertices=32):
     bpy.ops.mesh.primitive_cylinder_add(vertices=vertices,radius=radius,depth=depth,location=loc);o=bpy.context.object;o.name=name;o.data.materials.append(material);return smooth(o,.025)
 
+def cone(name,loc,radius1,radius2,depth,material,vertices=40):
+    bpy.ops.mesh.primitive_cone_add(vertices=vertices,radius1=radius1,radius2=radius2,depth=depth,location=loc);o=bpy.context.object;o.name=name;o.data.materials.append(material);return smooth(o,.045)
+
 def torus(name,loc,major,minor,material,rot=(0,0,0)):
     bpy.ops.mesh.primitive_torus_add(major_radius=major,minor_radius=minor,major_segments=36,minor_segments=10,location=loc,rotation=rot);o=bpy.context.object;o.name=name;o.data.materials.append(material);return smooth(o,0)
 
@@ -50,9 +53,12 @@ def bind(obj,bone_name):
     modifier=obj.modifiers.new('Traveler rig','ARMATURE');modifier.object=rig
 
 # Rounded coat, layered mantle and tailored front.
-coat=uv_sphere('Sculpted coat',(0,0,1.65),(.67,.5,1.02),cloth);bind(coat,'spine')
+coat=cone('Flared coat',(0,.02,1.55),.72,.48,1.9,cloth);coat.scale.y=.78;bind(coat,'spine')
 waist=cyl('Belt',(0,0,1.86),.52,.09,leather);bind(waist,'spine')
 mantle=uv_sphere('Shoulder mantle',(0,-.015,2.4),(.61,.48,.36),darkcloth);bind(mantle,'spine')
+cape=uv_sphere('Back cape',(0,.34,1.78),(.78,.22,1.05),darkcloth);bind(cape,'spine')
+for side in (-1,1):
+    lapel=cube('Layered lapel',(side*.25,-.43,2.06),(.18,.075,.53),darkcloth,.1);lapel.rotation_euler[1]=side*.22;bind(lapel,'spine')
 for z in (1.48,1.76,2.04,2.3):
     b=uv_sphere('Brass button',(0,-.505,z),(.045,.035,.045),gold,16,10);bind(b,'spine')
 
