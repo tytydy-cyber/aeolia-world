@@ -19,6 +19,7 @@
 @media(max-width:650px){#hud{padding:20px}.brand{font-size:13px}.place{font-size:11px}#help{right:20px;bottom:20px;max-width:60%;flex-wrap:wrap;justify-content:flex-end}#mode{left:20px;bottom:20px}.opening{padding:25px}}
 #effectsControl{position:fixed;z-index:11;left:34px;bottom:130px;display:flex;gap:6px;align-items:center;font:11px system-ui;color:#fff;text-shadow:0 1px 5px #16313d}#effectsControl input{accent-color:#e7ba67}
 #characterControl{position:fixed;z-index:11;left:34px;bottom:160px;display:flex;gap:8px;align-items:center;font:11px system-ui;color:#fff;text-shadow:0 1px 5px #16313d}#characterControl select{color:#fff;background:#16313dcc;border:1px solid #e7ba6790;border-radius:3px;padding:5px 8px;font:inherit}#characterControl select:focus-visible{outline:2px solid #e7ba67;outline-offset:3px}
+.return{position:fixed;z-index:12;left:34px;top:82px;color:#f7f0dc;text-decoration:none;font:11px 'Space Mono';letter-spacing:.08em;text-shadow:0 2px 8px #16313d}
 #perf{position:fixed;z-index:30;right:12px;top:12px;padding:7px 9px;background:#102b3add;color:#fff;font:11px 'Space Mono';white-space:pre;pointer-events:none}
 @media(prefers-reduced-motion:reduce){#veil,#discovery{transition:none}}
 </style>
@@ -32,8 +33,9 @@
 <span id="assetState" role="status">建物を読み込み中…</span>
 <label id="effectsControl"><input id="effectsToggle" type="checkbox" checked>移動エフェクト</label>
 <label id="characterControl">主人公 <select id="characterSelect" aria-label="主人公のデザイン"><option value="ember">帽子の旅人</option><option value="mist">フードの旅人</option><option value="lilac">光輪の旅人</option></select></label>
+<a class="return" href="index.html">世界選択へ</a>
 <output id="perf" hidden></output>
-<div id="help"><b class="key">↑ ↓ ← →</b> 移動 <b class="key">ドラッグ</b> 見渡す <b class="key">Q E</b> 旋回 <b class="key">C</b> 正面 <b class="key">F</b> 飛行 <b class="key">SPACE / SHIFT</b> 上昇 / 下降 <b class="key">Ctrl</b> 加速 <b class="key">Esc</b> 設定終了</div>
+<div id="help"><b class="key">↑ ↓ ← →</b> 移動 <b class="key">ドラッグ</b> 見渡す <b class="key">F</b> 飛行切替 <b class="key">SPACE</b> 上昇 <b class="key">SHIFT</b> 下降 <b class="key">Q E</b> 旋回 <b class="key">C</b> 正面 <b class="key">Ctrl</b> 加速 <b class="key">Esc</b> 設定終了</div>
 <div id="discovery"><small>DISCOVERED</small><div></div></div>
 <div id="error">3D世界を読み込めませんでした。インターネット接続を確認して、ページを再読み込みしてください。</div>
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.186.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.186.0/examples/jsm/"}}</script>

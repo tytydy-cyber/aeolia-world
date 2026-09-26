@@ -8,7 +8,7 @@ const stageKey=new URLSearchParams(location.search).get('stage')==='somnia'?'som
 const STAGES={
   parallax:{name:'閉鎖施設',code:'COMPLEX 02',intro:'ホテル、学校、浴場、商業施設が一つにつながっている。',sky:0x747462,fog:0x777666,fogDensity:.0045,ground:0x82775e,spawn:[11,0,63],limitY:21,
     notes:[[-55,0,34,'宴会場','椅子が並んでいる。'],[52,0,38,'受付','呼び鈴が置かれている。'],[-52,0,-38,'浴場','水は抜かれている。'],[48,0,-42,'搬入口','案内板がある。'],[0,0,-69,'渡り廊下','窓の外にも廊下が見える。']]},
-  somnia:{name:'郊外',code:'SUBURB 03',intro:'学校、団地、公園を歩ける。',sky:0xa8b3d4,fog:0xb9b6ca,fogDensity:.0034,ground:0x8b9877,spawn:[0,0,62],limitY:48,
+  somnia:{name:'郊外',code:'SOLARPUNK SUBURB 03',intro:'発電設備と空中庭園に覆われた学校、団地、公園を歩く。',sky:0x92c8c5,fog:0xb8d5bf,fogDensity:.0032,ground:0x718c69,spawn:[0,0,62],limitY:48,
     notes:[[-54,0,24,'昇降口','靴箱に上履きがある。'],[53,0,30,'団地','同じカーテンが並んでいる。'],[-45,0,-42,'公園','遊具の影が動く。'],[47,0,-45,'プール','水面に教室の天井が映っている。'],[0,0,-74,'非常口','外は草地につながっている。']]}
 };
 const cfg=STAGES[stageKey];
@@ -17,15 +17,15 @@ document.title=`${cfg.name} — AEOLIA`;for(const id of ['title','worldName'])do
 const scene=new THREE.Scene();scene.background=new THREE.Color(cfg.sky);scene.fog=new THREE.FogExp2(cfg.fog,cfg.fogDensity);
 const camera=new THREE.PerspectiveCamera(60,innerWidth/innerHeight,.1,650),renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});
 renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));renderer.setSize(innerWidth,innerHeight);renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFShadowMap;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.02;renderer.domElement.tabIndex=0;document.body.prepend(renderer.domElement);
-scene.add(new THREE.HemisphereLight(stageKey==='parallax'?0xded4a2:0xcdd9ff,stageKey==='parallax'?0x35362e:0x625a72,1.9));
-const sun=new THREE.DirectionalLight(stageKey==='parallax'?0xffe4a3:0xffd1d9,2.2);sun.position.set(-45,85,30);sun.castShadow=true;sun.shadow.mapSize.set(1024,1024);sun.shadow.camera.left=sun.shadow.camera.bottom=-100;sun.shadow.camera.right=sun.shadow.camera.top=100;scene.add(sun);
+scene.add(new THREE.HemisphereLight(stageKey==='parallax'?0xded4a2:0xffefd1,stageKey==='parallax'?0x35362e:0x516953,1.9));
+const sun=new THREE.DirectionalLight(stageKey==='parallax'?0xffe4a3:0xffd27a,stageKey==='parallax'?2.2:2.55);sun.position.set(-45,85,30);sun.castShadow=true;sun.shadow.mapSize.set(1024,1024);sun.shadow.camera.left=sun.shadow.camera.bottom=-100;sun.shadow.camera.right=sun.shadow.camera.top=100;scene.add(sun);
 function patternTexture(base,line,kind){const c=document.createElement('canvas');c.width=c.height=128;const x=c.getContext('2d');x.fillStyle=base;x.fillRect(0,0,128,128);x.fillStyle=line;
   if(kind==='carpet')for(let i=0;i<520;i++){const px=(i*47)%128,py=(i*79)%128;x.globalAlpha=.08+(i%5)*.025;x.fillRect(px,py,1+(i%3),1)}
   else{for(let i=0;i<=128;i+=16){x.globalAlpha=.16;x.fillRect(i,0,1,128);x.fillRect(0,i,128,1)}}
   const t=new THREE.CanvasTexture(c);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.repeat.set(kind==='carpet'?18:8,kind==='carpet'?15:5);t.colorSpace=THREE.SRGBColorSpace;return t}
 const floorMap=patternTexture(stageKey==='parallax'?'#85795d':'#879475',stageKey==='parallax'?'#413d34':'#43533e','carpet'),wallMap=patternTexture(stageKey==='parallax'?'#c9c39e':'#d5d0c6','#8c876f','grid');
 const mats={
-  carpet:new THREE.MeshStandardMaterial({map:floorMap,roughness:1}),wall:new THREE.MeshStandardMaterial({map:wallMap,roughness:.9}),dark:new THREE.MeshStandardMaterial({color:0x273238,roughness:.75}),wood:new THREE.MeshStandardMaterial({color:0x765645,roughness:.9}),pink:new THREE.MeshStandardMaterial({color:0xcf8fa4,roughness:.8}),water:new THREE.MeshPhysicalMaterial({color:0x7ca9bd,transparent:true,opacity:.72,roughness:.16}),glow:new THREE.MeshStandardMaterial({color:0xffecc0,emissive:0xffd98b,emissiveIntensity:1.3,roughness:.3})
+  carpet:new THREE.MeshStandardMaterial({map:floorMap,roughness:1}),wall:new THREE.MeshStandardMaterial({map:wallMap,roughness:.9}),dark:new THREE.MeshStandardMaterial({color:0x273238,roughness:.75}),wood:new THREE.MeshStandardMaterial({color:0x765645,roughness:.9}),pink:new THREE.MeshStandardMaterial({color:0xcf8fa4,roughness:.8}),water:new THREE.MeshPhysicalMaterial({color:0x7ca9bd,transparent:true,opacity:.72,roughness:.16}),glow:new THREE.MeshStandardMaterial({color:0xffecc0,emissive:0xffd98b,emissiveIntensity:1.3,roughness:.3}),solar:new THREE.MeshStandardMaterial({color:0x183e50,metalness:.72,roughness:.22,emissive:0x0c3541,emissiveIntensity:.45}),leaf:new THREE.MeshStandardMaterial({color:0x4d9b61,roughness:.82,emissive:0x183e23,emissiveIntensity:.2})
 };
 const colliders=[],world=new THREE.Group();scene.add(world);
 function mesh(g,m,x,y,z,shadow=true){const o=new THREE.Mesh(g,m);o.position.set(x,y,z);o.castShadow=shadow;o.receiveShadow=shadow;world.add(o);return o}
@@ -70,6 +70,13 @@ function buildSomnia(){
   // Trees as a small instanced grove.
   const trunks=new THREE.InstancedMesh(new THREE.CylinderGeometry(.25,.48,5,8),mats.wood,45),crowns=new THREE.InstancedMesh(new THREE.IcosahedronGeometry(2.2,1),new THREE.MeshStandardMaterial({color:0x667a64,roughness:1}),45),dummy=new THREE.Object3D();
   for(let i=0;i<45;i++){const a=i*2.399,r=74+(i%5)*5,x=Math.cos(a)*r,z=Math.sin(a)*r;dummy.position.set(x,2.5,z);dummy.updateMatrix();trunks.setMatrixAt(i,dummy.matrix);dummy.position.y=6;dummy.scale.set(1+(i%3)*.15,.8+(i%2)*.2,1);dummy.updateMatrix();crowns.setMatrixAt(i,dummy.matrix)}trunks.castShadow=crowns.castShadow=true;world.add(trunks,crowns);
+  // Solar roofs, planted balconies and elevated gardens establish the suburb's solarpunk identity.
+  const panels=new THREE.InstancedMesh(new THREE.BoxGeometry(5,.16,2.7),mats.solar,30);let p=0;
+  for(const [x,y,z] of [[-76,18.5,18],[-68,18.5,18],[-60,18.5,18],[-52,18.5,18],[-44,18.5,18],[-76,18.5,27],[-68,18.5,27],[-60,18.5,27],[-52,18.5,27],[-44,18.5,27]]){dummy.position.set(x,y,z);dummy.rotation.x=-.24;dummy.updateMatrix();panels.setMatrixAt(p++,dummy.matrix)}
+  for(const z of [15,42])for(const x of [51,58,65,72]){dummy.position.set(x,24.5,z);dummy.rotation.x=-.24;dummy.updateMatrix();panels.setMatrixAt(p++,dummy.matrix)}panels.count=p;panels.castShadow=true;world.add(panels);
+  const planters=new THREE.InstancedMesh(new THREE.IcosahedronGeometry(1.15,1),mats.leaf,48);let q=0;
+  for(const z of [7.2,34.2])for(let r=0;r<4;r++)for(let c=0;c<5;c++){dummy.position.set(46+c*8,5+r*5,z);dummy.rotation.set(0,0,0);dummy.scale.set(1.5,.65,.72);dummy.updateMatrix();planters.setMatrixAt(q++,dummy.matrix)}planters.count=q;planters.castShadow=true;world.add(planters);
+  for(const [x,z] of [[-18,-20],[25,-12],[74,-20]]){box(x,5,z,.9,10,.9,mats.wood);box(x,10,z,13,.45,13,mats.wood,true);const garden=mesh(new THREE.IcosahedronGeometry(5.4,2),mats.leaf,x,12,z);garden.scale.y=.42;for(let i=0;i<6;i++){const petal=box(x,15,z,5,.16,2.5,mats.solar,false);petal.rotation.y=i*Math.PI/3;petal.rotation.z=.18}}
 }
 (stageKey==='parallax'?buildParallax:buildSomnia)();
 
@@ -87,8 +94,10 @@ for(let i=0;i<8;i++)makeGroundCreature(i);for(let i=0;i<18;i++)makeBird(i);
 
 const player=new THREE.Group(),coat=new THREE.MeshStandardMaterial({color:0x526e78,roughness:.9}),skin=new THREE.MeshStandardMaterial({color:0xd9ad88,roughness:.8});scene.add(player);
 const robe=new THREE.Mesh(new THREE.CapsuleGeometry(.52,1.45,8,16),coat);robe.position.y=1.35;player.add(robe);const head=new THREE.Mesh(new THREE.SphereGeometry(.42,20,14),skin);head.position.y=2.65;player.add(head);const hat=new THREE.Mesh(new THREE.CylinderGeometry(.72,.78,.12,28),mats.wood);hat.position.y=3.02;player.add(hat);const crown=new THREE.Mesh(new THREE.CylinderGeometry(.38,.48,.34,24),mats.wood);crown.position.y=3.2;player.add(crown);player.traverse(o=>{if(o.isMesh)o.castShadow=true});player.position.set(...cfg.spawn);
-let avatarMixer=null,avatarActions={},avatarState='';function setAvatarAction(name){if(name===avatarState||!avatarActions[name])return;const next=avatarActions[name],previous=avatarActions[avatarState];next.reset().fadeIn(.2).play();if(previous)previous.fadeOut(.2);avatarState=name}
-new GLTFLoader().load('assets/aeolia-traveler.glb',gltf=>{const model=gltf.scene;model.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true}});player.add(model);applyTravelerDesign(THREE,player,model,localStorage.getItem('aeolia-character')||'ember');for(const o of [robe,head,hat,crown])o.visible=false;avatarMixer=new THREE.AnimationMixer(model);for(const clip of gltf.animations)avatarActions[clip.name]=avatarMixer.clipAction(clip);setAvatarAction('Idle')},undefined,error=>console.warn('Traveler model fallback in use',error));
+let avatarMixer=null,avatarActions={},avatarState='',avatarModel=null;function setAvatarAction(name){if(name===avatarState||!avatarActions[name])return;const next=avatarActions[name],previous=avatarActions[avatarState];next.reset().fadeIn(.2).play();if(previous)previous.fadeOut(.2);avatarState=name}
+function setCharacterStyle(name){applyTravelerDesign(THREE,player,avatarModel,name)}
+const characterSelect=document.querySelector('#characterSelect');characterSelect.value=localStorage.getItem('aeolia-character')||'ember';setCharacterStyle(characterSelect.value);characterSelect.addEventListener('change',e=>{localStorage.setItem('aeolia-character',e.target.value);setCharacterStyle(e.target.value);if(started)renderer.domElement.focus()});
+new GLTFLoader().load('assets/aeolia-traveler.glb',gltf=>{const model=gltf.scene;avatarModel=model;model.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true}});player.add(model);setCharacterStyle(characterSelect.value);for(const o of [robe,head,hat,crown])o.visible=false;avatarMixer=new THREE.AnimationMixer(model);for(const clip of gltf.animations)avatarActions[clip.name]=avatarMixer.clipAction(clip);setAvatarAction('Idle')},undefined,error=>console.warn('Traveler model fallback in use',error));
 const sound=new WorldAudio(),motionEffects=new MotionEffects(THREE,scene,camera);
 const keys={},velocity=new THREE.Vector3(),lastSafe=player.position.clone(),targetCam=new THREE.Vector3(),cameraFocus=player.position.clone().add(new THREE.Vector3(0,2,0)),focusTarget=new THREE.Vector3();let yaw=0,pitch=.25,flying=false,flightBlend=0,started=false,dragging=false,previous=null,bob=0,nextAnomaly=performance.now()+360000+Math.random()*240000,recenterYaw=null,travelYaw=0;
 function contains(c,x,z,margin=.55){return Math.abs(x-c.x)<c.w+margin&&Math.abs(z-c.z)<c.d+margin}
