@@ -8,12 +8,12 @@ function part(THREE,geometry,material,x,y,z,parent){const o=new THREE.Mesh(geome
 
 function clothFinish(THREE,player,materials){
   if(typeof Image==='undefined')return;
-  const maps=player.userData.clothMaps??=(()=>{const color=new THREE.TextureLoader().load('assets/traveler-cloth-v1.jpg?v=2');color.wrapS=color.wrapT=THREE.RepeatWrapping;color.repeat.set(1.35,1.35);color.colorSpace=THREE.SRGBColorSpace;const bump=color.clone();bump.colorSpace=THREE.NoColorSpace;return {color,bump}})();
+  const maps=player.userData.clothMaps??=(()=>{const loader=new THREE.TextureLoader(),color=loader.load('assets/traveler-cloth-v1.jpg?v=2'),bump=loader.load('assets/traveler-cloth-v1.jpg?v=2');for(const map of [color,bump]){map.wrapS=map.wrapT=THREE.RepeatWrapping;map.repeat.set(1.35,1.35)}color.colorSpace=THREE.SRGBColorSpace;bump.colorSpace=THREE.NoColorSpace;return {color,bump}})();
   for(const material of new Set(materials.flat().filter(Boolean))){material.map=maps.color;material.bumpMap=maps.bump;material.bumpScale=.035;material.roughness=Math.max(.82,material.roughness??0);material.needsUpdate=true}
 }
 
 function buildVariants(THREE,player){
-  const mist=new THREE.Group(),lilac=new THREE.Group();player.add(mist,lilac);
+  const mist=new THREE.Group(),lilac=new THREE.Group(),lilacHead=new THREE.Group();player.add(mist,lilac,lilacHead);
   const mistCloth=new THREE.MeshStandardMaterial({color:0x527b83,roughness:.9}),mistDark=new THREE.MeshStandardMaterial({color:0x274c59,roughness:.88}),glass=new THREE.MeshPhysicalMaterial({color:0xb9e5e3,metalness:.25,roughness:.18,transmission:.25});
   const hood=part(THREE,new THREE.SphereGeometry(.58,28,18,0,Math.PI*2,0,2.28),mistCloth,0,3.08,-.08,mist);hood.scale.set(1.08,1.06,.94);
   for(const side of [-1,1]){const lens=part(THREE,new THREE.TorusGeometry(.15,.035,8,22),glass,side*.18,3.1,.5,mist);lens.rotation.x=Math.PI/2}
@@ -24,16 +24,17 @@ function buildVariants(THREE,player){
 
   const lilacCloth=new THREE.MeshStandardMaterial({color:0x756183,roughness:.93}),lilacDark=new THREE.MeshStandardMaterial({color:0x433750,roughness:.92}),light=new THREE.MeshStandardMaterial({color:0xf1cad8,emissive:0xc46d9d,emissiveIntensity:1.1,roughness:.3});
   const mantle=part(THREE,new THREE.SphereGeometry(.86,28,18,0,Math.PI*2,0,1.35),lilacCloth,0,2.46,0,lilac);mantle.scale.set(1,.55,.8);
-  const hoodCone=part(THREE,new THREE.ConeGeometry(.53,1.45,28),lilacDark,0,3.72,-.05,lilac);hoodCone.rotation.z=-.12;
-  const halo=part(THREE,new THREE.TorusGeometry(.72,.035,8,40),light,0,3.65,-.08,lilac);halo.rotation.x=Math.PI/2;
+  const hoodCone=part(THREE,new THREE.ConeGeometry(.53,1.45,28),lilacDark,0,3.72,-.05,lilacHead);hoodCone.rotation.z=-.12;
+  const halo=part(THREE,new THREE.TorusGeometry(.72,.035,8,40),light,0,3.65,-.08,lilacHead);halo.rotation.x=Math.PI/2;
   const veil=part(THREE,new THREE.PlaneGeometry(1.18,2.5,4,12),lilacCloth,.12,1.85,-.6,lilac);veil.material.side=THREE.DoubleSide;veil.rotation.z=-.12;
   const lantern=part(THREE,new THREE.SphereGeometry(.2,18,12),light,.82,1.72,.12,lilac);part(THREE,new THREE.TorusGeometry(.24,.025,6,18,Math.PI),lilacDark,.82,2.02,.12,lilac).rotation.x=Math.PI/2;
-  return {mist,lilac,clothMaterials:[mistCloth,mistDark,lilacCloth,lilacDark]};
+  return {mist,lilac,lilacHead,clothMaterials:[mistCloth,mistDark,lilacCloth,lilacDark]};
 }
 
 export function applyTravelerDesign(THREE,player,model,name='ember'){
   const style=palettes[name]||palettes.ember,variants=player.userData.designVariants??=buildVariants(THREE,player);
-  variants.mist.visible=name==='mist';variants.lilac.visible=name==='lilac';
+  variants.mist.visible=name==='mist';variants.lilac.visible=variants.lilacHead.visible=name==='lilac';
+  const head=model?.getObjectByName('head');if(head&&variants.lilacHead.parent!==head){player.updateMatrixWorld(true);head.attach(variants.lilacHead)}
   const cloth=[...variants.clothMaterials];model?.traverse(o=>{if(!o.isMesh)return;const objectName=o.name.toLowerCase().replace(/[^a-z]/g,''),replaceClassic=name!=='ember'&&(objectName.includes('hat')||objectName.includes('satchel')||objectName.includes('scarf')),hideHair=name==='mist'&&objectName.includes('hair');o.visible=!replaceClassic&&!hideHair;for(const material of [o.material].flat()){const color=style[material.name];if(color!==undefined){material.color.setHex(color);cloth.push(material)}}});clothFinish(THREE,player,cloth);
   return style;
 }

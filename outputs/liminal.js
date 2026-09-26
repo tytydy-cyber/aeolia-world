@@ -31,7 +31,9 @@ const colliders=[],world=new THREE.Group();scene.add(world);
 function mesh(g,m,x,y,z,shadow=true){const o=new THREE.Mesh(g,m);o.position.set(x,y,z);o.castShadow=shadow;o.receiveShadow=shadow;world.add(o);return o}
 function box(x,y,z,w,h,d,m=mats.wall,solid=false){const o=mesh(new THREE.BoxGeometry(w,h,d),m,x,y,z);if(solid)colliders.push({x,z,w:w/2,d:d/2,bottom:y-h/2,top:y+h/2});return o}
 function wall(x,z,w,d,h=10,m=mats.wall){return box(x,h/2,z,w,h,d,m,true)}
-function lightPanel(x,y,z,w=4,d=1.2){const p=box(x,y,z,w,.12,d,mats.glow,false);const l=new THREE.PointLight(0xffe5aa,30,42);l.position.set(x,y-.3,z);world.add(l);return p}
+function lightPanel(x,y,z,w=4,d=1.2){return box(x,y,z,w,.12,d,mats.glow,false)}
+
+function corridorBackdrop(){const c=document.createElement('canvas');c.width=512;c.height=256;const x=c.getContext('2d'),g=x.createLinearGradient(0,0,0,256);g.addColorStop(0,'#77755f');g.addColorStop(.55,'#3f4137');g.addColorStop(1,'#161d1c');x.fillStyle=g;x.fillRect(0,0,512,256);x.fillStyle='#111716';for(let i=0;i<13;i++){const w=12+i%3*7,h=45+(i*31)%90;x.fillRect(i*43-10,256-h,w,h)}x.strokeStyle='#d5c98b55';x.lineWidth=2;for(let i=0;i<9;i++){x.beginPath();x.moveTo(256,128);x.lineTo(i*64,256);x.stroke()}const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;return new THREE.MeshBasicMaterial({map:t,side:THREE.DoubleSide,toneMapped:false})}
 
 function buildParallax(){
   box(0,-.35,0,200,.7,170,mats.carpet);box(0,24,0,200,.8,170,mats.dark,false);for(const [x,z,w,d] of [[0,-84,200,2],[0,84,200,2],[-99,0,2,170],[99,0,2,170]])wall(x,z,w,d,24,mats.dark);
@@ -39,6 +41,8 @@ function buildParallax(){
   for(const [x,z,w,d] of [[-50,17,2,92],[-18,50,66,2],[-18,-10,66,2],[50,15,2,94],[18,-12,66,2],[-52,-45,74,2],[52,-48,72,2]])wall(x,z,w,d,9);
   wall(-5,52,20,2,9);wall(34,52,34,2,9);
   for(let row=-2;row<=2;row++)for(let i=-4;i<=4;i++)lightPanel(i*20,23.4,row*31+8,7,1.4);
+  for(const x of [-62,0,62]){const l=new THREE.PointLight(0xffe5aa,58,115,2);l.position.set(x,18,0);world.add(l)}
+  const backdrop=corridorBackdrop();for(const [x,z,w,ry] of [[0,-82.8,88,0],[0,82.8,88,Math.PI],[-97.8,0,88,Math.PI/2],[97.8,0,88,-Math.PI/2],[-5,53.05,17,0],[34,53.05,30,0]]){const p=mesh(new THREE.PlaneGeometry(w,20),backdrop,x,11,z,false);p.rotation.y=ry}
   for(const x of [-82,-67,-52,-37,-22]){box(x,1.5,34,9,3,1,mats.wood,true);box(x,3.3,34,8,.3,3,mats.wall)}
   // Hotel desk and luggage rhythm.
   box(65,1.2,38,26,2.4,3,mats.wood,true);for(let i=0;i<7;i++)box(55+i*4,.45,31,1.8,.9,1.3,i%2?mats.dark:mats.pink,true);
@@ -86,7 +90,7 @@ const robe=new THREE.Mesh(new THREE.CapsuleGeometry(.52,1.45,8,16),coat);robe.po
 let avatarMixer=null,avatarActions={},avatarState='';function setAvatarAction(name){if(name===avatarState||!avatarActions[name])return;const next=avatarActions[name],previous=avatarActions[avatarState];next.reset().fadeIn(.2).play();if(previous)previous.fadeOut(.2);avatarState=name}
 new GLTFLoader().load('assets/aeolia-traveler.glb',gltf=>{const model=gltf.scene;model.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true}});player.add(model);applyTravelerDesign(THREE,player,model,localStorage.getItem('aeolia-character')||'ember');for(const o of [robe,head,hat,crown])o.visible=false;avatarMixer=new THREE.AnimationMixer(model);for(const clip of gltf.animations)avatarActions[clip.name]=avatarMixer.clipAction(clip);setAvatarAction('Idle')},undefined,error=>console.warn('Traveler model fallback in use',error));
 const sound=new WorldAudio(),motionEffects=new MotionEffects(THREE,scene,camera);
-const keys={},velocity=new THREE.Vector3(),lastSafe=player.position.clone(),targetCam=new THREE.Vector3();let yaw=0,pitch=.25,flying=false,started=false,dragging=false,previous=null,bob=0,nextAnomaly=performance.now()+360000+Math.random()*240000,recenterYaw=null,travelYaw=0;
+const keys={},velocity=new THREE.Vector3(),lastSafe=player.position.clone(),targetCam=new THREE.Vector3(),cameraFocus=player.position.clone().add(new THREE.Vector3(0,2,0)),focusTarget=new THREE.Vector3();let yaw=0,pitch=.25,flying=false,flightBlend=0,started=false,dragging=false,previous=null,bob=0,nextAnomaly=performance.now()+360000+Math.random()*240000,recenterYaw=null,travelYaw=0;
 function contains(c,x,z,margin=.55){return Math.abs(x-c.x)<c.w+margin&&Math.abs(z-c.z)<c.d+margin}
 function validGround(x,z){return Math.abs(x)<(stageKey==='parallax'?96:112)&&Math.abs(z)<(stageKey==='parallax'?81:96)}
 function resetKeys(){for(const k in keys)delete keys[k];velocity.set(0,0,0);dragging=false}
@@ -100,7 +104,7 @@ function update(dt,t){if(keys.KeyQ||keys.KeyE)recenterYaw=null;if(keys.KeyQ)yaw+
   const before=player.position.clone();for(const axis of ['x','z']){const old=player.position[axis];player.position[axis]+=velocity[axis]*dt;const blocked=colliders.some(c=>contains(c,player.position.x,player.position.z)&&player.position.y<c.top&&player.position.y+3.6>c.bottom);if(blocked||!validGround(player.position.x,player.position.z)){player.position[axis]=old;velocity[axis]=0}}
   player.position.y+=velocity.y*dt;if(player.position.y<0){player.position.y=0;velocity.y=0;lastSafe.copy(player.position)}if(player.position.y>cfg.limitY){player.position.y=cfg.limitY;velocity.y=Math.min(0,velocity.y)}if(player.position.y<-20)player.position.copy(lastSafe);
   const hs=Math.hypot(velocity.x,velocity.z);if(hs>.15){travelYaw=Math.atan2(-velocity.x,-velocity.z);const a=Math.atan2(velocity.x,velocity.z),d=Math.atan2(Math.sin(a-player.rotation.y),Math.cos(a-player.rotation.y));player.rotation.y+=d*(1-Math.exp(-7*dt))}bob+=hs*dt;robe.position.y=1.35+Math.abs(Math.sin(bob))*.045;if(avatarMixer){setAvatarAction(flying?'Fly':hs>.1?'Walk':'Idle');if(avatarActions.Walk)avatarActions.Walk.timeScale=Math.max(.55,hs/5.8);avatarMixer.update(dt)}
-  const dist=flying?12:9,up=flying?6:4.2;targetCam.set(player.position.x+Math.sin(yaw)*dist,player.position.y+up+Math.sin(pitch)*6,player.position.z+Math.cos(yaw)*dist);camera.position.lerp(targetCam,1-Math.exp(-8*dt));camera.lookAt(player.position.x,player.position.y+2,player.position.z);updateCreatures(dt,t);motionEffects.update(dt,player.position,velocity,flying,player.position.y<.15);sound.update(dt,velocity.length(),flying,player.position.y<.15,false);discover(t);anomaly(t)
+  flightBlend=THREE.MathUtils.damp(flightBlend,flying?1:0,3.5,dt);const dist=9+flightBlend*3,up=4.2+flightBlend*1.8;targetCam.set(player.position.x+Math.sin(yaw)*dist,player.position.y+up+Math.sin(pitch)*6,player.position.z+Math.cos(yaw)*dist);camera.position.lerp(targetCam,1-Math.exp(-5.5*dt));focusTarget.set(player.position.x,player.position.y+2,player.position.z);cameraFocus.lerp(focusTarget,1-Math.exp(-9*dt));camera.lookAt(cameraFocus);updateCreatures(dt,t);motionEffects.update(dt,player.position,velocity,flying,player.position.y<.15);sound.update(dt,velocity.length(),flying,player.position.y<.15,false);discover(t);anomaly(t)
 }
 function loop(t){const elapsed=previous===null?0:Math.min(.1,(t-previous)/1000);previous=t;if(started&&elapsed){const steps=Math.ceil(elapsed*120);for(let i=0;i<steps;i++)update(elapsed/steps,t)}renderer.render(scene,camera);if(location.search.includes('debug=1'))document.querySelector('#perf').value=`${renderer.info.render.calls} calls\n${renderer.info.render.triangles.toLocaleString()} triangles\n${player.position.x.toFixed(1)}, ${player.position.y.toFixed(1)}, ${player.position.z.toFixed(1)}`;requestAnimationFrame(loop)}
 camera.position.set(cfg.spawn[0],7,cfg.spawn[2]+10);camera.lookAt(player.position);requestAnimationFrame(loop);

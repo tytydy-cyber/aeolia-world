@@ -398,7 +398,7 @@ const characterSelect=document.querySelector('#characterSelect');characterSelect
 setCharacterStyle(characterSelect.value);
 characterSelect.addEventListener('change',e=>{localStorage.setItem('aeolia-character',e.target.value);setCharacterStyle(e.target.value);focusWorld()});
 
-const keys={},velocity=new THREE.Vector3(),targetCam=new THREE.Vector3(),cameraRay=new THREE.Raycaster();
+const keys={},velocity=new THREE.Vector3(),targetCam=new THREE.Vector3(),cameraLook=new THREE.Vector3(-25,5.4,5),lookTarget=new THREE.Vector3(),cameraRay=new THREE.Raycaster();
 const sound=new WorldAudio();
 const muteButton=document.querySelector('#soundToggle'),soundNotice=document.querySelector('#soundNotice');
 async function startSound(){const ok=await sound.start();soundNotice.textContent=ok?'':'音を開始できませんでした。再試行できます。';muteButton.textContent=ok?(sound.muted?'音を戻す':'消音'):'音を再試行'}
@@ -504,11 +504,11 @@ function update(dt,t){
   const dist=9+flightBlend*4,up=4.4+flightBlend;
   targetCam.set(player.position.x+Math.sin(yaw)*dist,player.position.y+up+Math.sin(pitch)*7,player.position.z+Math.cos(yaw)*dist);
   const focus=player.position.clone().add(new THREE.Vector3(0,2.4,0));
-  camera.position.lerp(targetCam,1-Math.exp(-8*dt));
+  camera.position.lerp(targetCam,1-Math.exp(-5.5*dt));
   const cameraVector=camera.position.clone().sub(focus);cameraRay.set(focus,cameraVector.clone().normalize());cameraRay.far=cameraVector.length();
   const obstruction=cameraRay.intersectObjects(cameraBlockers,false)[0];
   if(obstruction)camera.position.copy(focus).addScaledVector(cameraRay.ray.direction,Math.max(.4,obstruction.distance-.3));
-  camera.lookAt(focus);
+  lookTarget.copy(focus);cameraLook.lerp(lookTarget,1-Math.exp(-9*dt));camera.lookAt(cameraLook);
   sun.target.position.copy(player.position);sun.position.copy(player.position).add(new THREE.Vector3(-80,110,-50));
   blades.rotation.z-=dt*.35;clouds.forEach((c,i)=>{c.position.x+=dt*(.25+i%4*.07);if(c.position.x>400)c.position.x=-400});
   scenicLayers.forEach((layer,i)=>{layer.sprite.position.y=layer.baseY+Math.sin(t*.00011+layer.phase)*1.8;layer.sprite.material.opacity=.68+Math.sin(t*.00017+layer.phase+i)*.05});
