@@ -66,6 +66,17 @@ export class WorldAudio {
     if(!this.audible)return;
     const c=this.ctx,t=c.currentTime,osc=c.createOscillator(),gain=c.createGain();osc.type='sine';osc.frequency.setValueAtTime(takeoff?220:520,t);osc.frequency.exponentialRampToValueAtTime(takeoff?880:180,t+.55);gain.gain.setValueAtTime(.0001,t);gain.gain.linearRampToValueAtTime(.07,t+.025);gain.gain.exponentialRampToValueAtTime(.0001,t+.65);osc.connect(gain);gain.connect(this.master);if(this.voice(osc,[gain])){osc.start(t);osc.stop(t+.7)}
   }
+  distantPhrase(){
+    if(!this.audible)return;
+    const c=this.ctx,start=c.currentTime+.08,notes=[220,261.63,293.66,329.63,392,440,523.25,587.33];
+    for(const [i,note] of notes.entries()){
+      const t=start+i*.54,osc=c.createOscillator(),filter=c.createBiquadFilter(),gain=c.createGain(),delay=c.createDelay(2),echo=c.createGain();
+      osc.type=i%3?'triangle':'sine';osc.frequency.value=note;filter.type='lowpass';filter.frequency.value=720;
+      delay.delayTime.value=.42;echo.gain.value=.24;gain.gain.setValueAtTime(.0001,t);gain.gain.linearRampToValueAtTime(.018,t+.12);gain.gain.exponentialRampToValueAtTime(.0001,t+2.4);
+      osc.connect(filter);filter.connect(gain);gain.connect(this.master);gain.connect(delay);delay.connect(echo);echo.connect(this.master);
+      if(this.voice(osc,[filter,gain,delay,echo])){osc.start(t);osc.stop(t+2.5)}
+    }
+  }
   update(dt,speed,flying,grounded,onBridge){
     if(!this.audible){this.distance=0;return}
     const t=this.ctx.currentTime;

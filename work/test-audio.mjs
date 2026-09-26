@@ -21,6 +21,7 @@ class Context {
   constructor(){Context.count++;this.nodes=[];this.state='suspended';this.currentTime=0;this.sampleRate=8000;this.destination={}}
   createGain(){return new Node(this)}
   createBiquadFilter(){return new Node(this)}
+  createDelay(){const n=new Node(this);n.delayTime=new Param();return n}
   createDynamicsCompressor(){const n=new Node(this);n.threshold=new Param();n.knee=new Param();n.ratio=new Param();n.attack=new Param();n.release=new Param();return n}
   createBufferSource(){return new Node(this)}
   createOscillator(){return new Node(this)}
@@ -61,4 +62,5 @@ audio.setVolume(Infinity);assert.equal(audio.volume,.35);audio.setVolume(-1);ass
 audio.pause();assert.equal(c.state,'suspended');assert.equal(audio.audible,false);assert.equal(audio.master.gain.value,0);
 await audio.start();assert.ok(audio.audible);assert.equal(Context.count,1);
 assert.equal(await new WorldAudio(null).start(),false,'unsupported audio does not break game');
+audio.distantPhrase();assert.equal(audio.voices.size,8,'world selection schedules one quiet ascending phrase');
 console.log('PASS: gesture-only start, single context, noise bounds, wind update, stone/wood steps, flight/fall silence, chimes, voice cleanup/cap, mute/volume, pause/resume, unavailable API. Audio output quality is not tested.');
