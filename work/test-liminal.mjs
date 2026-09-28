@@ -18,19 +18,20 @@ for(const [key,stage] of Object.entries(stages)){
   assert.equal(new Set(stage.notes.map(n=>n[3])).size,5,`${key} discovery names are unique`);
   assert.ok(stage.limitY>15,'flight remains available');
 }
-for(const code of ['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','KeyW','KeyA','KeyS','KeyD','KeyF','KeyC','KeyQ','KeyE','ControlLeft'])assert.ok(js.includes(code),`${code} remains supported`);
+for(const code of ['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','KeyW','KeyA','KeyS','KeyD','KeyC','KeyQ','KeyE','ControlLeft'])assert.ok(js.includes(code),`${code} remains supported`);
 assert.ok(js.includes("new MotionEffects")&&js.includes("new WorldAudio"),'existing effects and audio are shared');
 assert.ok(js.includes('flightBlend=THREE.MathUtils.damp')&&js.includes('cameraFocus.lerp'),'camera transition and aim are smoothed');
 assert.equal((js.match(/new THREE\.PointLight/g)||[]).length,1,'facility lights are created by one bounded loop');
 assert.ok(hub.includes('aeolia.html')&&hub.includes('stage=parallax')&&hub.includes('stage=somnia'),'station exposes all worlds');
 for(const page of [html,aeolia]){
   assert.ok(page.includes('世界選択へ')&&page.includes('id="characterSelect"'),'every world exposes world and character selection');
-  for(const label of ['飛行切替','>SPACE</b> 上昇','>SHIFT</b> 下降'])assert.ok(page.includes(label),`PC control label ${label} is explicit`);
+  for(const label of ['>↑ ↓ ← →</b> 飛行','>SPACE</b> 上昇','>SHIFT</b> 下降'])assert.ok(page.includes(label),`PC control label ${label} is explicit`);
 }
 assert.ok(js.includes('SOLARPUNK SUBURB 03')&&js.includes('const panels=new THREE.InstancedMesh')&&js.includes('const planters=new THREE.InstancedMesh'),'suburb has instanced solarpunk landmarks');
 assert.ok(js.includes("addHorizon('assets/textures/complex-horizon-v1.png'")&&js.includes("addHorizon('assets/textures/distant-ruins.png'"),'both worlds have layered distant scenery');
 assert.ok(js.includes("stageKey==='parallax'?172:196")&&js.includes('districtWindows=new THREE.InstancedMesh')&&js.includes('neighborhoodWindows=new THREE.InstancedMesh'),'expanded worlds keep repeated architecture instanced');
-for(const code of ['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','KeyF','Space','ShiftLeft'])assert.ok(mobile.includes(code),`mobile control exposes ${code}`);
+for(const code of ['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Space','ShiftLeft'])assert.ok(mobile.includes(code),`mobile control exposes ${code}`);
+assert.ok(!mobile.includes("button('KeyF'")&&!html.includes('飛行切替')&&!aeolia.includes('飛行切替'),'flight toggle is removed from every control surface');
 assert.ok(mobile.includes('pointerdown')&&mobile.includes('pointercancel')&&mobile.includes('touch-action:none'),'mobile press-and-hold and swipe coexist safely');
 const player=new THREE.Group(),model=new THREE.Group(),coat=new THREE.Mesh(new THREE.BoxGeometry(),new THREE.MeshStandardMaterial());coat.name='Sculpted coat';coat.material.name='Coat';const hat=new THREE.Mesh(new THREE.BoxGeometry(),new THREE.MeshStandardMaterial());hat.name='Hat brim';model.add(coat,hat);
 applyTravelerDesign(THREE,player,model,'mist');assert.equal(hat.visible,false);assert.equal(player.userData.designVariants.mist.visible,true);assert.equal(player.userData.designVariants.lilac.visible,false);

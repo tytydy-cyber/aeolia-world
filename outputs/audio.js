@@ -1,7 +1,7 @@
 // Browser-native synthesis: no downloads, audio service, or autoplay before a gesture.
 export class WorldAudio {
-  constructor(Context=globalThis.AudioContext||globalThis.webkitAudioContext){
-    this.Context=Context;this.ctx=null;this.volume=.35;this.muted=false;this.paused=true;
+  constructor(Context=globalThis.AudioContext||globalThis.webkitAudioContext,mood='sky'){
+    this.Context=Context;this.mood=mood;this.ctx=null;this.volume=.35;this.muted=false;this.paused=true;
     this.voices=new Set();this.distance=0;this.nextMix=0;this.nextChord=0;
   }
   async start(){
@@ -21,7 +21,7 @@ export class WorldAudio {
         this.filter=c.createBiquadFilter();this.filter.type='lowpass';this.filter.frequency.value=450;
         this.windGain=c.createGain();this.windGain.gain.value=.11;
         this.wind.connect(this.filter);this.filter.connect(this.windGain);this.windGain.connect(this.master);this.wind.start();
-        this.musicGain=c.createGain();this.musicGain.gain.value=.055;this.musicFilter=c.createBiquadFilter();this.musicFilter.type='lowpass';this.musicFilter.frequency.value=900;
+        const tone={sky:[.055,900],complex:[.038,560],suburb:[.048,760]}[this.mood]||[.05,800];this.musicGain=c.createGain();this.musicGain.gain.value=tone[0];this.musicFilter=c.createBiquadFilter();this.musicFilter.type='lowpass';this.musicFilter.frequency.value=tone[1];
         this.musicGain.connect(this.musicFilter);this.musicFilter.connect(this.master);this.pads=[0,7,14].map((step,i)=>{const osc=c.createOscillator(),gain=c.createGain();osc.type=i===2?'sine':'triangle';osc.frequency.value=174.61*Math.pow(2,step/12);gain.gain.value=[.22,.13,.07][i];osc.connect(gain);gain.connect(this.musicGain);osc.start();return osc});
       }
       await this.ctx.resume();this.paused=false;this.applyVolume();return true;
@@ -86,7 +86,7 @@ export class WorldAudio {
       this.filter.frequency.setTargetAtTime(350+(flying?1100*movement:150),t,.3);this.nextMix=t+.05;
     }
     if(t>=this.nextChord){
-      const roots=[174.61,146.83,196,164.81],root=roots[Math.floor(t/8)%roots.length];
+      const progressions={sky:[174.61,146.83,196,164.81],complex:[110,123.47,103.83,130.81],suburb:[146.83,174.61,196,220]},roots=progressions[this.mood]||progressions.sky,root=roots[Math.floor(t/8)%roots.length];
       this.pads.forEach((osc,i)=>osc.frequency.setTargetAtTime(root*Math.pow(2,[0,7,14][i]/12),t,1.8));this.nextChord=t+8;
     }
     if(!flying&&grounded&&speed>.6){

@@ -1,7 +1,7 @@
 function emit(code,type){window.dispatchEvent(new KeyboardEvent(type,{code,bubbles:true,cancelable:true}))}
 function button(code,label,extra=''){return `<button type="button" data-key="${code}" class="${extra}" aria-label="${label}">${label}</button>`}
 
-const root=document.createElement('div');root.id='mobileControls';root.innerHTML=`<div class="mobile-pad">${button('ArrowUp','↑','up')}${button('ArrowLeft','←','left')}${button('ArrowRight','→','right')}${button('ArrowDown','↓','down')}</div><div class="mobile-actions">${button('KeyF','飛行','fly')}${button('Space','上昇')}${button('ShiftLeft','下降')}</div>`;document.body.append(root);
+const root=document.createElement('div');root.id='mobileControls';root.innerHTML=`<div class="mobile-pad">${button('ArrowUp','↑','up')}${button('ArrowLeft','←','left')}${button('ArrowRight','→','right')}${button('ArrowDown','↓','down')}</div><div class="mobile-actions">${button('Space','上昇')}${button('ShiftLeft','下降')}</div>`;document.body.append(root);
 const held=new Map();
 for(const el of root.querySelectorAll('[data-key]')){
   const down=e=>{e.preventDefault();const code=el.dataset.key;if(held.has(e.pointerId))return;held.set(e.pointerId,code);el.setPointerCapture(e.pointerId);emit(code,'keydown');el.classList.add('held')};

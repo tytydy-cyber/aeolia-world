@@ -27,7 +27,7 @@
 <body>
 <div id="veil"><section class="opening"><div class="eyebrow">FLOATING ISLANDS</div><h1>AEOLIA<i>浮島の街</i></h1><p>十字キーで歩く。Fで飛ぶ。<br>ドラッグで見渡し、Cで進行方向へ戻せます。</p><button id="enter">入る　↗</button></section></div>
 <div id="hud"><div class="brand"><small>FLOATING ISLANDS 01</small>浮島の街</div><div class="place"><small>NEARBY</small><span id="place">中央広場</span></div></div>
-<div id="mode"><i class="line"></i><span id="modeText">WALKING</span></div>
+<div id="mode"><i class="line"></i><span id="modeText">FLYING</span></div>
 <label id="pace">速さ <input id="paceInput" type="range" min="0.7" max="1.6" step="0.1" value="1" aria-label="移動速度の倍率"><output id="paceValue">1.0×</output></label>
 <div id="soundControls"><button id="soundToggle" type="button" aria-pressed="false">消音</button><label>音量<input id="soundVolume" type="range" min="0" max="100" value="35" aria-label="音量"></label><span id="soundNotice" role="status"></span></div>
 <span id="assetState" role="status">建物を読み込み中…</span>
@@ -35,14 +35,14 @@
 <label id="characterControl">主人公 <select id="characterSelect" aria-label="主人公のデザイン"><option value="ember">帽子の旅人</option><option value="mist">フードの旅人</option><option value="lilac">光輪の旅人</option></select></label>
 <a class="return" href="index.html">世界選択へ</a>
 <output id="perf" hidden></output>
-<div id="help"><b class="key">↑ ↓ ← →</b> 移動 <b class="key">ドラッグ</b> 見渡す <b class="key">F</b> 飛行切替 <b class="key">SPACE</b> 上昇 <b class="key">SHIFT</b> 下降 <b class="key">Q E</b> 旋回 <b class="key">C</b> 正面 <b class="key">Ctrl</b> 加速 <b class="key">Esc</b> 設定終了</div>
+<div id="help"><b class="key">↑ ↓ ← →</b> 飛行 <b class="key">ドラッグ</b> 見渡す <b class="key">SPACE</b> 上昇 <b class="key">SHIFT</b> 下降 <b class="key">Q E</b> 旋回 <b class="key">C</b> 正面 <b class="key">Ctrl</b> 加速 <b class="key">Esc</b> 設定終了</div>
 <div id="discovery"><small>DISCOVERED</small><div></div></div>
 <div id="error">3D世界を読み込めませんでした。インターネット接続を確認して、ページを再読み込みしてください。</div>
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.186.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.186.0/examples/jsm/"}}</script>
 <script type="module">
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.186.0/build/three.module.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-import { WorldAudio } from './audio.js';
+import { WorldAudio } from './audio.js?v=47';
 import { MotionEffects } from './effects.js';
 import { applyTravelerDesign } from './character-designs.js?v=45';
 
@@ -51,7 +51,7 @@ scene.background=new THREE.Color(0xbacbd0);scene.fog=new THREE.FogExp2(0xbacbd0,
 const camera=new THREE.PerspectiveCamera(58,innerWidth/innerHeight,.1,1200);
 const renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});
 renderer.domElement.tabIndex=0;
-renderer.domElement.setAttribute('aria-label','散策画面。十字キーで移動、Fで飛行、QとEで視点を回転');
+renderer.domElement.setAttribute('aria-label','散策画面。十字キーで飛行、スペースで上昇、シフトで下降、QとEで視点を回転');
 renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));renderer.setSize(innerWidth,innerHeight);
 renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFShadowMap;
 renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.05;
@@ -401,7 +401,7 @@ setCharacterStyle(characterSelect.value);
 characterSelect.addEventListener('change',e=>{localStorage.setItem('aeolia-character',e.target.value);setCharacterStyle(e.target.value);focusWorld()});
 
 const keys={},velocity=new THREE.Vector3(),targetCam=new THREE.Vector3(),cameraLook=new THREE.Vector3(-25,5.4,5),lookTarget=new THREE.Vector3(),cameraRay=new THREE.Raycaster();
-const sound=new WorldAudio();
+const sound=new WorldAudio(undefined,'sky');
 const muteButton=document.querySelector('#soundToggle'),soundNotice=document.querySelector('#soundNotice');
 async function startSound(){const ok=await sound.start();soundNotice.textContent=ok?'':'音を開始できませんでした。再試行できます。';muteButton.textContent=ok?(sound.muted?'音を戻す':'消音'):'音を再試行'}
 muteButton.onclick=()=>{
@@ -417,7 +417,7 @@ document.querySelector('#paceInput').addEventListener('pointerup',focusWorld);
 for(const selector of ['#soundToggle','#effectsToggle'])document.querySelector(selector).addEventListener('click',focusWorld);
 function focusWorld(){if(started)renderer.domElement.focus({preventScroll:true})}
 document.addEventListener('focusin',e=>{if(['INPUT','BUTTON','SELECT','TEXTAREA'].includes(e.target?.tagName))resetInput()});
-let yaw=0,pitch=.28,flying=false,started=false,bob=0,lastSafe=player.position.clone(),dragging=false,flightBlend=0,nextDiscovery=0,recenterYaw=null,travelYaw=0;
+let yaw=0,pitch=.28,flying=true,started=false,bob=0,lastSafe=player.position.clone(),dragging=false,flightBlend=1,nextDiscovery=0,recenterYaw=null,travelYaw=0;
 const discoveries=[
   {name:'市場',p:new THREE.Vector3(-30,3,-30),done:false},
   {name:'鐘楼',p:new THREE.Vector3(-105,33,-105),done:false},
@@ -447,7 +447,6 @@ addEventListener('keydown',e=>{
   if(['INPUT','BUTTON','SELECT','TEXTAREA'].includes(e.target?.tagName))return;
   if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Space'].includes(e.code))e.preventDefault();
   keys[e.code]=true;
-  if(e.code==='KeyF'&&!e.repeat){flying=!flying;velocity.y=flying?2:0;motionEffects.flightBurst(player.position,flying);sound.flightCue(flying);document.querySelector('#modeText').textContent=flying?'飛行中':'歩行中'}
   if(e.code==='KeyC'&&!e.repeat)recenterYaw=travelYaw;
 });
 addEventListener('keyup',e=>keys[e.code]=false);
@@ -455,7 +454,7 @@ renderer.domElement.addEventListener('contextmenu',e=>e.preventDefault());
 renderer.domElement.addEventListener('pointerdown',e=>{if(started&&(e.button===0||e.button===2)){dragging=true;renderer.domElement.style.cursor='grabbing';renderer.domElement.setPointerCapture(e.pointerId)}});
 addEventListener('pointerup',()=>{dragging=false;renderer.domElement.style.cursor='grab'});renderer.domElement.addEventListener('pointercancel',()=>{dragging=false;renderer.domElement.style.cursor='grab'});
 addEventListener('pointermove',e=>{if(dragging&&e.buttons){recenterYaw=null;yaw-=e.movementX*.003;pitch=THREE.MathUtils.clamp(pitch+e.movementY*.002,-.55,1.15)}});
-document.querySelector('#enter').onclick=()=>{if(started)return;started=true;startSound();focusWorld();document.querySelector('#veil').style.opacity=0;document.querySelector('#veil').style.pointerEvents='none';document.querySelector('#modeText').textContent='歩行中';setTimeout(()=>document.querySelector('#veil').remove(),1000)};
+document.querySelector('#enter').onclick=()=>{if(started)return;started=true;startSound();motionEffects.flightBurst(player.position,true);focusWorld();document.querySelector('#veil').style.opacity=0;document.querySelector('#veil').style.pointerEvents='none';document.querySelector('#modeText').textContent='飛行中';setTimeout(()=>document.querySelector('#veil').remove(),1000)};
 addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});
 
 function update(dt,t){
@@ -487,7 +486,7 @@ function update(dt,t){
     if(before.y+PLAYER_HEIGHT<=c.bottom&&player.position.y+PLAYER_HEIGHT>c.bottom){player.position.y=c.bottom-PLAYER_HEIGHT;velocity.y=0}
   }
   for(const b of BRIDGES){const deck=bridgeSample(player.position.x,player.position.z,b);if(deck!==null&&before.y+PLAYER_HEIGHT<=deck-.3&&player.position.y+PLAYER_HEIGHT>deck-.3){player.position.y=deck-.3-PLAYER_HEIGHT;velocity.y=0}}
-  if(player.position.y<-45){player.position.copy(lastSafe);velocity.set(0,0,0);flying=false;document.querySelector('#modeText').textContent='WALKING'}
+  if(player.position.y<-45){player.position.copy(lastSafe);velocity.set(0,0,0)}
   const horizontalSpeed=Math.hypot(velocity.x,velocity.z),moving=horizontalSpeed>.08;
   if(horizontalSpeed>.2)travelYaw=Math.atan2(-velocity.x,-velocity.z);
   let turn=0;
@@ -564,5 +563,5 @@ camera.position.set(-25,9,14);camera.lookAt(player.position.clone().add(new THRE
 console.assert(groundAt(0,40)===3&&groundAt(500,500)===-Infinity,'walkable-world bounds');
 </script>
 <script>setTimeout(()=>{if(!document.querySelector('canvas'))document.querySelector('#error').style.display='block'},5000)</script>
-<script type="module" src="mobile-controls.js"></script>
+<script type="module" src="mobile-controls.js?v=47"></script>
 </body></html>

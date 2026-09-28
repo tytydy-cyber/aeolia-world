@@ -32,7 +32,7 @@ assert.equal(run('perfEnabled'),false,'performance meter stays inactive without 
 function dispatch(type,values={}){const e={target:type.startsWith('pointer')?run('renderer.domElement'):document.activeElement||document.body,preventDefault(){this.prevented=true},...values};for(const fn of e.target.events?.get(type)||[])fn(e);for(const fn of listeners.get(type)||[])fn(e);return e}
 function inputPace(value){const target=document.querySelector('#paceInput');target.value=value;dispatch('input',{target})}
 function frames(n=60,hz=60){const steps=Math.ceil(120/hz);for(let i=0;i<n;i++)for(let j=0;j<steps;j++)run(`update(${1/hz/steps},${i*1000/hz})`)}
-function reset(){document.activeElement=document.body;run('resetInput();player.position.set(0,3,40);yaw=0;pitch=.28;flying=false;started=true;pace=1;travelYaw=0;scene.updateMatrixWorld(true)')}
+function reset(){document.activeElement=document.body;run('resetInput();player.position.set(0,3,40);yaw=0;pitch=.28;flying=true;started=true;pace=1;travelYaw=0;scene.updateMatrixWorld(true)')}
 
 assert.equal(run('houses.length'),9);
 assert.equal(run('scenicLayers.length'),2,'two parallax ruin layers');
@@ -65,14 +65,14 @@ dispatch('pointerdown',{button:2,pointerId:1});dispatch('pointermove',{movementX
 const yaw1=run('yaw');dispatch('pointermove',{movementX:300,movementY:100,buttons:0});assert.equal(run('yaw'),yaw1,'release must stop orbit');
 assert.ok(!script.includes('requestPointerLock'),'no mouse capture');
 
-reset();assert.ok(dispatch('keydown',{code:'ArrowUp'}).prevented);frames();const distance=40-run('player.position.z');assert.ok(distance>7.5&&distance<9.5,'faster up-arrow travel');assert.equal(run('yaw'),0,'walking keeps viewing angle');
-dispatch('keyup',{code:'ArrowUp'});const stopZ=run('player.position.z');frames();assert.ok(Math.abs(stopZ-run('player.position.z'))<.7,'braking drift under 70cm');
+reset();assert.ok(dispatch('keydown',{code:'ArrowUp'}).prevented);frames();const distance=40-run('player.position.z');assert.ok(distance>18&&distance<23,'up-arrow flies forward until terrain rises');assert.equal(run('yaw'),0,'flight keeps viewing angle');
+dispatch('keyup',{code:'ArrowUp'});const stopZ=run('player.position.z');frames();assert.ok(Math.abs(stopZ-run('player.position.z'))<1.7,'flight braking drift stays bounded');
 reset();dispatch('keydown',{code:'ArrowRight'});frames(30);assert.ok(run('player.position.x')>1);assert.equal(run('yaw'),0);
 reset();dispatch('keydown',{code:'ArrowLeft'});frames(30);assert.ok(run('player.position.x')< -1);
 reset();dispatch('keydown',{code:'ArrowDown'});frames(30);assert.ok(run('player.position.z')>41);
 
 reset();dispatch('keydown',{code:'ArrowUp'});frames(10);dispatch('keydown',{code:'ArrowRight'});const angleBefore=run('player.rotation.y');frames(1);assert.ok(Math.abs(run('player.rotation.y')-angleBefore)<.3,'gradual turning');
-reset();dispatch('keydown',{code:'KeyF',repeat:false});dispatch('keydown',{code:'KeyF',repeat:true});assert.equal(run('flying'),true);dispatch('keydown',{code:'Space'});frames(120);assert.ok(run('player.position.y')>20,'flight gains height');dispatch('keyup',{code:'Space'});dispatch('keydown',{code:'ShiftLeft'});frames(120);assert.ok(run('player.position.y')>=4,'flight does not penetrate ground');
+reset();assert.equal(run('flying'),true,'flight is always active');dispatch('keydown',{code:'KeyF',repeat:false});assert.equal(run('flying'),true,'F no longer disables flight');dispatch('keydown',{code:'Space'});frames(120);assert.ok(run('player.position.y')>20,'flight gains height');dispatch('keyup',{code:'Space'});dispatch('keydown',{code:'ShiftLeft'});frames(120);assert.ok(run('player.position.y')>=4,'flight does not penetrate ground');
 reset();dispatch('keydown',{code:'KeyQ'});frames(30);assert.ok(run('yaw')>.5);dispatch('blur');assert.equal(run('Object.keys(keys).length'),0);assert.equal(run('velocity.length()'),0);
 reset();run('yaw=1.4;pitch=1');dispatch('keydown',{code:'KeyC',repeat:false});frames(90);assert.ok(Math.abs(run('yaw'))<.01&&Math.abs(run('pitch')-.28)<.01,'C smoothly restores last travel-facing camera');
 reset();run('yaw=1;keys.ArrowUp=true');frames(30);run('keys.ArrowUp=false;yaw=-1');dispatch('keydown',{code:'KeyC',repeat:false});frames(90);assert.ok(Math.abs(run('yaw')-1)<.01,'C remembers travel direction after stopping');
