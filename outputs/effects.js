@@ -2,7 +2,7 @@
 export class MotionEffects {
   constructor(THREE,scene,camera){
     this.THREE=THREE;this.camera=camera;this.enabled=!globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
-    this.dustClock=0;this.airClock=0;this.wasGrounded=true;
+    this.dustClock=0;this.airClock=0;this.wasGrounded=true;this.time=0;this.flightBand=0;
     this.right=new THREE.Vector3();
     this.dust=this.pool(64,false,scene);this.air=this.pool(64,true,scene);
   }
@@ -36,6 +36,7 @@ export class MotionEffects {
   }
   update(dt,position,velocity,flying,grounded){
     dt=Math.min(Math.max(dt,0),.05);
+    this.time+=dt;
     const speed=Math.hypot(velocity.x,velocity.z),total=velocity.length();
     const allow=this.enabled;
     if(allow&&grounded&&!flying&&speed>1){
@@ -48,14 +49,19 @@ export class MotionEffects {
     if(allow&&grounded&&!flying&&!this.wasGrounded){
       for(let i=0;i<12;i++){const a=i/12*Math.PI*2;this.emit(this.dust,position.x,position.y+.12,position.z,Math.cos(a)*1.6,.5,Math.sin(a)*1.6,.7)}
     }
-    if(allow&&flying&&total>6){
+    const band=flying?(total>24?2:total>5?1:0):0;
+    if(allow&&band>this.flightBand)for(let i=0;i<14;i++){const a=i/14*Math.PI*2;this.emit(this.air,position.x+Math.cos(a)*.7,position.y+1.5+Math.sin(a*2)*.25,position.z+Math.sin(a)*.7,Math.cos(a)*3,Math.sin(a*2)*1.2,Math.sin(a)*3,.72,-.8)}
+    this.flightBand=band;
+    if(allow&&flying&&total>2){
       this.airClock+=dt;
-      if(this.airClock>.035){
-        this.airClock%=.035;this.right.set(1,0,0).applyQuaternion(this.camera.quaternion);
-        for(const side of [-1,1]){
-          const offset=.9+Math.random()*.35;
-          const x=position.x+this.right.x*side*offset,y=position.y+1.8+this.right.y*side*offset,z=position.z+this.right.z*side*offset;
-          this.emit(this.air,x,y,z,-velocity.x*.11,-velocity.y*.11,-velocity.z*.11,.62+Math.random()*.2,-1.15);
+      const interval=total>24?.018:.04;
+      if(this.airClock>interval){
+        this.airClock%=interval;this.right.set(1,0,0).applyQuaternion(this.camera.quaternion);
+        const streams=total>24?3:2;
+        for(let lane=0;lane<streams;lane++)for(const side of [-1,1]){
+          const offset=.55+lane*.42+Math.sin(this.time*7+lane)*.12,flutter=Math.sin(this.time*11+side*lane)*.7;
+          const x=position.x+this.right.x*side*offset,y=position.y+1.35+lane*.32+flutter*.15,z=position.z+this.right.z*side*offset;
+          this.emit(this.air,x,y,z,-velocity.x*(.1+lane*.025)+this.right.x*flutter,-velocity.y*.14+flutter*.3,-velocity.z*(.1+lane*.025)+this.right.z*flutter,.48+lane*.12,-1.2-lane*.35);
         }
       }
     }else this.airClock=0;

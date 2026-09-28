@@ -1,8 +1,8 @@
 // Browser-native synthesis: no downloads, audio service, or autoplay before a gesture.
 export class WorldAudio {
   constructor(Context=globalThis.AudioContext||globalThis.webkitAudioContext,mood='sky'){
-    this.Context=Context;this.mood=mood;this.ctx=null;this.volume=.35;this.muted=false;this.paused=true;
-    this.voices=new Set();this.distance=0;this.nextMix=0;this.nextChord=0;
+    this.Context=Context;this.mood=mood;this.ctx=null;this.volume=.5;this.muted=false;this.paused=true;
+    this.voices=new Set();this.distance=0;this.nextMix=0;this.nextChord=0;this.nextPhrase=0;this.nextDetail=0;
   }
   async start(){
     if(!this.Context)return false;
@@ -21,8 +21,9 @@ export class WorldAudio {
         this.filter=c.createBiquadFilter();this.filter.type='lowpass';this.filter.frequency.value=450;
         this.windGain=c.createGain();this.windGain.gain.value=.11;
         this.wind.connect(this.filter);this.filter.connect(this.windGain);this.windGain.connect(this.master);this.wind.start();
-        const tone={sky:[.055,900],complex:[.038,560],suburb:[.048,760]}[this.mood]||[.05,800];this.musicGain=c.createGain();this.musicGain.gain.value=tone[0];this.musicFilter=c.createBiquadFilter();this.musicFilter.type='lowpass';this.musicFilter.frequency.value=tone[1];
+        const tone={sky:[.11,1100],complex:[.1,720],suburb:[.105,940]}[this.mood]||[.1,900];this.musicGain=c.createGain();this.musicGain.gain.value=tone[0];this.musicFilter=c.createBiquadFilter();this.musicFilter.type='lowpass';this.musicFilter.frequency.value=tone[1];
         this.musicGain.connect(this.musicFilter);this.musicFilter.connect(this.master);this.pads=[0,7,14].map((step,i)=>{const osc=c.createOscillator(),gain=c.createGain();osc.type=i===2?'sine':'triangle';osc.frequency.value=174.61*Math.pow(2,step/12);gain.gain.value=[.22,.13,.07][i];osc.connect(gain);gain.connect(this.musicGain);osc.start();return osc});
+        if(this.mood==='complex')this.hums=[55,60].map((frequency,i)=>{const osc=c.createOscillator(),gain=c.createGain();osc.type=i?'sawtooth':'sine';osc.frequency.value=frequency;gain.gain.value=i?.012:.045;osc.connect(gain);gain.connect(this.musicGain);osc.start();return osc});
       }
       await this.ctx.resume();this.paused=false;this.applyVolume();return true;
     }catch(error){console.warn('Audio could not start',error);return false}
@@ -72,10 +73,14 @@ export class WorldAudio {
     for(const [i,note] of notes.entries()){
       const t=start+i*.54,osc=c.createOscillator(),filter=c.createBiquadFilter(),gain=c.createGain(),delay=c.createDelay(2),echo=c.createGain();
       osc.type=i%3?'triangle':'sine';osc.frequency.value=note;filter.type='lowpass';filter.frequency.value=720;
-      delay.delayTime.value=.42;echo.gain.value=.24;gain.gain.setValueAtTime(.0001,t);gain.gain.linearRampToValueAtTime(.018,t+.12);gain.gain.exponentialRampToValueAtTime(.0001,t+2.4);
+      const level=this.mood==='complex'?.038:.032;delay.delayTime.value=.42;echo.gain.value=.24;gain.gain.setValueAtTime(.0001,t);gain.gain.linearRampToValueAtTime(level,t+.12);gain.gain.exponentialRampToValueAtTime(.0001,t+2.4);
       osc.connect(filter);filter.connect(gain);gain.connect(this.master);gain.connect(delay);delay.connect(echo);echo.connect(this.master);
       if(this.voice(osc,[filter,gain,delay,echo])){osc.start(t);osc.stop(t+2.5)}
     }
+  }
+  environmentDetail(){
+    if(!this.audible||this.mood!=='complex')return;
+    const c=this.ctx,t=c.currentTime;for(const [frequency,delay,level] of [[1760,0,.035],[820,.09,.024],[2460,.16,.012]]){const osc=c.createOscillator(),gain=c.createGain();osc.type='sine';osc.frequency.value=frequency;gain.gain.setValueAtTime(.0001,t+delay);gain.gain.linearRampToValueAtTime(level,t+delay+.008);gain.gain.exponentialRampToValueAtTime(.0001,t+delay+1.8);osc.connect(gain);gain.connect(this.master);if(this.voice(osc,[gain])){osc.start(t+delay);osc.stop(t+delay+1.9)}}
   }
   update(dt,speed,flying,grounded,onBridge){
     if(!this.audible){this.distance=0;return}
@@ -89,6 +94,8 @@ export class WorldAudio {
       const progressions={sky:[174.61,146.83,196,164.81],complex:[110,123.47,103.83,130.81],suburb:[146.83,174.61,196,220]},roots=progressions[this.mood]||progressions.sky,root=roots[Math.floor(t/8)%roots.length];
       this.pads.forEach((osc,i)=>osc.frequency.setTargetAtTime(root*Math.pow(2,[0,7,14][i]/12),t,1.8));this.nextChord=t+8;
     }
+    if(t>=this.nextPhrase){this.distantPhrase();this.nextPhrase=t+14}
+    if(t>=this.nextDetail){this.environmentDetail();this.nextDetail=t+7+Math.random()*6}
     if(!flying&&grounded&&speed>.6){
       this.distance+=Math.min(dt,.05)*speed;
       // Keep steps in the same phase as the avatar's capped walking cycle.

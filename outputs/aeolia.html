@@ -29,7 +29,7 @@
 <div id="hud"><div class="brand"><small>FLOATING ISLANDS 01</small>浮島の街</div><div class="place"><small>NEARBY</small><span id="place">中央広場</span></div></div>
 <div id="mode"><i class="line"></i><span id="modeText">FLYING</span></div>
 <label id="pace">速さ <input id="paceInput" type="range" min="0.7" max="1.6" step="0.1" value="1" aria-label="移動速度の倍率"><output id="paceValue">1.0×</output></label>
-<div id="soundControls"><button id="soundToggle" type="button" aria-pressed="false">消音</button><label>音量<input id="soundVolume" type="range" min="0" max="100" value="35" aria-label="音量"></label><span id="soundNotice" role="status"></span></div>
+<div id="soundControls"><button id="soundToggle" type="button" aria-pressed="false">消音</button><label>音量<input id="soundVolume" type="range" min="0" max="100" value="50" aria-label="音量"></label><span id="soundNotice" role="status"></span></div>
 <span id="assetState" role="status">建物を読み込み中…</span>
 <label id="effectsControl"><input id="effectsToggle" type="checkbox" checked>移動エフェクト</label>
 <label id="characterControl">主人公 <select id="characterSelect" aria-label="主人公のデザイン"><option value="ember">帽子の旅人</option><option value="mist">フードの旅人</option><option value="lilac">光輪の旅人</option></select></label>
@@ -42,8 +42,8 @@
 <script type="module">
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.186.0/build/three.module.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-import { WorldAudio } from './audio.js?v=47';
-import { MotionEffects } from './effects.js';
+import { WorldAudio } from './audio.js?v=48';
+import { MotionEffects } from './effects.js?v=48';
 import { applyTravelerDesign } from './character-designs.js?v=45';
 
 const scene=new THREE.Scene();
@@ -493,13 +493,13 @@ function update(dt,t){
   if(moving){const angle=Math.atan2(velocity.x,velocity.z);turn=Math.atan2(Math.sin(angle-player.rotation.y),Math.cos(angle-player.rotation.y));player.rotation.y+=turn*(1-Math.exp(-7*dt))}
   flightBlend=THREE.MathUtils.damp(flightBlend,flying?1:0,3,dt);
   bob+=Math.min(horizontalSpeed,11)*dt*1.5;
-  const stride=Math.min(1,horizontalSpeed/5.8)*(1-flightBlend),swing=Math.sin(bob)*stride;
+  const stride=Math.min(1,horizontalSpeed/5.8)*(1-flightBlend),swing=Math.sin(bob)*stride,lift=THREE.MathUtils.clamp(velocity.y/19,-1,1),flightPulse=Math.sin(t*.007)*Math.min(1,horizontalSpeed/8);
   if(avatarMixer){setAvatarAction(flying?'Fly':moving?'Walk':'Idle');avatarActions.Walk.timeScale=Math.max(.55,horizontalSpeed/5.8);avatarMixer.update(dt)}
-  legs.forEach((leg,i)=>leg.rotation.x=(i?1:-1)*swing*.65+flightBlend*.3);
-  arms.forEach((arm,i)=>{arm.rotation.x=(i?-1:1)*swing*.45;arm.rotation.z=THREE.MathUtils.damp(arm.rotation.z,(i?-1:1)*flightBlend*.7,5,dt)});
-  body.position.y=Math.abs(Math.sin(bob))*.06*stride;
-  body.rotation.x=THREE.MathUtils.damp(body.rotation.x,horizontalSpeed*.007*flightBlend,4,dt);
-  body.rotation.z=THREE.MathUtils.damp(body.rotation.z,THREE.MathUtils.clamp(-turn*.12,-.2,.2)*flightBlend,5,dt);
+  legs.forEach((leg,i)=>leg.rotation.x=(i?1:-1)*swing*.65+flightBlend*(.25+(i?1:-1)*flightPulse*.1-lift*.16));
+  arms.forEach((arm,i)=>{arm.rotation.x=(i?-1:1)*swing*.45-lift*.28+flightPulse*.08;arm.rotation.z=THREE.MathUtils.damp(arm.rotation.z,(i?-1:1)*flightBlend*(.58+Math.abs(flightPulse)*.2),5,dt)});
+  body.position.y=Math.abs(Math.sin(bob))*.06*stride+flightBlend*Math.sin(t*.006)*.035;
+  body.rotation.x=THREE.MathUtils.damp(body.rotation.x,horizontalSpeed*.009*flightBlend-lift*.13,4,dt);
+  body.rotation.z=THREE.MathUtils.damp(body.rotation.z,THREE.MathUtils.clamp(-turn*.24,-.32,.32)*flightBlend,5,dt);
   const vertices=scarf.geometry.attributes.position;
   for(let i=0;i<vertices.count;i++){const along=(scarfRest[i*3+1]+1.2)/2.4;vertices.setZ(i,Math.sin(t*.004-along*4)*.16*along+along*along*.25)}vertices.needsUpdate=true;scarf.geometry.computeVertexNormals();
   const dist=9+flightBlend*4,up=4.4+flightBlend;
@@ -563,5 +563,5 @@ camera.position.set(-25,9,14);camera.lookAt(player.position.clone().add(new THRE
 console.assert(groundAt(0,40)===3&&groundAt(500,500)===-Infinity,'walkable-world bounds');
 </script>
 <script>setTimeout(()=>{if(!document.querySelector('canvas'))document.querySelector('#error').style.display='block'},5000)</script>
-<script type="module" src="mobile-controls.js?v=47"></script>
+<script type="module" src="mobile-controls.js?v=48"></script>
 </body></html>

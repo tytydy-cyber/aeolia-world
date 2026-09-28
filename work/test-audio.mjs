@@ -37,10 +37,11 @@ audio.update(.016,10,false,true,false);audio.chime();assert.equal(Context.count,
 assert.ok(await audio.start());assert.equal(Context.count,1);assert.ok(audio.audible);
 await audio.start();assert.equal(Context.count,1,'resume reuses the same context');
 const c=audio.ctx;
-assert.equal(audio.master.gain.value,.35);
+assert.equal(audio.master.gain.value,.5);
 assert.equal(audio.master.connections[0],audio.limiter,'all audio passes through limiter');
 assert.equal(audio.limiter.connections[0],c.destination);assert.equal(audio.limiter.threshold.value,-6);assert.equal(audio.limiter.ratio.value,12);
 for(const value of audio.noise.getChannelData(0))assert.ok(Number.isFinite(value)&&Math.abs(value)<=1,'bounded noise');
+audio.nextPhrase=audio.nextDetail=Infinity;
 
 function tick(speed,fly,ground,n=60,bridge=false){for(let i=0;i<n;i++){c.advance(1/60);audio.update(1/60,speed,fly,ground,bridge)}}
 let steps=0;const originalStep=audio.step.bind(audio);audio.step=wood=>{steps++;originalStep(wood)};
@@ -63,4 +64,5 @@ audio.pause();assert.equal(c.state,'suspended');assert.equal(audio.audible,false
 await audio.start();assert.ok(audio.audible);assert.equal(Context.count,1);
 assert.equal(await new WorldAudio(null).start(),false,'unsupported audio does not break game');
 audio.distantPhrase();assert.equal(audio.voices.size,8,'world selection schedules one quiet ascending phrase');
+const complex=new WorldAudio(Context,'complex');await complex.start();complex.update(.016,0,true,false,false);assert.equal(complex.hums.length,2,'closed facility has continuous machinery hum');assert.equal(complex.voices.size,11,'closed facility schedules melody and distant metal detail');
 console.log('PASS: gesture-only start, single context, noise bounds, wind update, stone/wood steps, flight/fall silence, chimes, voice cleanup/cap, mute/volume, pause/resume, unavailable API. Audio output quality is not tested.');
