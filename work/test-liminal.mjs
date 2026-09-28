@@ -25,11 +25,14 @@ assert.equal((js.match(/new THREE\.PointLight/g)||[]).length,1,'facility lights 
 assert.ok(hub.includes('aeolia.html')&&hub.includes('stage=parallax')&&hub.includes('stage=somnia'),'station exposes all worlds');
 for(const page of [html,aeolia]){
   assert.ok(page.includes('世界選択へ')&&page.includes('id="characterSelect"'),'every world exposes world and character selection');
+  assert.ok(page.includes('.return{position:fixed;z-index:12;left:28px;top:82px'),'world selector stays in the same desktop position');
   for(const label of ['>↑ ↓ ← →</b> 飛行','>SPACE</b> 上昇','>SHIFT</b> 下降'])assert.ok(page.includes(label),`PC control label ${label} is explicit`);
 }
 assert.ok(js.includes('SOLARPUNK SUBURB 03')&&js.includes('const panels=new THREE.InstancedMesh')&&js.includes('const planters=new THREE.InstancedMesh'),'suburb has instanced solarpunk landmarks');
 assert.ok(js.includes("addHorizon('assets/textures/complex-horizon-v1.png'")&&js.includes("addHorizon('assets/textures/distant-ruins.png'"),'both worlds have layered distant scenery');
 assert.ok(js.includes('irregularGround()')&&js.includes('roughCylinder(')&&js.includes('c.radius!==undefined'),'natural ground, hills and their colliders share non-rectangular shapes');
+assert.ok(js.includes('new THREE.ShapeGeometry(shape)')&&js.includes('o.rotation.x=-Math.PI/2'),'irregular ground renders its textured front face upward');
+assert.ok(js.includes('new THREE.CylinderGeometry(245*scale')&&js.includes('const silhouettes=new THREE.InstancedMesh'),'horizon art wraps around a real low-cost 3D foreground layer');
 assert.ok(!js.includes('box(0,-.35,0,350')&&!js.includes('box(0,-.4,0,400'),'world floors are no longer giant rectangles');
 const edgeScale=(a,phase)=>.91+.075*Math.sin(a*3+phase)+.045*Math.sin(a*5-phase*.7)+.025*Math.sin(a*9+phase*.3),specs={parallax:[178,148,.4],somnia:[204,168,2.1]};
 for(const [key,stage] of Object.entries(stages)){const [rx,rz,phase]=specs[key];for(const [x,,z,name] of [[...stage.spawn,'spawn'],...stage.notes]){const a=Math.atan2(z/rz,x/rx);assert.ok(Math.hypot(x/rx,z/rz)<edgeScale(a,phase)-.012,`${key} ${name} stays inside the irregular visible ground`)}}
