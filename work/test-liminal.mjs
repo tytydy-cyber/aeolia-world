@@ -29,7 +29,10 @@ for(const page of [html,aeolia]){
 }
 assert.ok(js.includes('SOLARPUNK SUBURB 03')&&js.includes('const panels=new THREE.InstancedMesh')&&js.includes('const planters=new THREE.InstancedMesh'),'suburb has instanced solarpunk landmarks');
 assert.ok(js.includes("addHorizon('assets/textures/complex-horizon-v1.png'")&&js.includes("addHorizon('assets/textures/distant-ruins.png'"),'both worlds have layered distant scenery');
-assert.ok(js.includes("stageKey==='parallax'?172:196")&&js.includes('districtWindows=new THREE.InstancedMesh')&&js.includes('neighborhoodWindows=new THREE.InstancedMesh'),'expanded worlds keep repeated architecture instanced');
+assert.ok(js.includes('irregularGround()')&&js.includes('roughCylinder(')&&js.includes('c.radius!==undefined'),'natural ground, hills and their colliders share non-rectangular shapes');
+assert.ok(!js.includes('box(0,-.35,0,350')&&!js.includes('box(0,-.4,0,400'),'world floors are no longer giant rectangles');
+const edgeScale=(a,phase)=>.91+.075*Math.sin(a*3+phase)+.045*Math.sin(a*5-phase*.7)+.025*Math.sin(a*9+phase*.3),specs={parallax:[178,148,.4],somnia:[204,168,2.1]};
+for(const [key,stage] of Object.entries(stages)){const [rx,rz,phase]=specs[key];for(const [x,,z,name] of [[...stage.spawn,'spawn'],...stage.notes]){const a=Math.atan2(z/rz,x/rx);assert.ok(Math.hypot(x/rx,z/rz)<edgeScale(a,phase)-.012,`${key} ${name} stays inside the irregular visible ground`)}}
 for(const code of ['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Space','ShiftLeft'])assert.ok(mobile.includes(code),`mobile control exposes ${code}`);
 assert.ok(!mobile.includes("button('KeyF'")&&!html.includes('飛行切替')&&!aeolia.includes('飛行切替'),'flight toggle is removed from every control surface');
 assert.ok(mobile.includes('pointerdown')&&mobile.includes('pointercancel')&&mobile.includes('touch-action:none'),'mobile press-and-hold and swipe coexist safely');

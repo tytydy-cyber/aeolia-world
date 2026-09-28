@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
-import {WorldAudio} from './audio.js?v=48';
-import {MotionEffects} from './effects.js?v=48';
+import {WorldAudio} from './audio.js?v=50';
+import {MotionEffects} from './effects.js?v=50';
 import {applyTravelerDesign} from './character-designs.js?v=45';
 
 const stageKey=new URLSearchParams(location.search).get('stage')==='somnia'?'somnia':'parallax';
@@ -33,12 +33,16 @@ function mesh(g,m,x,y,z,shadow=true){const o=new THREE.Mesh(g,m);o.position.set(
 function box(x,y,z,w,h,d,m=mats.wall,solid=false){const o=mesh(new THREE.BoxGeometry(w,h,d),m,x,y,z);if(solid)colliders.push({x,z,w:w/2,d:d/2,bottom:y-h/2,top:y+h/2});return o}
 function wall(x,z,w,d,h=10,m=mats.wall){return box(x,h/2,z,w,h,d,m,true)}
 function lightPanel(x,y,z,w=4,d=1.2){return box(x,y,z,w,.12,d,mats.glow,false)}
+function edgeScale(a,phase){return .91+.075*Math.sin(a*3+phase)+.045*Math.sin(a*5-phase*.7)+.025*Math.sin(a*9+phase*.3)}
+const groundSpec=stageKey==='parallax'?[178,148,.4]:[204,168,2.1];
+function irregularGround(){const [rx,rz,phase]=groundSpec,shape=new THREE.Shape();for(let i=0;i<56;i++){const a=i/56*Math.PI*2,s=edgeScale(a,phase),x=Math.cos(a)*rx*s,z=Math.sin(a)*rz*s;i?shape.lineTo(x,z):shape.moveTo(x,z)}shape.closePath();const g=new THREE.ExtrudeGeometry(shape,{depth:.7,bevelEnabled:false,curveSegments:1}),o=mesh(g,mats.carpet,0,.05,0);o.rotation.x=Math.PI/2;o.receiveShadow=true;return o}
+function roughCylinder(top,bottom,h,segments,phase){const g=new THREE.CylinderGeometry(top,bottom,h,segments,2),v=g.attributes.position;for(let i=0;i<v.count;i++){const x=v.getX(i),z=v.getZ(i),a=Math.atan2(z,x),s=.94+.07*Math.sin(a*3+phase)+.04*Math.sin(a*7-phase);v.setXYZ(i,x*s,v.getY(i),z*s)}g.computeVertexNormals();return g}
 function addHorizon(file,y=35,scale=1){const t=textureLoader.load(file);t.colorSpace=THREE.SRGBColorSpace;const m=new THREE.MeshBasicMaterial({map:t,transparent:true,depthWrite:false,toneMapped:false,side:THREE.DoubleSide});for(const [z,ry] of [[-245,0],[245,Math.PI]]){const o=mesh(new THREE.PlaneGeometry(340*scale,110*scale),m,0,y,z,false);o.rotation.y=ry;o.renderOrder=-1}}
 
 function corridorBackdrop(){const c=document.createElement('canvas');c.width=512;c.height=256;const x=c.getContext('2d'),g=x.createLinearGradient(0,0,0,256);g.addColorStop(0,'#77755f');g.addColorStop(.55,'#3f4137');g.addColorStop(1,'#161d1c');x.fillStyle=g;x.fillRect(0,0,512,256);x.fillStyle='#111716';for(let i=0;i<13;i++){const w=12+i%3*7,h=45+(i*31)%90;x.fillRect(i*43-10,256-h,w,h)}x.strokeStyle='#d5c98b55';x.lineWidth=2;for(let i=0;i<9;i++){x.beginPath();x.moveTo(256,128);x.lineTo(i*64,256);x.stroke()}const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;return new THREE.MeshBasicMaterial({map:t,side:THREE.DoubleSide,toneMapped:false})}
 
 function buildParallax(){
-  box(0,-.35,0,350,.7,290,mats.carpet);addHorizon('assets/textures/complex-horizon-v1.png',39,1.05);
+  irregularGround();addHorizon('assets/textures/complex-horizon-v1.png',39,1.05);
   // Broken outer districts extend the playable complex beyond the original central floor plan.
   const districts=[[-132,72,56,45,28],[128,62,70,38,18],[-118,-82,82,46,14],[116,-88,62,54,32],[-62,118,76,34,20],[62,-121,88,28,12]],districtWindows=new THREE.InstancedMesh(new THREE.BoxGeometry(4,2.1,.2),mats.dark,180),districtDummy=new THREE.Object3D();let districtCount=0;
   for(const [x,z,w,d,h] of districts){box(x,h/2,z,w,h,d,mats.wall,true);for(let yy=5;yy<h-2;yy+=5)for(let xx=x-w/2+5;xx<x+w/2-2;xx+=9){districtDummy.position.set(xx,yy,z+d/2+.12);districtDummy.updateMatrix();districtWindows.setMatrixAt(districtCount++,districtDummy.matrix)}}districtWindows.count=districtCount;world.add(districtWindows);
@@ -58,13 +62,13 @@ function buildParallax(){
   for(let i=0;i<7;i++){box(26+i*8,.02,-40,4,.04,18,i%2?mats.dark:mats.wall,false);const door=box(25+i*10,3,-56,6,6,.45,mats.dark,true);door.userData.anomaly=i===5}
   // Repeating columns make scale readable while instancing keeps cost low.
   const cols=new THREE.InstancedMesh(new THREE.CylinderGeometry(.55,.65,10,10),mats.wall,40),dummy=new THREE.Object3D();let n=0;
-  for(let x=-88;x<=88;x+=22)for(const z of [-72,-20,18,70]){dummy.position.set(x,5,z);dummy.updateMatrix();cols.setMatrixAt(n++,dummy.matrix)}cols.count=n;cols.castShadow=true;cols.receiveShadow=true;world.add(cols);
+  for(let x=-88;x<=88;x+=22)for(const z of [-72,-20,18,70]){dummy.position.set(x,5,z);dummy.updateMatrix();cols.setMatrixAt(n++,dummy.matrix);colliders.push({x,z,radius:.7,bottom:0,top:10})}cols.count=n;cols.castShadow=true;cols.receiveShadow=true;world.add(cols);
 }
 function buildSomnia(){
-  box(0,-.4,0,400,.8,330,mats.carpet);addHorizon('assets/textures/distant-ruins.png',43,1.15);const road=new THREE.MeshStandardMaterial({color:0x596365,roughness:1,map:wallMap});box(0,.01,0,18,.08,310,road,false);box(0,.015,0,1,.09,300,mats.wall,false);
+  irregularGround();addHorizon('assets/textures/distant-ruins.png',43,1.15);const road=new THREE.MeshStandardMaterial({color:0x596365,roughness:1,map:wallMap});box(0,.01,0,18,.08,310,road,false);box(0,.015,0,1,.09,300,mats.wall,false);
   // Secondary roads and sloping garden districts prevent the world reading as one central strip.
   for(const [x,z,w,d,r] of [[-78,64,145,13,-.18],[92,-32,165,12,.23],[-108,-102,92,11,.38],[116,105,108,10,-.3]]){const lane=box(x,.02,z,w,.09,d,road,false);lane.rotation.y=r}
-  for(const [x,z,s,h] of [[-164,66,32,8],[-154,-34,55,13],[142,42,48,10],[112,-120,62,16],[-48,-132,44,7]]){const hill=mesh(new THREE.CylinderGeometry(s*.72,s,h,9),mats.carpet,x,h/2-.2,z);hill.rotation.y=(x+z)*.01;colliders.push({x,z,w:s*.72,d:s*.72,bottom:0,top:h})}
+  for(const [i,[x,z,s,h]] of [[-164,66,32,8],[-154,-34,55,13],[142,42,48,10],[112,-120,62,16],[-48,-132,44,7]].entries()){const hill=mesh(roughCylinder(s*.72,s,h,13,i*1.7),mats.carpet,x,h/2-.2,z);hill.rotation.y=(x+z)*.01;colliders.push({x,z,radius:s*1.02,bottom:0,top:h})}
   // School at sunset.
   box(-58,9,24,58,18,32,mats.wall,true);for(let r=0;r<3;r++)for(let c=0;c<6;c++)box(-80+c*9,6+r*5,40.15,4,2.7,.3,mats.dark,false);box(-58,1,43,16,2,5,mats.wood,true);
   // Apartment blocks and identical curtains.
@@ -81,8 +85,8 @@ function buildSomnia(){
   for(const [x,z,w,h,d] of neighborhoods){box(x,h/2,z,w,h,d,mats.wall,true);for(let yy=5;yy<h-2;yy+=5)for(let xx=x-w/2+4;xx<x+w/2-2;xx+=8){neighborhoodDummy.position.set(xx,yy,z+d/2+.12);neighborhoodDummy.updateMatrix();neighborhoodWindows.setMatrixAt(neighborhoodCount++,neighborhoodDummy.matrix)}}neighborhoodWindows.count=neighborhoodCount;world.add(neighborhoodWindows);
   const canals=[[-72,-15,12,120,.15],[86,52,10,135,-.22],[-12,-112,115,9,.08]];for(const [x,z,w,d,r] of canals){const c=box(x,-.08,z,w,.18,d,mats.water,false);c.rotation.y=r}
   // Trees as a small instanced grove.
-  const trunks=new THREE.InstancedMesh(new THREE.CylinderGeometry(.25,.48,5,8),mats.wood,45),crowns=new THREE.InstancedMesh(new THREE.IcosahedronGeometry(2.2,1),new THREE.MeshStandardMaterial({color:0x667a64,roughness:1}),45),dummy=new THREE.Object3D();
-  for(let i=0;i<45;i++){const a=i*2.399,r=74+(i%5)*5,x=Math.cos(a)*r,z=Math.sin(a)*r;dummy.position.set(x,2.5,z);dummy.updateMatrix();trunks.setMatrixAt(i,dummy.matrix);dummy.position.y=6;dummy.scale.set(1+(i%3)*.15,.8+(i%2)*.2,1);dummy.updateMatrix();crowns.setMatrixAt(i,dummy.matrix)}trunks.castShadow=crowns.castShadow=true;world.add(trunks,crowns);
+  const trunks=new THREE.InstancedMesh(new THREE.CylinderGeometry(.25,.48,5,8),mats.wood,45),crowns=new THREE.InstancedMesh(new THREE.IcosahedronGeometry(2.2,1),new THREE.MeshStandardMaterial({color:0x667a64,roughness:1}),45),dummy=new THREE.Object3D();let treeCount=0;
+  for(let i=0;i<45;i++){const a=i*2.399,r=74+(i%5)*5,x=Math.cos(a)*r,z=Math.sin(a)*r;if(Math.hypot(x-cfg.spawn[0],z-cfg.spawn[2])<20||Math.abs(x)<14&&z>55)continue;dummy.position.set(x,2.5,z);dummy.scale.set(1,1,1);dummy.updateMatrix();trunks.setMatrixAt(treeCount,dummy.matrix);dummy.position.y=6;dummy.scale.set(1+(i%3)*.15,.8+(i%2)*.2,1);dummy.updateMatrix();crowns.setMatrixAt(treeCount++,dummy.matrix);colliders.push({x,z,radius:.55,bottom:0,top:7.5})}trunks.count=crowns.count=treeCount;trunks.castShadow=crowns.castShadow=true;world.add(trunks,crowns);
   // Solar roofs, planted balconies and elevated gardens establish the suburb's solarpunk identity.
   const panels=new THREE.InstancedMesh(new THREE.BoxGeometry(5,.16,2.7),mats.solar,30);let p=0;
   for(const [x,y,z] of [[-76,18.5,18],[-68,18.5,18],[-60,18.5,18],[-52,18.5,18],[-44,18.5,18],[-76,18.5,27],[-68,18.5,27],[-60,18.5,27],[-52,18.5,27],[-44,18.5,27]]){dummy.position.set(x,y,z);dummy.rotation.x=-.24;dummy.updateMatrix();panels.setMatrixAt(p++,dummy.matrix)}
@@ -92,6 +96,9 @@ function buildSomnia(){
   for(const [x,z] of [[-18,-20],[25,-12],[74,-20]]){box(x,5,z,.9,10,.9,mats.wood);box(x,10,z,13,.45,13,mats.wood,true);const garden=mesh(new THREE.IcosahedronGeometry(5.4,2),mats.leaf,x,12,z);garden.scale.y=.42;for(let i=0;i<6;i++){const petal=box(x,15,z,5,.16,2.5,mats.solar,false);petal.rotation.y=i*Math.PI/3;petal.rotation.z=.18}}
 }
 (stageKey==='parallax'?buildParallax:buildSomnia)();
+console.assert(validGround(cfg.spawn[0],cfg.spawn[2]),'spawn must be inside the visible ground');
+console.assert(cfg.notes.every(n=>validGround(n[0],n[2])),'discoveries must be inside the visible ground');
+console.assert(colliders.every(c=>['x','z','bottom','top'].every(k=>Number.isFinite(c[k]))&&(Number.isFinite(c.radius)||(Number.isFinite(c.w)&&Number.isFinite(c.d)))&&c.top>c.bottom),'colliders must have finite positive bounds');
 
 // The same remembered species takes on each world's materials.
 const creatures=[];
@@ -113,8 +120,8 @@ const characterSelect=document.querySelector('#characterSelect');characterSelect
 new GLTFLoader().load('assets/aeolia-traveler.glb',gltf=>{const model=gltf.scene;avatarModel=model;model.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true}});player.add(model);setCharacterStyle(characterSelect.value);for(const o of [robe,head,hat,crown])o.visible=false;avatarMixer=new THREE.AnimationMixer(model);for(const clip of gltf.animations)avatarActions[clip.name]=avatarMixer.clipAction(clip);setAvatarAction('Idle')},undefined,error=>console.warn('Traveler model fallback in use',error));
 const sound=new WorldAudio(undefined,stageKey==='parallax'?'complex':'suburb'),motionEffects=new MotionEffects(THREE,scene,camera);
 const keys={},velocity=new THREE.Vector3(),lastSafe=player.position.clone(),targetCam=new THREE.Vector3(),cameraFocus=player.position.clone().add(new THREE.Vector3(0,2,0)),focusTarget=new THREE.Vector3();let yaw=0,pitch=.25,flying=true,flightBlend=1,started=false,dragging=false,previous=null,bob=0,nextAnomaly=performance.now()+360000+Math.random()*240000,recenterYaw=null,travelYaw=0;
-function contains(c,x,z,margin=.55){return Math.abs(x-c.x)<c.w+margin&&Math.abs(z-c.z)<c.d+margin}
-function validGround(x,z){return Math.abs(x)<(stageKey==='parallax'?172:196)&&Math.abs(z)<(stageKey==='parallax'?142:161)}
+function contains(c,x,z,margin=.55){return c.radius!==undefined?Math.hypot(x-c.x,z-c.z)<c.radius+margin:Math.abs(x-c.x)<c.w+margin&&Math.abs(z-c.z)<c.d+margin}
+function validGround(x,z){const [rx,rz,phase]=groundSpec,a=Math.atan2(z/rz,x/rx);return Math.hypot(x/rx,z/rz)<edgeScale(a,phase)-.012}
 function resetKeys(){for(const k in keys)delete keys[k];velocity.set(0,0,0);dragging=false}
 function saveNote(note){let notes=[];try{notes=JSON.parse(localStorage.getItem('aeolia-notes')||'[]')}catch{}const id=stageKey+':'+note[3];if(notes.some(n=>n.id===id))return false;notes.push({id,world:cfg.name,name:note[3],text:note[4]});localStorage.setItem('aeolia-notes',JSON.stringify(notes));return true}
 let nextDiscover=0;
