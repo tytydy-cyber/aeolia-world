@@ -32,12 +32,13 @@ const colliders=[],world=new THREE.Group();scene.add(world);
 function mesh(g,m,x,y,z,shadow=true){const o=new THREE.Mesh(g,m);o.position.set(x,y,z);o.castShadow=shadow;o.receiveShadow=shadow;world.add(o);return o}
 function box(x,y,z,w,h,d,m=mats.wall,solid=false){const o=mesh(new THREE.BoxGeometry(w,h,d),m,x,y,z);if(solid)colliders.push({x,z,w:w/2,d:d/2,bottom:y-h/2,top:y+h/2});return o}
 function wall(x,z,w,d,h=10,m=mats.wall){return box(x,h/2,z,w,h,d,m,true)}
+function roundedBlock(x,y,z,w,h,d,r=2,m=mats.wall,solid=false){const s=new THREE.Shape();s.moveTo(-w/2+r,-h/2);s.lineTo(w/2-r,-h/2);s.quadraticCurveTo(w/2,-h/2,w/2,-h/2+r);s.lineTo(w/2,h/2-r);s.quadraticCurveTo(w/2,h/2,w/2-r,h/2);s.lineTo(-w/2+r,h/2);s.quadraticCurveTo(-w/2,h/2,-w/2,h/2-r);s.lineTo(-w/2,-h/2+r);s.quadraticCurveTo(-w/2,-h/2,-w/2+r,-h/2);const g=new THREE.ExtrudeGeometry(s,{depth:d,bevelEnabled:false,curveSegments:3});g.translate(0,0,-d/2);const o=mesh(g,m,x,y,z);if(solid)colliders.push({x,z,w:w/2,d:d/2,bottom:y-h/2,top:y+h/2});return o}
 function lightPanel(x,y,z,w=4,d=1.2){return box(x,y,z,w,.12,d,mats.glow,false)}
 function edgeScale(a,phase){return .91+.075*Math.sin(a*3+phase)+.045*Math.sin(a*5-phase*.7)+.025*Math.sin(a*9+phase*.3)}
 const groundSpec=stageKey==='parallax'?[178,148,.4]:[204,168,2.1];
 function irregularGround(){const [rx,rz,phase]=groundSpec,shape=new THREE.Shape();for(let i=0;i<56;i++){const a=i/56*Math.PI*2,s=edgeScale(a,phase),x=Math.cos(a)*rx*s,z=Math.sin(a)*rz*s;i?shape.lineTo(x,z):shape.moveTo(x,z)}shape.closePath();const g=new THREE.ShapeGeometry(shape),p=g.attributes.position,uv=g.attributes.uv;for(let i=0;i<p.count;i++)uv.setXY(i,(p.getX(i)/rx+1)*6,(p.getY(i)/rz+1)*5);const o=mesh(g,mats.carpet,0,0,0);o.rotation.x=-Math.PI/2;o.receiveShadow=true;return o}
 function roughCylinder(top,bottom,h,segments,phase){const g=new THREE.CylinderGeometry(top,bottom,h,segments,2),v=g.attributes.position;for(let i=0;i<v.count;i++){const x=v.getX(i),z=v.getZ(i),a=Math.atan2(z,x),s=.94+.07*Math.sin(a*3+phase)+.04*Math.sin(a*7-phase);v.setXYZ(i,x*s,v.getY(i),z*s)}g.computeVertexNormals();return g}
-function addHorizon(file,y=35,scale=1){const t=textureLoader.load(file);t.colorSpace=THREE.SRGBColorSpace;const m=new THREE.MeshBasicMaterial({map:t,transparent:true,opacity:.68,depthWrite:false,toneMapped:false,side:THREE.BackSide}),panorama=mesh(new THREE.CylinderGeometry(245*scale,245*scale,110*scale,48,1,true),m,0,y,0,false);panorama.renderOrder=-1;
+function addHorizon(file,y=35,scale=1){const t=textureLoader.load(file);t.colorSpace=THREE.SRGBColorSpace;const m=new THREE.MeshBasicMaterial({map:t,transparent:true,opacity:stageKey==='parallax'?.16:.48,depthWrite:false,toneMapped:false,side:THREE.BackSide}),panorama=mesh(new THREE.CylinderGeometry(245*scale,245*scale,110*scale,48,1,true),m,0,y,0,false);panorama.renderOrder=-1;
   const silhouettes=new THREE.InstancedMesh(new THREE.BoxGeometry(1,1,1),new THREE.MeshStandardMaterial({color:stageKey==='parallax'?0x55574d:0x708f7d,roughness:1}),36),d=new THREE.Object3D();let n=0;
   for(const side of [-1,1])for(let i=0;i<18;i++){const h=stageKey==='parallax'?12+(i*17%31):8+(i*13%24),w=10+(i*11%19),depth=9+(i*7%14);d.position.set(-210+i*25+(i%3)*5,h/2-1,side*(185+(i%4)*8));d.scale.set(w,h,depth);d.rotation.y=(i%5-2)*.035;d.updateMatrix();silhouettes.setMatrixAt(n++,d.matrix)}silhouettes.castShadow=false;silhouettes.receiveShadow=true;world.add(silhouettes)
 }
@@ -48,11 +49,14 @@ function buildParallax(){
   irregularGround();addHorizon('assets/textures/complex-horizon-v1.png',39,1.05);
   // Broken outer districts extend the playable complex beyond the original central floor plan.
   const districts=[[-132,72,56,45,28],[128,62,70,38,18],[-118,-82,82,46,14],[116,-88,62,54,32],[-62,118,76,34,20],[62,-121,88,28,12]],districtWindows=new THREE.InstancedMesh(new THREE.BoxGeometry(4,2.1,.2),mats.dark,180),districtDummy=new THREE.Object3D();let districtCount=0;
-  for(const [x,z,w,d,h] of districts){box(x,h/2,z,w,h,d,mats.wall,true);for(let yy=5;yy<h-2;yy+=5)for(let xx=x-w/2+5;xx<x+w/2-2;xx+=9){districtDummy.position.set(xx,yy,z+d/2+.12);districtDummy.updateMatrix();districtWindows.setMatrixAt(districtCount++,districtDummy.matrix)}}districtWindows.count=districtCount;world.add(districtWindows);
-  for(const [x,z,w,d] of [[-98,48,66,7],[96,38,75,7],[-84,-57,90,7],[78,-70,84,7],[0,105,120,6]])box(x,7,z,w,1.1,d,mats.dark,true);
+  for(const [i,[x,z,w,d,h]] of districts.entries()){roundedBlock(x,h/2,z,w,h,d,3+(i%3),mats.wall,true);const roof=mesh(new THREE.CylinderGeometry(w*.26,w*.34,3,10),mats.dark,x,h+1.5,z);roof.scale.z=d/w;for(let yy=5;yy<h-2;yy+=5)for(let xx=x-w/2+5;xx<x+w/2-2;xx+=9){districtDummy.position.set(xx,yy,z+d/2+.12);districtDummy.updateMatrix();districtWindows.setMatrixAt(districtCount++,districtDummy.matrix)}}districtWindows.count=districtCount;world.add(districtWindows);
+  for(const [x,z,w,d] of [[-98,48,66,7],[96,38,75,7],[-84,-57,90,7],[78,-70,84,7]])box(x,7,z,w,1.1,d,mats.dark,true);
   // Four recognizable facilities joined by a broad central concourse.
   for(const [x,z,w,d] of [[-50,17,2,92],[-18,50,66,2],[-18,-10,66,2],[50,15,2,94],[18,-12,66,2],[-52,-45,74,2],[52,-48,72,2]])wall(x,z,w,d,9);
   wall(-5,52,20,2,9);wall(34,52,34,2,9);
+  // Offset atriums, upper walkways and open rings expose several architectural layers at once.
+  for(const [x,y,z,r] of [[-18,15,18,12],[38,20,-22,9],[-70,18,-8,7]]){const ring=mesh(new THREE.TorusGeometry(r,1.15,8,28),mats.dark,x,y,z);ring.rotation.x=Math.PI/2;for(const a of [0,Math.PI])box(x+Math.cos(a)*r,y/2,z+Math.sin(a)*r,1.3,y,1.3,mats.wall,true)}
+  for(const [x,y,z,w,d,r] of [[-92,16,54,46,5,-.08],[82,19,62,52,5,.12],[-12,22,-78,82,5,-.04]]){const bridge=roundedBlock(x,y,z,w,2,d,1,mats.dark,true);bridge.rotation.z=r}
   for(let row=-2;row<=2;row++)for(let i=-4;i<=4;i++)lightPanel(i*20,23.4,row*31+8,7,1.4);
   for(const x of [-62,0,62]){const l=new THREE.PointLight(0xffe5aa,58,115,2);l.position.set(x,18,0);world.add(l)}
   const backdrop=corridorBackdrop();for(const [x,z,w,ry] of [[-5,53.05,17,0],[34,53.05,30,0]]){const p=mesh(new THREE.PlaneGeometry(w,20),backdrop,x,11,z,false);p.rotation.y=ry}
@@ -72,10 +76,10 @@ function buildSomnia(){
   // Secondary roads and sloping garden districts prevent the world reading as one central strip.
   for(const [x,z,w,d,r] of [[-78,64,145,13,-.18],[92,-32,165,12,.23],[-108,-102,92,11,.38],[116,105,108,10,-.3]]){const lane=box(x,.02,z,w,.09,d,road,false);lane.rotation.y=r}
   for(const [i,[x,z,s,h]] of [[-164,66,32,8],[-154,-34,55,13],[142,42,48,10],[112,-120,62,16],[-48,-132,44,7]].entries()){const hill=mesh(roughCylinder(s*.72,s,h,13,i*1.7),mats.carpet,x,h/2-.2,z);hill.rotation.y=(x+z)*.01;colliders.push({x,z,radius:s*1.02,bottom:0,top:h})}
-  // School at sunset.
-  box(-58,9,24,58,18,32,mats.wall,true);for(let r=0;r<3;r++)for(let c=0;c<6;c++)box(-80+c*9,6+r*5,40.15,4,2.7,.3,mats.dark,false);box(-58,1,43,16,2,5,mats.wood,true);
-  // Apartment blocks and identical curtains.
-  for(const z of [15,42]){box(62,12,z,36,24,15,mats.wall,true);for(let r=0;r<4;r++)for(let c=0;c<5;c++){box(46+c*8,5+r*5,z-7.6,3.5,2,.2,mats.dark,false);box(46+c*8,4+r*5,z-8,6,.18,1.2,mats.wood,false)}}
+  // The old school remains rectilinear, but later additions soften and overgrow its silhouette.
+  roundedBlock(-58,9,24,58,18,32,5,mats.wall,true);for(let r=0;r<3;r++)for(let c=0;c<6;c++)box(-80+c*9,6+r*5,40.15,4,2.7,.3,mats.dark,false);box(-58,1,43,16,2,5,mats.wood,true);for(const [x,z] of [[-77,20],[-58,20],[-39,20]]){const dome=mesh(new THREE.SphereGeometry(6,14,8,0,Math.PI*2,0,Math.PI/2),mats.leaf,x,18,z);dome.scale.y=.55}
+  // Rounded co-housing terraces replace the repeated rectangular apartment slabs.
+  for(const [i,z] of [15,42].entries()){roundedBlock(62,11,z,38-i*4,22-i*2,17,7,mats.wall,true);for(const [y,rad] of [[7,20],[14,17],[21,14]]){const terrace=mesh(new THREE.TorusGeometry(rad,1.15,7,28),mats.leaf,62,y,z);terrace.rotation.x=Math.PI/2}}
   // Playground silhouettes.
   const pole=(x,z,h=5)=>box(x,h/2,z,.22,h,.22,mats.dark);for(const x of [-56,-48]){pole(x,-42);pole(x,-34);box(x,4.8,-38,.22,.22,8,mats.dark)}
   const slide=box(-34,2.2,-45,10,.4,3,mats.pink,true);slide.rotation.z=-.28;for(let i=0;i<6;i++)pole(-62+i*3,-55,3+Math.sin(i)*.4);
@@ -85,8 +89,9 @@ function buildSomnia(){
   for(const [x,z,r] of [[-20,-68,0],[20,-73,.3],[78,-70,-.2]]){const g=new THREE.Group();for(const [px,py,w,h] of [[-2,2.7,.3,5.4],[2,2.7,.3,5.4],[0,5.25,4.3,.3]]){const q=new THREE.Mesh(new THREE.BoxGeometry(w,h,.35),mats.pink);q.position.set(px,py,0);g.add(q)}g.position.set(x,0,z);g.rotation.y=r;world.add(g)}
   // Distant neighborhoods use a handful of shared meshes and irregular placement.
   const neighborhoods=[[-128,78,34,18,22],[-158,15,24,31,18],[-126,-61,45,14,26],[132,72,40,25,18],[158,8,27,16,23],[136,-83,52,20,21],[-38,128,46,15,24],[55,-133,38,28,20]],neighborhoodWindows=new THREE.InstancedMesh(new THREE.BoxGeometry(3.2,2,.2),mats.solar,190),neighborhoodDummy=new THREE.Object3D();let neighborhoodCount=0;
-  for(const [x,z,w,h,d] of neighborhoods){box(x,h/2,z,w,h,d,mats.wall,true);for(let yy=5;yy<h-2;yy+=5)for(let xx=x-w/2+4;xx<x+w/2-2;xx+=8){neighborhoodDummy.position.set(xx,yy,z+d/2+.12);neighborhoodDummy.updateMatrix();neighborhoodWindows.setMatrixAt(neighborhoodCount++,neighborhoodDummy.matrix)}}neighborhoodWindows.count=neighborhoodCount;world.add(neighborhoodWindows);
+  for(const [i,[x,z,w,h,d]] of neighborhoods.entries()){if(i%2){const home=mesh(new THREE.CylinderGeometry(w*.34,w*.48,h,10),mats.wall,x,h/2,z);home.scale.z=d/w;colliders.push({x,z,radius:Math.min(w,d)*.42,bottom:0,top:h})}else roundedBlock(x,h/2,z,w,h,d,4,mats.wall,true);for(let yy=5;yy<h-2;yy+=5)for(let xx=x-w/2+4;xx<x+w/2-2;xx+=8){neighborhoodDummy.position.set(xx,yy,z+d/2+.12);neighborhoodDummy.updateMatrix();neighborhoodWindows.setMatrixAt(neighborhoodCount++,neighborhoodDummy.matrix)}}neighborhoodWindows.count=neighborhoodCount;world.add(neighborhoodWindows);
   const canals=[[-72,-15,12,120,.15],[86,52,10,135,-.22],[-12,-112,115,9,.08]];for(const [x,z,w,d,r] of canals){const c=box(x,-.08,z,w,.18,d,mats.water,false);c.rotation.y=r}
+  const stream=mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3([new THREE.Vector3(-145,.08,92),new THREE.Vector3(-92,.08,35),new THREE.Vector3(-38,.08,55),new THREE.Vector3(20,.08,10),new THREE.Vector3(88,.08,-5),new THREE.Vector3(150,.08,-62)]),48,4,8,false),mats.water,0,0,0,false);stream.scale.y=.08;
   // Trees as a small instanced grove.
   const trunks=new THREE.InstancedMesh(new THREE.CylinderGeometry(.25,.48,5,8),mats.wood,45),crowns=new THREE.InstancedMesh(new THREE.IcosahedronGeometry(2.2,1),new THREE.MeshStandardMaterial({color:0x667a64,roughness:1}),45),dummy=new THREE.Object3D();let treeCount=0;
   for(let i=0;i<45;i++){const a=i*2.399,r=74+(i%5)*5,x=Math.cos(a)*r,z=Math.sin(a)*r;if(Math.hypot(x-cfg.spawn[0],z-cfg.spawn[2])<20||Math.abs(x)<14&&z>55)continue;dummy.position.set(x,2.5,z);dummy.scale.set(1,1,1);dummy.updateMatrix();trunks.setMatrixAt(treeCount,dummy.matrix);dummy.position.y=6;dummy.scale.set(1+(i%3)*.15,.8+(i%2)*.2,1);dummy.updateMatrix();crowns.setMatrixAt(treeCount++,dummy.matrix);colliders.push({x,z,radius:.55,bottom:0,top:7.5})}trunks.count=crowns.count=treeCount;trunks.castShadow=crowns.castShadow=true;world.add(trunks,crowns);
@@ -97,6 +102,8 @@ function buildSomnia(){
   const planters=new THREE.InstancedMesh(new THREE.IcosahedronGeometry(1.15,1),mats.leaf,48);let q=0;
   for(const z of [7.2,34.2])for(let r=0;r<4;r++)for(let c=0;c<5;c++){dummy.position.set(46+c*8,5+r*5,z);dummy.rotation.set(0,0,0);dummy.scale.set(1.5,.65,.72);dummy.updateMatrix();planters.setMatrixAt(q++,dummy.matrix)}planters.count=q;planters.castShadow=true;world.add(planters);
   for(const [x,z] of [[-18,-20],[25,-12],[74,-20]]){box(x,5,z,.9,10,.9,mats.wood);box(x,10,z,13,.45,13,mats.wood,true);const garden=mesh(new THREE.IcosahedronGeometry(5.4,2),mats.leaf,x,12,z);garden.scale.y=.42;for(let i=0;i<6;i++){const petal=box(x,15,z,5,.16,2.5,mats.solar,false);petal.rotation.y=i*Math.PI/3;petal.rotation.z=.18}}
+  // Aerial commons make altitude a distinct exploration layer instead of empty sky.
+  for(const [x,y,z,r] of [[-86,20,-18,14],[18,28,-72,18],[98,23,76,15]]){const ring=mesh(new THREE.TorusGeometry(r,1.1,8,36),mats.leaf,x,y,z);ring.rotation.x=Math.PI/2;const core=mesh(new THREE.IcosahedronGeometry(r*.42,2),mats.leaf,x,y+1,z);core.scale.y=.22;for(let i=0;i<5;i++){const petal=box(x,y+2,z,r*.55,.18,3,mats.solar,false);petal.rotation.y=i*Math.PI*.4}}
 }
 (stageKey==='parallax'?buildParallax:buildSomnia)();
 console.assert(validGround(cfg.spawn[0],cfg.spawn[2]),'spawn must be inside the visible ground');
