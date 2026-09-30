@@ -421,11 +421,15 @@ function focusWorld(){if(started)renderer.domElement.focus({preventScroll:true})
 document.addEventListener('focusin',e=>{if(['INPUT','BUTTON','SELECT','TEXTAREA'].includes(e.target?.tagName))resetInput()});
 let yaw=0,pitch=.28,flying=true,started=false,bob=0,lastSafe=player.position.clone(),dragging=false,flightBlend=1,diveBoost=0,nextDiscovery=0,recenterYaw=null,travelYaw=0;
 const discoveries=[
-  {name:'市場',p:new THREE.Vector3(-30,3,-30),done:false},
-  {name:'鐘楼',p:new THREE.Vector3(-105,33,-105),done:false},
-  {name:'風車',p:new THREE.Vector3(112,53,-92),done:false},
-  {name:'離宮',p:new THREE.Vector3(78,6,100),done:false}
+  {name:'市場',text:'屋台に花が並んでいる。',p:new THREE.Vector3(-30,3,-30)},
+  {name:'鐘楼',text:'鐘は風だけで鳴るように吊られている。',p:new THREE.Vector3(-105,33,-105)},
+  {name:'風車',text:'羽根が雲海へ風を送っている。',p:new THREE.Vector3(112,53,-92)},
+  {name:'離宮',text:'水盤に空が映っている。',p:new THREE.Vector3(78,6,100)}
 ];
+const DISCOVERY_RADIUS=13;
+function readNotes(){try{return JSON.parse(localStorage.getItem('aeolia-notes')||'[]')}catch{return []}}
+function saveNote(d){const notes=readNotes(),id='aeolia:'+d.name;if(notes.some(n=>n.id===id))return 0;notes.push({id,world:'浮島の街',name:d.name,text:d.text});localStorage.setItem('aeolia-notes',JSON.stringify(notes));return notes.filter(n=>n.id.startsWith('aeolia:')).length}
+let discoveryShown=0;
 function groundAt(x,z,maxBridgeHeight=Infinity){
   for(const b of BRIDGES){const y=bridgeSample(x,z,b);if(y!==null&&y<=maxBridgeHeight)return y}
   if(Math.abs(x-28)<=4&&z>=9&&z<=39)return 3+(39-z)*.5;
@@ -435,9 +439,17 @@ function groundAt(x,z,maxBridgeHeight=Infinity){
   return -Infinity;
 }
 function discover(){
-  for(const d of discoveries)if(!d.done&&player.position.distanceTo(d.p)<13){d.done=true;sound.chime();const el=document.querySelector('#discovery');el.querySelector('div').textContent=d.name;el.classList.add('discovery-on');setTimeout(()=>el.classList.remove('discovery-on'),2600)}
-  let nearest=discoveries.reduce((a,b)=>player.position.distanceTo(a.p)<player.position.distanceTo(b.p)?a:b);
-  document.querySelector('#place').textContent=nearest.name;
+  let nearest=discoveries[0],best=Infinity;
+  for(const d of discoveries){
+    const dist=player.position.distanceTo(d.p);if(dist<best){best=dist;nearest=d}
+    const count=dist<DISCOVERY_RADIUS&&saveNote(d);if(!count)continue;
+    sound.chime();recenterYaw=Math.atan2(player.position.x-d.p.x,player.position.z-d.p.z);
+    const el=document.querySelector('#discovery'),shown=++discoveryShown;
+    el.querySelector('div').textContent=count===discoveries.length?`${d.name} — 全地点を巡った`:`${d.name} — ${d.text}　${count} / ${discoveries.length}`;
+    el.classList.add('discovery-on');setTimeout(()=>{if(shown===discoveryShown)el.classList.remove('discovery-on')},2600);
+  }
+  const seen=new Set(readNotes().map(n=>n.id)),flat=Math.hypot(player.position.x-nearest.p.x,player.position.z-nearest.p.z);
+  document.querySelector('#place').textContent=nearest.name+(seen.has('aeolia:'+nearest.name)?' · 記録済':flat<DISCOVERY_RADIUS?' · 降りると記録':best<90?` · ${Math.round(best)}m`:'');
 }
 function resetInput(){for(const k in keys)delete keys[k];dragging=false;diveBoost=0;velocity.set(0,0,0)}
 addEventListener('blur',()=>{resetInput();previousFrame=null;sound.pause()});

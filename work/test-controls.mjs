@@ -94,7 +94,10 @@ const positions=[];for(const hz of [30,60,120]){reset();dispatch('keydown',{code
 assert.ok(Math.max(...positions)-Math.min(...positions)<.1,'frame-rate independence');
 reset();inputPace('1.6');assert.equal(run('pace'),1.6);inputPace('bad');assert.equal(run('pace'),1);
 reset();inputPace('1.6');run('player.position.set(-43,3,-23);keys.ArrowUp=true;keys.ControlLeft=true');frames(100,20);assert.ok(run('player.position.z')>=-26.35,'maximum speed cannot tunnel through wall');
-console.log('PASS: actual GLB parse/9 house placements, all arrow keys, passive mouse, drag/release, acceleration/braking, flight, focus loss, bridges, stairs, walls, speed slider, maximum-speed collision, 30/60/120 Hz. GPU rendering is not tested.');
+reset();run('player.position.set(-105,80,-116)');run('discover()');assert.equal(localStorage.getItem('aeolia-notes'),null,'flying high over a landmark does not record it');assert.ok(document.querySelector('#place').textContent.includes('降りると記録'),'high pass hints that descending records the place');
+run('player.position.set(-105,34,-116)');run('discover()');run('discover()');const saved=JSON.parse(localStorage.getItem('aeolia-notes'));assert.deepEqual(saved.map(n=>n.id),['aeolia:鐘楼'],'floating-island discoveries persist once to the shared journal');assert.ok(saved[0].world&&saved[0].text,'journal entries carry world and description');
+frames(90);assert.ok(run('Math.hypot(-Math.sin(yaw)-0,-Math.cos(yaw)-1)')<.05,'camera turns toward the discovered landmark');assert.ok(document.querySelector('#place').textContent.includes('記録済'),'recorded places are marked');
+console.log('PASS: actual GLB parse/9 house placements, all arrow keys, passive mouse, drag/release, acceleration/braking, flight, focus loss, bridges, stairs, walls, speed slider, maximum-speed collision, 30/60/120 Hz, discovery journal. GPU rendering is not tested.');
 const counts=Object.fromEntries(['pot','crate','bench','stall'].map(kind=>[kind,run(`props.filter(p=>p.kind==='${kind}').length`)]));
 assert.ok(run('props.length')>=40,'meaningful street furniture count');
 assert.ok(run('propBatches.length')<=7,'batch draw-call budget');
