@@ -7,8 +7,8 @@ import {applyTravelerDesign} from './character-designs.js?v=45';
 
 const stageKey=new URLSearchParams(location.search).get('stage')==='somnia'?'somnia':'parallax';
 const STAGES={
-  parallax:{name:'閉鎖施設',code:'COMPLEX 02',intro:'複数の施設が街区規模で連結された、使われていない巨大複合施設。',sky:0x747462,fog:0x777666,fogDensity:.0022,ground:0x82775e,spawn:[11,0,82],limitY:42,
-    notes:[[-55,0,34,'宴会場','椅子が並んでいる。'],[52,0,38,'受付','呼び鈴が置かれている。'],[-52,0,-38,'浴場','水は抜かれている。'],[48,0,-42,'搬入口','案内板がある。'],[0,0,-69,'渡り廊下','窓の外にも廊下が見える。']]},
+  parallax:{name:'閉鎖施設',code:'COMPLEX 02',intro:'複数の施設が街区規模で連結された、使われていない巨大複合施設。',sky:0x747462,fog:0x777666,fogDensity:.0022,ground:0x82775e,spawn:[11,0,82],limitY:38,
+    notes:[[-55,0,34,'宴会場','椅子が並んでいる。'],[65,0,38,'受付','呼び鈴が置かれている。'],[-52,0,-38,'浴場','水は抜かれている。'],[48,0,-42,'搬入口','案内板がある。'],[0,0,-69,'渡り廊下','窓の外にも廊下が見える。']]},
   somnia:{name:'郊外',code:'SOLARPUNK SUBURB 03',intro:'丘陵と水路の先まで、発電設備と空中庭園の郊外が続いている。',sky:0x92c8c5,fog:0xb8d5bf,fogDensity:.0018,ground:0x718c69,spawn:[0,0,86],limitY:58,
     notes:[[-54,0,24,'昇降口','靴箱に上履きがある。'],[53,0,30,'団地','同じカーテンが並んでいる。'],[-45,0,-42,'公園','遊具の影が動く。'],[47,0,-45,'プール','水面に教室の天井が映っている。'],[0,0,-74,'非常口','外は草地につながっている。']]}
 };
@@ -25,7 +25,7 @@ function patternTexture(base,line,kind){const c=document.createElement('canvas')
   else{for(let i=0;i<=128;i+=16){x.globalAlpha=.16;x.fillRect(i,0,1,128);x.fillRect(0,i,128,1)}}
   const t=new THREE.CanvasTexture(c);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.repeat.set(kind==='carpet'?18:8,kind==='carpet'?15:5);t.colorSpace=THREE.SRGBColorSpace;return t}
 const floorMap=patternTexture(stageKey==='parallax'?'#85795d':'#879475',stageKey==='parallax'?'#413d34':'#43533e','carpet'),wallMap=patternTexture(stageKey==='parallax'?'#c9c39e':'#d5d0c6','#8c876f','grid');
-const textureLoader=new THREE.TextureLoader(),surfaceMap=textureLoader.load(stageKey==='parallax'?'assets/textures/plaster-color.jpg':'assets/textures/grass-color.jpg'),structuralMap=textureLoader.load(stageKey==='parallax'?'assets/textures/complex-surface-v2.jpg':'assets/textures/solarpunk-surface-v2.jpg'),frameMap=textureLoader.load(stageKey==='parallax'?'assets/textures/slate-color.jpg':'assets/textures/stone-color.jpg');for(const map of [surfaceMap,structuralMap,frameMap]){map.wrapS=map.wrapT=THREE.RepeatWrapping;map.colorSpace=THREE.SRGBColorSpace}surfaceMap.repeat.set(12,10);structuralMap.repeat.set(1,1);frameMap.repeat.set(4,4);
+const textureLoader=new THREE.TextureLoader(),surfaceMap=textureLoader.load(stageKey==='parallax'?'assets/textures/plaster-color.jpg':'assets/textures/grass-color.jpg'),structuralMap=textureLoader.load(stageKey==='parallax'?'assets/textures/complex-surface-v2.jpg':'assets/textures/solarpunk-surface-v2.jpg'),frameMap=textureLoader.load(stageKey==='parallax'?'assets/textures/slate-color.jpg':'assets/textures/stone-color.jpg');for(const map of [surfaceMap,structuralMap,frameMap]){map.wrapS=map.wrapT=THREE.RepeatWrapping;map.colorSpace=THREE.SRGBColorSpace}surfaceMap.repeat.set(12,10);structuralMap.repeat.set(stageKey==='parallax'?6:3,stageKey==='parallax'?4:3);frameMap.repeat.set(4,4);
 const mats={
   carpet:new THREE.MeshStandardMaterial({map:surfaceMap,roughness:1}),wall:new THREE.MeshStandardMaterial({map:structuralMap,roughness:.9}),frame:new THREE.MeshStandardMaterial({map:frameMap,roughness:.92}),dark:new THREE.MeshStandardMaterial({color:0x273238,roughness:.75}),wood:new THREE.MeshStandardMaterial({color:0x765645,roughness:.9}),pink:new THREE.MeshStandardMaterial({color:0xcf8fa4,roughness:.8}),water:new THREE.MeshPhysicalMaterial({color:0x7ca9bd,transparent:true,opacity:.72,roughness:.16}),glow:new THREE.MeshStandardMaterial({color:0xffecc0,emissive:0xffd98b,emissiveIntensity:1.3,roughness:.3}),solar:new THREE.MeshStandardMaterial({color:0x183e50,metalness:.72,roughness:.22,emissive:0x0c3541,emissiveIntensity:.45}),leaf:new THREE.MeshStandardMaterial({color:0x4d9b61,roughness:.82,emissive:0x183e23,emissiveIntensity:.2})
   ,meadow:new THREE.MeshStandardMaterial({color:0x5f7958,roughness:1})
@@ -50,6 +50,8 @@ function corridorBackdrop(){const c=document.createElement('canvas');c.width=512
 
 function buildParallax(){
   irregularGround();addHorizon('assets/textures/complex-horizon-v1.png',39,1.05);
+  // Broken ceiling plates enclose the complex while leaving tall atriums around the route.
+  for(const [x,z,w,d,r] of [[-66,20,104,116,-.035],[62,18,108,120,.028],[0,-91,136,58,-.018]]){const ceiling=roundedBlock(x,42,z,w,2.2,d,5,mats.dark);ceiling.rotation.z=r}
   // The player starts at a recognizable threshold instead of an empty exterior apron.
   box(4,.03,22,42,.06,118,mats.dark,false);for(const x of [-19,27])box(x,6,73,2,12,2,mats.frame,true);box(4,12,73,48,1.6,4,mats.dark,true);
   for(const [x,z,w,d] of [[-30,35,48,30],[35,8,54,34],[-28,-35,46,28]]){box(x,14,z,w,1.1,d,mats.dark,true);for(let px=x-w/2+7;px<x+w/2;px+=14)lightPanel(px,13.35,z,5,2)}
@@ -70,7 +72,7 @@ function buildParallax(){
   const backdrop=corridorBackdrop();for(const [x,z,w,ry] of [[-5,53.05,17,0],[34,53.05,30,0]]){const p=mesh(new THREE.PlaneGeometry(w,20),backdrop,x,11,z,false);p.rotation.y=ry}
   for(const x of [-82,-67,-52,-37,-22]){box(x,1.5,34,9,3,1,mats.wood,true);box(x,3.3,34,8,.3,3,mats.wall)}
   // Hotel desk and luggage rhythm.
-  box(65,1.2,38,26,2.4,3,mats.wood,true);for(let i=0;i<7;i++)box(55+i*4,.45,31,1.8,.9,1.3,i%2?mats.dark:mats.pink,true);
+  box(65,1.2,38,26,2.4,3,mats.wood,true);for(let i=0;i<7;i++)box(55+i*4,.45,31,1.8,.9,1.3,i%2?mats.dark:mats.pink,true);const bell=mesh(new THREE.SphereGeometry(.32,16,10,0,Math.PI*2,0,Math.PI*.58),mats.glow,65,2.58,38);bell.rotation.x=Math.PI;box(65,2.38,38,.85,.12,.85,mats.frame);
   // Empty bath and tiled rim.
   box(-66,-.55,-43,28,.45,22,mats.water);for(const [x,z,w,d] of [[-66,-54,32,2],[-66,-32,32,2],[-81,-43,2,22],[-51,-43,2,22]])box(x,.25,z,w,.5,d,mats.wall,true);
   // Loading bay stripes and impossible numbered doors.

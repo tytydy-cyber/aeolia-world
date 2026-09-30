@@ -22,7 +22,7 @@ console.log(`Blender asset: ${assetMeshes} material batches, ${assetTriangles} t
 let assetCallback;
 class Loader{load(url,callback){assert.ok(['assets/aeolia-house.glb','assets/aeolia-traveler.glb'].includes(url));if(url.endsWith('house.glb'))assetCallback=callback}}
 const localStorage={data:new Map(),getItem(k){return this.data.get(k)||null},setItem(k,v){this.data.set(k,String(v))}};
-const context=vm.createContext({THREE:{...Core,WebGLRenderer:Renderer,TextureLoader},GLTFLoader:Loader,WorldAudio,MotionEffects,applyTravelerDesign,document,localStorage,innerWidth:1280,innerHeight:800,devicePixelRatio:1,addEventListener:on,requestAnimationFrame(){},setTimeout(){},console:{...console,assert(condition,message){assert.ok(condition,message)}},performance});
+const context=vm.createContext({THREE:{...Core,WebGLRenderer:Renderer,TextureLoader},GLTFLoader:Loader,WorldAudio,MotionEffects,applyTravelerDesign,document,localStorage,innerWidth:1280,innerHeight:800,devicePixelRatio:1,matchMedia(){return {matches:false}},addEventListener:on,requestAnimationFrame(){},setTimeout(){},console:{...console,assert(condition,message){assert.ok(condition,message)}},performance});
 const html=readFileSync(new URL('../outputs/aeolia.html',import.meta.url),'utf8');
 const script=html.match(/<script type="module">([\s\S]*?)<\/script>/)[1].replace(/^import .*$/gm,'');
 vm.runInContext(script,context);
@@ -39,13 +39,11 @@ assert.equal(run('scenicLayers.length'),2,'two parallax ruin layers');
 assert.equal(run("sky.material.map.image===null"),true,'generated panorama is loaded through the texture pipeline');
 assert.deepEqual(Array.from(run('player.position')), [-25,3,5], 'spawn starts in the open central plaza');
 assert.deepEqual(Array.from(run('camera.position')), [-25,9,14], 'camera starts behind the new spawn');
-assert.equal(run('houses.every(h=>h.model && h.fallback.every(o=>!o.visible))'),true,'Blender models replace all houses');
-let textured=0;run('houses[0].model').traverse(o=>{if(o.isMesh&&o.material.userData.textureKind){textured++;assert.ok(o.material.map&&o.material.bumpMap);assert.ok(o.geometry.attributes.uv)}});assert.ok(textured>=8,'textures reach imported Blender materials');
-for(const h of run('houses')){
-  const bounds=new Core.Box3().setFromObject(h.model);
-  assert.ok(Math.abs(bounds.min.y-h.y)<.01,'Blender house grounded');
-  assert.ok(bounds.getSize(new Core.Vector3()).y>h.h,'roof is above walls');
-}
+assert.equal(run('houseBatches.length'),assetMeshes,'one draw batch per imported material');
+assert.equal(run('houses.every(h=>h.fallback.every(o=>!o.visible))'),true,'batched Blender models replace all fallback houses');
+let textured=0;for(const batch of run('houseBatches'))if(batch.material.userData.textureKind){textured++;assert.ok(batch.material.map&&batch.material.bumpMap);assert.ok(batch.geometry.attributes.uv)}assert.ok(textured>=8,'textures reach imported Blender materials');
+assert.ok(run('houseBatches.every(batch=>batch.count===houses.length)'),'each material batch contains every house');
+assert.equal(run('cloudBatch.count'),160,'all distant clouds share one draw batch');
 
 assert.equal(run('paveCount<3000'),true);
 assert.equal(run('groundAt(500,500)'),-Infinity);

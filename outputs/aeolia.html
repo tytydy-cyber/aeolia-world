@@ -53,7 +53,7 @@ const renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-per
 renderer.domElement.tabIndex=0;
 renderer.domElement.setAttribute('aria-label','散策画面。十字キーで飛行、スペースで上昇、シフトで下降、QとEで視点を回転');
 renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));renderer.setSize(innerWidth,innerHeight);
-renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFShadowMap;
+const reducedGPU=matchMedia('(pointer:coarse)').matches||innerWidth<800;renderer.shadowMap.enabled=!reducedGPU;renderer.shadowMap.type=THREE.PCFShadowMap;
 renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.05;
 document.body.prepend(renderer.domElement);
 
@@ -322,9 +322,8 @@ box([5,76,.7],[-105,-6,-128],waterMat,false);box([4,92,.6],[112,5,-116],waterMat
 const cloudCanvas=document.createElement('canvas');cloudCanvas.width=cloudCanvas.height=128;
 const ctx=cloudCanvas.getContext('2d'),gradient=ctx.createRadialGradient(64,64,0,64,64,64);
 gradient.addColorStop(0,'rgba(255,255,255,.6)');gradient.addColorStop(.35,'rgba(255,255,255,.4)');gradient.addColorStop(1,'rgba(255,255,255,0)');ctx.fillStyle=gradient;ctx.fillRect(0,0,128,128);
-const cloudMat=new THREE.SpriteMaterial({map:new THREE.CanvasTexture(cloudCanvas),color:0xe7e8df,transparent:true,opacity:.7,depthWrite:false});
-const clouds=[];
-for(let i=0;i<160;i++){const cloud=new THREE.Sprite(cloudMat);cloud.position.set((random()-.5)*750,-30+random()*13,(random()-.5)*750);cloud.scale.set(60+random()*90,18+random()*22,1);scene.add(cloud);clouds.push(cloud)}
+const cloudMat=new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(cloudCanvas),color:0xe7e8df,transparent:true,opacity:.7,depthWrite:false,side:THREE.DoubleSide}),clouds=[],cloudBatch=new THREE.InstancedMesh(new THREE.PlaneGeometry(1,1),cloudMat,160),cloudDummy=new THREE.Object3D();
+for(let i=0;i<160;i++){const cloud={x:(random()-.5)*750,y:-30+random()*13,z:(random()-.5)*750,w:60+random()*90,h:18+random()*22};clouds.push(cloud);cloudDummy.position.set(cloud.x,cloud.y,cloud.z);cloudDummy.scale.set(cloud.w,cloud.h,1);cloudDummy.updateMatrix();cloudBatch.setMatrixAt(i,cloudDummy.matrix)}cloudBatch.frustumCulled=false;scene.add(cloudBatch);
 const skyTexture=textureLoader.load('assets/textures/sky-cities.jpg');skyTexture.colorSpace=THREE.SRGBColorSpace;
 const sky=mesh(new THREE.SphereGeometry(850,32,16),new THREE.MeshBasicMaterial({map:skyTexture,side:THREE.BackSide,depthWrite:false,fog:false}),[0,0,0],false);sky.renderOrder=-10;
 // Generated matte-painting fragments sit between the 3D town and panorama.
@@ -525,24 +524,24 @@ function update(dt,t){
   if(obstruction)camera.position.copy(focus).addScaledVector(cameraRay.ray.direction,Math.max(.4,obstruction.distance-.3));
   lookTarget.copy(focus);cameraLook.lerp(lookTarget,1-Math.exp(-9*dt));camera.lookAt(cameraLook);
   sun.target.position.copy(player.position);sun.position.copy(player.position).add(new THREE.Vector3(-80,110,-50));
-  blades.rotation.z-=dt*.35;clouds.forEach((c,i)=>{c.position.x+=dt*(.25+i%4*.07);if(c.position.x>400)c.position.x=-400});
+  blades.rotation.z-=dt*.35;clouds.forEach((c,i)=>{c.x+=dt*(.25+i%4*.07);if(c.x>400)c.x=-400;cloudDummy.position.set(c.x,c.y,c.z);cloudDummy.quaternion.copy(camera.quaternion);cloudDummy.scale.set(c.w,c.h,1);cloudDummy.updateMatrix();cloudBatch.setMatrixAt(i,cloudDummy.matrix)});cloudBatch.instanceMatrix.needsUpdate=true;
   scenicLayers.forEach((layer,i)=>{layer.sprite.position.y=layer.baseY+Math.sin(t*.00011+layer.phase)*1.8;layer.sprite.material.opacity=.68+Math.sin(t*.00017+layer.phase+i)*.05});
   dreamObjects.forEach((item,i)=>{item.object.position.y=item.baseY+Math.sin(t*.00045+item.phase)*(.35+i%3*.12);item.object.rotation.z=Math.sin(t*.00018+item.phase)*.018});
   if(t>=nextDiscovery){discover();nextDiscovery=t+500}
 }
-// Reuse one exported model across the town; retain the existing collision proxies.
+// Batch each material across all houses; retain the existing collision proxies.
+const houseBatches=[];
 new GLTFLoader().load('assets/aeolia-house.glb',gltf=>{
+  gltf.scene.updateMatrixWorld(true);
   gltf.scene.traverse(o=>{
     if(!o.isMesh)return;
     const name=o.material.name;
     const kind=name.includes('plaster')?'plaster':name.includes('limestone')||name.includes('mouldings')?'stone':name.startsWith('Slate')?'slate':name.includes('chestnut')||name.includes('shutters')?'wood':null;
     if(kind){surfaceUV(o.geometry,kind==='slate'?1.6:kind==='wood'?2:3);textureMaterial(o.material,kind)}
   });
-  for(const h of houses){
-    const model=gltf.scene.clone(true);model.position.set(h.px,h.y,h.pz);model.scale.set(h.w/12,h.h/11,h.d/10);
-    model.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true;if(h.roof===MAT.roof2&&o.material.name.startsWith('Slate')){o.material=o.material.clone();o.material.color.setHex(0x835649)}}});
-    scene.add(model);h.model=model;h.fallback.forEach(o=>o.visible=false);
-  }
+  const position=new THREE.Vector3(),rotation=new THREE.Quaternion(),scale=new THREE.Vector3(),houseMatrix=new THREE.Matrix4(),matrix=new THREE.Matrix4(),white=new THREE.Color(0xffffff),redRoof=new THREE.Color(0x835649);
+  gltf.scene.traverse(o=>{if(!o.isMesh)return;const batch=new THREE.InstancedMesh(o.geometry,o.material,houses.length);for(const [i,h] of houses.entries()){position.set(h.px,h.y,h.pz);scale.set(h.w/12,h.h/11,h.d/10);houseMatrix.compose(position,rotation,scale);matrix.multiplyMatrices(houseMatrix,o.matrixWorld);batch.setMatrixAt(i,matrix);if(o.material.name.startsWith('Slate'))batch.setColorAt(i,h.roof===MAT.roof2?redRoof:white)}batch.castShadow=true;batch.receiveShadow=true;batch.computeBoundingSphere();scene.add(batch);houseBatches.push(batch)});
+  for(const h of houses)h.fallback.forEach(o=>o.visible=false);
   document.querySelector('#assetState').textContent='';
 },undefined,error=>{console.error('House asset could not load',error);document.querySelector('#assetState').textContent='建物の詳細を読み込めませんでした。再読み込みで再試行できます。'});
 let previousFrame=null;
