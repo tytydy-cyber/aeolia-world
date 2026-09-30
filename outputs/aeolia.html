@@ -35,7 +35,7 @@
 <label id="characterControl">主人公 <select id="characterSelect" aria-label="主人公のデザイン"><option value="ember">帽子の旅人</option><option value="mist">フードの旅人</option><option value="lilac">光輪の旅人</option></select></label>
 <a class="return" href="index.html">世界選択へ</a>
 <output id="perf" hidden></output>
-<div id="help"><b class="key">↑ ↓ ← →</b> 飛行 <b class="key">ドラッグ</b> 見渡す <b class="key">SPACE</b> 上昇 <b class="key">SHIFT</b> 下降 <b class="key">Q E</b> 旋回 <b class="key">C</b> 正面 <b class="key">Ctrl</b> 加速 <b class="key">Esc</b> 設定終了</div>
+<div id="help"><b class="key">↑ ↓ ← →</b> 飛行 <b class="key">ドラッグ</b> 見渡す <b class="key">SPACE</b> 上昇 <b class="key">SHIFT</b> 下降・滑空 <b class="key">Q E</b> 旋回 <b class="key">C</b> 正面 <b class="key">Ctrl</b> 加速 <b class="key">Esc</b> 設定終了</div>
 <div id="discovery"><small>DISCOVERED</small><div></div></div>
 <div id="error">3D世界を読み込めませんでした。インターネット接続を確認して、ページを再読み込みしてください。</div>
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.186.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.186.0/examples/jsm/"}}</script>
@@ -419,7 +419,7 @@ document.querySelector('#paceInput').addEventListener('pointerup',focusWorld);
 for(const selector of ['#soundToggle','#effectsToggle'])document.querySelector(selector).addEventListener('click',focusWorld);
 function focusWorld(){if(started)renderer.domElement.focus({preventScroll:true})}
 document.addEventListener('focusin',e=>{if(['INPUT','BUTTON','SELECT','TEXTAREA'].includes(e.target?.tagName))resetInput()});
-let yaw=0,pitch=.28,flying=true,started=false,bob=0,lastSafe=player.position.clone(),dragging=false,flightBlend=1,nextDiscovery=0,recenterYaw=null,travelYaw=0;
+let yaw=0,pitch=.28,flying=true,started=false,bob=0,lastSafe=player.position.clone(),dragging=false,flightBlend=1,diveBoost=0,nextDiscovery=0,recenterYaw=null,travelYaw=0;
 const discoveries=[
   {name:'市場',p:new THREE.Vector3(-30,3,-30),done:false},
   {name:'鐘楼',p:new THREE.Vector3(-105,33,-105),done:false},
@@ -439,7 +439,7 @@ function discover(){
   let nearest=discoveries.reduce((a,b)=>player.position.distanceTo(a.p)<player.position.distanceTo(b.p)?a:b);
   document.querySelector('#place').textContent=nearest.name;
 }
-function resetInput(){for(const k in keys)delete keys[k];dragging=false;velocity.set(0,0,0)}
+function resetInput(){for(const k in keys)delete keys[k];dragging=false;diveBoost=0;velocity.set(0,0,0)}
 addEventListener('blur',()=>{resetInput();previousFrame=null;sound.pause()});
 addEventListener('focus',()=>{previousFrame=null;if(started&&!document.hidden)startSound()});
 document.addEventListener('visibilitychange',()=>{previousFrame=null;if(document.hidden){resetInput();sound.pause()}else if(started)startSound()});
@@ -466,11 +466,11 @@ function update(dt,t){
   const fwd=new THREE.Vector3(-Math.sin(yaw),0,-Math.cos(yaw)),right=new THREE.Vector3(Math.cos(yaw),0,-Math.sin(yaw));
   const input=new THREE.Vector3().addScaledVector(fwd,(keys.ArrowUp||keys.KeyW?1:0)-(keys.ArrowDown||keys.KeyS?1:0)).addScaledVector(right,(keys.ArrowRight||keys.KeyD?1:0)-(keys.ArrowLeft||keys.KeyA?1:0));
   if(input.lengthSq())input.normalize();
-  const fast=keys.ControlLeft||keys.ControlRight,speed=(flying?(fast?44:28):(fast?16:10))*pace;
-  const response=input.lengthSq()?(flying?3.5:5.5):18;
-  velocity.x=THREE.MathUtils.damp(velocity.x,input.x*speed,response,dt);velocity.z=THREE.MathUtils.damp(velocity.z,input.z*speed,response,dt);
   if(flying)velocity.y=THREE.MathUtils.damp(velocity.y,((keys.Space?1:0)-(keys.ShiftLeft||keys.ShiftRight?1:0))*19*pace,6,dt);
   else velocity.y-=20*dt;
+  const localFloor=groundAt(player.position.x,player.position.z),airHeight=player.position.y-(localFloor>-Infinity?localFloor:0),altitude=THREE.MathUtils.smoothstep(airHeight,5,24),diving=velocity.y< -2&&input.lengthSq(),boostTarget=diving?Math.min(11,-velocity.y*.55):0;diveBoost=THREE.MathUtils.damp(diveBoost,boostTarget,diving?4:1.3,dt);
+  const fast=keys.ControlLeft||keys.ControlRight,speed=(THREE.MathUtils.lerp(fast?44:28,fast?54:38,altitude)+diveBoost)*pace,response=input.lengthSq()?THREE.MathUtils.lerp(7,3.5,altitude):THREE.MathUtils.lerp(18,10,altitude);
+  velocity.x=THREE.MathUtils.damp(velocity.x,input.x*speed,response,dt);velocity.z=THREE.MathUtils.damp(velocity.z,input.z*speed,response,dt);
   const before=player.position.clone(),wasGrounded=!flying&&before.y<=groundAt(before.x,before.z,before.y+.55)+.15;
   // Separate axes allow sliding along walls instead of freezing against them.
   for(const axis of ['x','z']){

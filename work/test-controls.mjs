@@ -65,7 +65,7 @@ dispatch('pointerdown',{button:2,pointerId:1});dispatch('pointermove',{movementX
 const yaw1=run('yaw');dispatch('pointermove',{movementX:300,movementY:100,buttons:0});assert.equal(run('yaw'),yaw1,'release must stop orbit');
 assert.ok(!script.includes('requestPointerLock'),'no mouse capture');
 
-reset();assert.ok(dispatch('keydown',{code:'ArrowUp'}).prevented);frames();const distance=40-run('player.position.z');assert.ok(distance>18&&distance<23,'up-arrow flies forward until terrain rises');assert.equal(run('yaw'),0,'flight keeps viewing angle');
+reset();assert.ok(dispatch('keydown',{code:'ArrowUp'}).prevented);frames();const distance=40-run('player.position.z');assert.ok(distance>18&&distance<30,`up-arrow flies forward until terrain rises (${distance})`);assert.equal(run('yaw'),0,'flight keeps viewing angle');
 dispatch('keyup',{code:'ArrowUp'});const stopZ=run('player.position.z');frames();assert.ok(Math.abs(stopZ-run('player.position.z'))<1.7,'flight braking drift stays bounded');
 reset();dispatch('keydown',{code:'ArrowRight'});frames(30);assert.ok(run('player.position.x')>1);assert.equal(run('yaw'),0);
 reset();dispatch('keydown',{code:'ArrowLeft'});frames(30);assert.ok(run('player.position.x')< -1);
@@ -75,7 +75,11 @@ reset();dispatch('keydown',{code:'ArrowUp'});frames(10);dispatch('keydown',{code
 reset();assert.equal(run('flying'),true,'flight is always active');dispatch('keydown',{code:'KeyF',repeat:false});assert.equal(run('flying'),true,'F no longer disables flight');dispatch('keydown',{code:'Space'});frames(120);assert.ok(run('player.position.y')>20,'flight gains height');dispatch('keyup',{code:'Space'});dispatch('keydown',{code:'ShiftLeft'});frames(120);assert.ok(run('player.position.y')>=4,'flight does not penetrate ground');
 reset();dispatch('keydown',{code:'KeyQ'});frames(30);assert.ok(run('yaw')>.5);dispatch('blur');assert.equal(run('Object.keys(keys).length'),0);assert.equal(run('velocity.length()'),0);
 reset();run('yaw=1.4;pitch=1');dispatch('keydown',{code:'KeyC',repeat:false});frames(90);assert.ok(Math.abs(run('yaw'))<.01&&Math.abs(run('pitch')-.28)<.01,'C smoothly restores last travel-facing camera');
-reset();run('yaw=1;keys.ArrowUp=true');frames(30);run('keys.ArrowUp=false;yaw=-1');dispatch('keydown',{code:'KeyC',repeat:false});frames(90);assert.ok(Math.abs(run('yaw')-1)<.01,'C remembers travel direction after stopping');
+reset();run('player.position.y=30;yaw=1;keys.ArrowUp=true');frames(30);run('keys.ArrowUp=false;yaw=-1');dispatch('keydown',{code:'KeyC',repeat:false});frames(90);assert.ok(Math.abs(run('yaw')-1)<.01,'C remembers travel direction after stopping');
+
+reset();run('player.position.y=4;keys.ArrowRight=true');frames(120);const lowCruise=run('Math.hypot(velocity.x,velocity.z)');
+reset();run('player.position.y=30;keys.ArrowRight=true');frames(120);const highCruise=run('Math.hypot(velocity.x,velocity.z)');assert.ok(highCruise>lowCruise+7,'high flight cruises faster than low flight');
+reset();run('player.position.y=70;keys.ArrowUp=true;keys.ShiftLeft=true');frames(90);const dive=run('[diveBoost,Math.hypot(velocity.x,velocity.z)]');assert.ok(dive[0]>5&&dive[1]>40,`descent converts into forward glide speed (${dive})`);
 
 // Every bridge collision height is generated from the same profile as its deck.
 for(const b of run('BRIDGES'))for(let i=0;i<=100;i++){const t=i/100,[ax,az,bx,bz,y1,y2]=b,x=ax+(bx-ax)*t,z=az+(bz-az)*t;const y=run(`groundAt(${x},${z})`);assert.ok(Math.abs(y-(y1+(y2-y1)*t+Math.sin(t*Math.PI)*2))<.001,'bridge height')}
