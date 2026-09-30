@@ -33,6 +33,11 @@ assert.ok(js.includes('function roundedBlock')&&js.includes('new THREE.TubeGeome
 assert.ok(js.includes('recognizable threshold')&&js.includes('Overlapping meadow islands'),'playtest fixes preserve a readable entrance and varied near ground');
 assert.ok(js.includes('nextAnomaly=Date.now()+360000')&&js.includes('function anomaly(){const now=Date.now()'),'rare events use one clock and cannot fire on entry');
 assert.ok(js.includes('smoothstep(player.position.y,5,24)')&&js.includes('boostTarget=diving?Math.min(10')&&js.includes('cameraProbe.lerpVectors'),'liminal flight changes with altitude, preserves dive momentum and avoids camera colliders');
+assert.ok(js.includes('function routeGate')&&js.includes('function updateRouteGates')&&js.includes('speed=THREE.MathUtils.lerp(fast?42:26,fast?52:36,altitude)+diveBoost+routeBoost'),'multi-height wind gates produce a temporary movement benefit');
+assert.ok(js.includes('A water tower anchors the horizon')&&js.includes('The solar collector closes the long view'),'both worlds have reachable navigation landmarks');
+assert.ok(js.includes('function mesh(g,m,x,y,z,shadow=false)'),'static architecture skips redundant shadow passes by default');
+assert.ok(js.includes('const accentBatch=new THREE.InstancedMesh')&&js.includes('renderer.shadowMap.enabled=false'),'repeated solar accents are batched and generated-material worlds skip dynamic shadow passes');
+assert.ok(js.includes('mergeGeometries')&&js.includes('groundCreatureBatch=new THREE.InstancedMesh')&&js.includes('birdBatch=new THREE.InstancedMesh'),'animated creatures keep their silhouettes in two draw batches');
 assert.ok(js.includes('complex-surface-v2.jpg')&&js.includes('solarpunk-surface-v2.jpg')&&js.includes('structuralMap.repeat.set(1,1)')&&js.includes('frame:new THREE.MeshStandardMaterial'),'world-specific material atlases stay on broad surfaces while frames keep stable UVs');
 assert.ok(js.includes("全地点を巡った")&&js.includes("best<90")&&js.includes("count} / ${cfg.notes.length}"),'exploration provides proximity and completion feedback');
 assert.ok(js.includes("addHorizon('assets/textures/complex-horizon-v1.png'")&&js.includes("addHorizon('assets/textures/distant-ruins.png'"),'both worlds have layered distant scenery');
@@ -42,6 +47,7 @@ assert.ok(js.includes('new THREE.CylinderGeometry(245*scale')&&js.includes('cons
 assert.ok(!js.includes('box(0,-.35,0,350')&&!js.includes('box(0,-.4,0,400'),'world floors are no longer giant rectangles');
 const edgeScale=(a,phase)=>.91+.075*Math.sin(a*3+phase)+.045*Math.sin(a*5-phase*.7)+.025*Math.sin(a*9+phase*.3),specs={parallax:[178,148,.4],somnia:[204,168,2.1]};
 for(const [key,stage] of Object.entries(stages)){const [rx,rz,phase]=specs[key];for(const [x,,z,name] of [[...stage.spawn,'spawn'],...stage.notes]){const a=Math.atan2(z/rz,x/rx);assert.ok(Math.hypot(x/rx,z/rz)<edgeScale(a,phase)-.012,`${key} ${name} stays inside the irregular visible ground`)}}
+for(const [key,[x,z]] of Object.entries({parallax:[-95,-105],somnia:[0,-126]})){const [rx,rz,phase]=specs[key],a=Math.atan2(z/rz,x/rx);assert.ok(Math.hypot(x/rx,z/rz)<edgeScale(a,phase)-.012,`${key} landmark stays inside playable ground`)}
 for(const code of ['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Space','ShiftLeft'])assert.ok(mobile.includes(code),`mobile control exposes ${code}`);
 assert.ok(!mobile.includes("button('KeyF'")&&!html.includes('飛行切替')&&!aeolia.includes('飛行切替'),'flight toggle is removed from every control surface');
 assert.ok(mobile.includes('pointerdown')&&mobile.includes('pointercancel')&&mobile.includes('touch-action:none'),'mobile press-and-hold and swipe coexist safely');
