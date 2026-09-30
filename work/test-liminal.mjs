@@ -32,6 +32,8 @@ assert.ok(js.includes('SOLARPUNK SUBURB 03')&&js.includes('const panels=new THRE
 assert.ok(js.includes('function roundedBlock')&&js.includes('new THREE.TubeGeometry')&&js.includes('Aerial commons'),'both new worlds use layered non-rectangular structures');
 assert.ok(js.includes('recognizable threshold')&&js.includes('Overlapping meadow islands'),'playtest fixes preserve a readable entrance and varied near ground');
 assert.ok(js.includes('nextAnomaly=Date.now()+360000')&&js.includes('function anomaly(){const now=Date.now()'),'rare events use one clock and cannot fire on entry');
+assert.ok(js.includes('complex-surface-v2.jpg')&&js.includes('solarpunk-surface-v2.jpg')&&js.includes('structuralMap.repeat.set(1,1)')&&js.includes('frame:new THREE.MeshStandardMaterial'),'world-specific material atlases stay on broad surfaces while frames keep stable UVs');
+assert.ok(js.includes("全地点を巡った")&&js.includes("best<90")&&js.includes("count} / ${cfg.notes.length}"),'exploration provides proximity and completion feedback');
 assert.ok(js.includes("addHorizon('assets/textures/complex-horizon-v1.png'")&&js.includes("addHorizon('assets/textures/distant-ruins.png'"),'both worlds have layered distant scenery');
 assert.ok(js.includes('irregularGround()')&&js.includes('roughCylinder(')&&js.includes('c.radius!==undefined'),'natural ground, hills and their colliders share non-rectangular shapes');
 assert.ok(js.includes('new THREE.ShapeGeometry(shape)')&&js.includes('o.rotation.x=-Math.PI/2'),'irregular ground renders its textured front face upward');

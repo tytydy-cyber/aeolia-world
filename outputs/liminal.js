@@ -24,9 +24,9 @@ function patternTexture(base,line,kind){const c=document.createElement('canvas')
   else{for(let i=0;i<=128;i+=16){x.globalAlpha=.16;x.fillRect(i,0,1,128);x.fillRect(0,i,128,1)}}
   const t=new THREE.CanvasTexture(c);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.repeat.set(kind==='carpet'?18:8,kind==='carpet'?15:5);t.colorSpace=THREE.SRGBColorSpace;return t}
 const floorMap=patternTexture(stageKey==='parallax'?'#85795d':'#879475',stageKey==='parallax'?'#413d34':'#43533e','carpet'),wallMap=patternTexture(stageKey==='parallax'?'#c9c39e':'#d5d0c6','#8c876f','grid');
-const textureLoader=new THREE.TextureLoader(),surfaceMap=textureLoader.load(stageKey==='parallax'?'assets/textures/plaster-color.jpg':'assets/textures/grass-color.jpg'),structuralMap=textureLoader.load(stageKey==='parallax'?'assets/textures/slate-color.jpg':'assets/textures/stone-color.jpg');for(const map of [surfaceMap,structuralMap]){map.wrapS=map.wrapT=THREE.RepeatWrapping;map.repeat.set(12,10);map.colorSpace=THREE.SRGBColorSpace}
+const textureLoader=new THREE.TextureLoader(),surfaceMap=textureLoader.load(stageKey==='parallax'?'assets/textures/plaster-color.jpg':'assets/textures/grass-color.jpg'),structuralMap=textureLoader.load(stageKey==='parallax'?'assets/textures/complex-surface-v2.jpg':'assets/textures/solarpunk-surface-v2.jpg'),frameMap=textureLoader.load(stageKey==='parallax'?'assets/textures/slate-color.jpg':'assets/textures/stone-color.jpg');for(const map of [surfaceMap,structuralMap,frameMap]){map.wrapS=map.wrapT=THREE.RepeatWrapping;map.colorSpace=THREE.SRGBColorSpace}surfaceMap.repeat.set(12,10);structuralMap.repeat.set(1,1);frameMap.repeat.set(4,4);
 const mats={
-  carpet:new THREE.MeshStandardMaterial({map:surfaceMap,roughness:1}),wall:new THREE.MeshStandardMaterial({map:structuralMap,roughness:.9}),dark:new THREE.MeshStandardMaterial({color:0x273238,roughness:.75}),wood:new THREE.MeshStandardMaterial({color:0x765645,roughness:.9}),pink:new THREE.MeshStandardMaterial({color:0xcf8fa4,roughness:.8}),water:new THREE.MeshPhysicalMaterial({color:0x7ca9bd,transparent:true,opacity:.72,roughness:.16}),glow:new THREE.MeshStandardMaterial({color:0xffecc0,emissive:0xffd98b,emissiveIntensity:1.3,roughness:.3}),solar:new THREE.MeshStandardMaterial({color:0x183e50,metalness:.72,roughness:.22,emissive:0x0c3541,emissiveIntensity:.45}),leaf:new THREE.MeshStandardMaterial({color:0x4d9b61,roughness:.82,emissive:0x183e23,emissiveIntensity:.2})
+  carpet:new THREE.MeshStandardMaterial({map:surfaceMap,roughness:1}),wall:new THREE.MeshStandardMaterial({map:structuralMap,roughness:.9}),frame:new THREE.MeshStandardMaterial({map:frameMap,roughness:.92}),dark:new THREE.MeshStandardMaterial({color:0x273238,roughness:.75}),wood:new THREE.MeshStandardMaterial({color:0x765645,roughness:.9}),pink:new THREE.MeshStandardMaterial({color:0xcf8fa4,roughness:.8}),water:new THREE.MeshPhysicalMaterial({color:0x7ca9bd,transparent:true,opacity:.72,roughness:.16}),glow:new THREE.MeshStandardMaterial({color:0xffecc0,emissive:0xffd98b,emissiveIntensity:1.3,roughness:.3}),solar:new THREE.MeshStandardMaterial({color:0x183e50,metalness:.72,roughness:.22,emissive:0x0c3541,emissiveIntensity:.45}),leaf:new THREE.MeshStandardMaterial({color:0x4d9b61,roughness:.82,emissive:0x183e23,emissiveIntensity:.2})
   ,meadow:new THREE.MeshStandardMaterial({color:0x5f7958,roughness:1})
 };
 const colliders=[],world=new THREE.Group();scene.add(world);
@@ -49,7 +49,7 @@ function corridorBackdrop(){const c=document.createElement('canvas');c.width=512
 function buildParallax(){
   irregularGround();addHorizon('assets/textures/complex-horizon-v1.png',39,1.05);
   // The player starts at a recognizable threshold instead of an empty exterior apron.
-  box(4,.03,22,42,.06,118,mats.dark,false);for(const x of [-19,27])box(x,6,73,2,12,2,mats.wall,true);box(4,12,73,48,1.6,4,mats.dark,true);
+  box(4,.03,22,42,.06,118,mats.dark,false);for(const x of [-19,27])box(x,6,73,2,12,2,mats.frame,true);box(4,12,73,48,1.6,4,mats.dark,true);
   for(const [x,z,w,d] of [[-30,35,48,30],[35,8,54,34],[-28,-35,46,28]]){box(x,14,z,w,1.1,d,mats.dark,true);for(let px=x-w/2+7;px<x+w/2;px+=14)lightPanel(px,13.35,z,5,2)}
   // Broken outer districts extend the playable complex beyond the original central floor plan.
   const districts=[[-132,72,56,45,28],[128,62,70,38,18],[-118,-82,82,46,14],[116,-88,62,54,32],[-62,118,76,34,20],[62,-121,88,28,12]],districtWindows=new THREE.InstancedMesh(new THREE.BoxGeometry(4,2.1,.2),mats.dark,180),districtDummy=new THREE.Object3D();let districtCount=0;
@@ -72,7 +72,7 @@ function buildParallax(){
   // Loading bay stripes and impossible numbered doors.
   for(let i=0;i<7;i++){box(26+i*8,.02,-40,4,.04,18,i%2?mats.dark:mats.wall,false);const door=box(25+i*10,3,-56,6,6,.45,mats.dark,true);door.userData.anomaly=i===5}
   // Repeating columns make scale readable while instancing keeps cost low.
-  const cols=new THREE.InstancedMesh(new THREE.CylinderGeometry(.55,.65,10,10),mats.wall,40),dummy=new THREE.Object3D();let n=0;
+  const cols=new THREE.InstancedMesh(new THREE.CylinderGeometry(.55,.65,10,10),mats.frame,40),dummy=new THREE.Object3D();let n=0;
   for(let x=-88;x<=88;x+=22)for(const z of [-72,-20,18,70]){dummy.position.set(x,5,z);dummy.updateMatrix();cols.setMatrixAt(n++,dummy.matrix);colliders.push({x,z,radius:.7,bottom:0,top:10})}cols.count=n;cols.castShadow=true;cols.receiveShadow=true;world.add(cols);
 }
 function buildSomnia(){
@@ -110,7 +110,7 @@ function buildSomnia(){
   for(const [x,z] of [[-18,-20],[25,-12],[74,-20]]){box(x,5,z,.9,10,.9,mats.wood);box(x,10,z,13,.45,13,mats.wood,true);const garden=mesh(new THREE.IcosahedronGeometry(5.4,2),mats.leaf,x,12,z);garden.scale.y=.42;for(let i=0;i<6;i++){const petal=box(x,15,z,5,.16,2.5,mats.solar,false);petal.rotation.y=i*Math.PI/3;petal.rotation.z=.18}}
   // Aerial commons make altitude a distinct exploration layer instead of empty sky.
   for(const [x,y,z,r] of [[-86,20,-18,14],[18,28,-72,18],[98,23,76,15]]){const ring=mesh(new THREE.TorusGeometry(r,1.1,8,36),mats.leaf,x,y,z);ring.rotation.x=Math.PI/2;const core=mesh(new THREE.IcosahedronGeometry(r*.42,2),mats.leaf,x,y+1,z);core.scale.y=.22;for(let i=0;i<5;i++){const petal=box(x,y+2,z,r*.55,.18,3,mats.solar,false);petal.rotation.y=i*Math.PI*.4}}
-  for(const [x,z,h] of [[-138,-72,25],[132,-35,30],[18,126,27]]){box(x,h/2,z,.7,h,.7,mats.wall);for(let i=0;i<3;i++){const blade=box(x,h+1,z,10,.18,1.1,mats.solar,false);blade.rotation.z=i*Math.PI/3}}
+  for(const [x,z,h] of [[-138,-72,25],[132,-35,30],[18,126,27]]){box(x,h/2,z,.7,h,.7,mats.frame);for(let i=0;i<3;i++){const blade=box(x,h+1,z,10,.18,1.1,mats.solar,false);blade.rotation.z=i*Math.PI/3}}
 }
 (stageKey==='parallax'?buildParallax:buildSomnia)();
 console.assert(validGround(cfg.spawn[0],cfg.spawn[2]),'spawn must be inside the visible ground');
@@ -140,9 +140,9 @@ const keys={},velocity=new THREE.Vector3(),lastSafe=player.position.clone(),targ
 function contains(c,x,z,margin=.55){return c.radius!==undefined?Math.hypot(x-c.x,z-c.z)<c.radius+margin:Math.abs(x-c.x)<c.w+margin&&Math.abs(z-c.z)<c.d+margin}
 function validGround(x,z){const [rx,rz,phase]=groundSpec,a=Math.atan2(z/rz,x/rx);return Math.hypot(x/rx,z/rz)<edgeScale(a,phase)-.012}
 function resetKeys(){for(const k in keys)delete keys[k];velocity.set(0,0,0);dragging=false}
-function saveNote(note){let notes=[];try{notes=JSON.parse(localStorage.getItem('aeolia-notes')||'[]')}catch{}const id=stageKey+':'+note[3];if(notes.some(n=>n.id===id))return false;notes.push({id,world:cfg.name,name:note[3],text:note[4]});localStorage.setItem('aeolia-notes',JSON.stringify(notes));return true}
+function saveNote(note){let notes=[];try{notes=JSON.parse(localStorage.getItem('aeolia-notes')||'[]')}catch{}const id=stageKey+':'+note[3];if(notes.some(n=>n.id===id))return 0;notes.push({id,world:cfg.name,name:note[3],text:note[4]});localStorage.setItem('aeolia-notes',JSON.stringify(notes));return notes.filter(n=>n.id.startsWith(stageKey+':')).length}
 let nextDiscover=0;
-function discover(t){if(t<nextDiscover)return;nextDiscover=t+500;let nearest=cfg.notes[0],best=Infinity;for(const n of cfg.notes){const d=Math.hypot(player.position.x-n[0],player.position.z-n[2]);if(d<best){best=d;nearest=n}if(d<10&&saveNote(n)){sound.chime();showEvent(n[3])}}document.querySelector('#place').textContent=nearest[3]}
+function discover(t){if(t<nextDiscover)return;nextDiscover=t+500;let nearest=cfg.notes[0],best=Infinity;for(const n of cfg.notes){const d=Math.hypot(player.position.x-n[0],player.position.z-n[2]);if(d<best){best=d;nearest=n}const count=d<10&&saveNote(n);if(count){sound.chime();showEvent(count===cfg.notes.length?`${n[3]} — 全地点を巡った`:`${n[3]} — ${n[4]}　${count} / ${cfg.notes.length}`)}}document.querySelector('#place').textContent=nearest[3]+(best<90?` · ${Math.round(best)}m`:'')}
 let eventTimer;function showEvent(text){const e=document.querySelector('#event');e.querySelector('div').textContent=text;e.classList.add('on');clearTimeout(eventTimer);eventTimer=setTimeout(()=>e.classList.remove('on'),2600)}
 function anomaly(){const now=Date.now();if(now<nextAnomaly)return;nextAnomaly=now+360000+Math.random()*300000;const candidates=[];world.traverse(o=>{if(o.userData.anomaly)candidates.push(o)});if(candidates.length){const o=candidates[Math.floor(Math.random()*candidates.length)];o.visible=!o.visible}scene.fog.density=cfg.fogDensity*1.8;setTimeout(()=>scene.fog.density=cfg.fogDensity,9000);showEvent(stageKey==='parallax'?'扉が現れた。':'チャイムが鳴った。')}
 function updateCreatures(dt,t){for(const c of creatures){c.phase+=c.speed*dt;const flee=Math.max(0,12-player.position.distanceTo(c.g.position));c.phase+=flee*dt*.025;c.g.position.x=(c.cx||0)+Math.cos(c.phase)*c.radius;c.g.position.z=(c.cz||0)+Math.sin(c.phase)*c.radius;if(c.kind==='bird'){c.g.position.y=10+(c.radius-35)*.18+Math.sin(t*.002+c.phase)*2;c.g.rotation.y=-c.phase+Math.PI/2;c.g.children.forEach((w,i)=>w.rotation.z=(i?-1:1)*(.22+Math.sin(t*.008+c.phase)*.35))}else{c.g.position.y=Math.abs(Math.sin(t*.003+c.phase))*.12;c.g.rotation.y=-c.phase;c.g.rotation.z=Math.sin(t*.004+c.phase)*.025}}}
