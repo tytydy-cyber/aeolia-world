@@ -6,7 +6,7 @@ import {applyTravelerDesign} from './character-designs.js?v=45';
 
 const stageKey=new URLSearchParams(location.search).get('stage')==='somnia'?'somnia':'parallax';
 const STAGES={
-  parallax:{name:'閉鎖施設',code:'COMPLEX 02',intro:'複数の施設が街区規模で連結された、使われていない巨大複合施設。',sky:0x747462,fog:0x777666,fogDensity:.0022,ground:0x82775e,spawn:[11,0,102],limitY:42,
+  parallax:{name:'閉鎖施設',code:'COMPLEX 02',intro:'複数の施設が街区規模で連結された、使われていない巨大複合施設。',sky:0x747462,fog:0x777666,fogDensity:.0022,ground:0x82775e,spawn:[11,0,82],limitY:42,
     notes:[[-55,0,34,'宴会場','椅子が並んでいる。'],[52,0,38,'受付','呼び鈴が置かれている。'],[-52,0,-38,'浴場','水は抜かれている。'],[48,0,-42,'搬入口','案内板がある。'],[0,0,-69,'渡り廊下','窓の外にも廊下が見える。']]},
   somnia:{name:'郊外',code:'SOLARPUNK SUBURB 03',intro:'丘陵と水路の先まで、発電設備と空中庭園の郊外が続いている。',sky:0x92c8c5,fog:0xb8d5bf,fogDensity:.0018,ground:0x718c69,spawn:[0,0,86],limitY:58,
     notes:[[-54,0,24,'昇降口','靴箱に上履きがある。'],[53,0,30,'団地','同じカーテンが並んでいる。'],[-45,0,-42,'公園','遊具の影が動く。'],[47,0,-45,'プール','水面に教室の天井が映っている。'],[0,0,-74,'非常口','外は草地につながっている。']]}
@@ -27,6 +27,7 @@ const floorMap=patternTexture(stageKey==='parallax'?'#85795d':'#879475',stageKey
 const textureLoader=new THREE.TextureLoader(),surfaceMap=textureLoader.load(stageKey==='parallax'?'assets/textures/plaster-color.jpg':'assets/textures/grass-color.jpg'),structuralMap=textureLoader.load(stageKey==='parallax'?'assets/textures/slate-color.jpg':'assets/textures/stone-color.jpg');for(const map of [surfaceMap,structuralMap]){map.wrapS=map.wrapT=THREE.RepeatWrapping;map.repeat.set(12,10);map.colorSpace=THREE.SRGBColorSpace}
 const mats={
   carpet:new THREE.MeshStandardMaterial({map:surfaceMap,roughness:1}),wall:new THREE.MeshStandardMaterial({map:structuralMap,roughness:.9}),dark:new THREE.MeshStandardMaterial({color:0x273238,roughness:.75}),wood:new THREE.MeshStandardMaterial({color:0x765645,roughness:.9}),pink:new THREE.MeshStandardMaterial({color:0xcf8fa4,roughness:.8}),water:new THREE.MeshPhysicalMaterial({color:0x7ca9bd,transparent:true,opacity:.72,roughness:.16}),glow:new THREE.MeshStandardMaterial({color:0xffecc0,emissive:0xffd98b,emissiveIntensity:1.3,roughness:.3}),solar:new THREE.MeshStandardMaterial({color:0x183e50,metalness:.72,roughness:.22,emissive:0x0c3541,emissiveIntensity:.45}),leaf:new THREE.MeshStandardMaterial({color:0x4d9b61,roughness:.82,emissive:0x183e23,emissiveIntensity:.2})
+  ,meadow:new THREE.MeshStandardMaterial({color:0x5f7958,roughness:1})
 };
 const colliders=[],world=new THREE.Group();scene.add(world);
 function mesh(g,m,x,y,z,shadow=true){const o=new THREE.Mesh(g,m);o.position.set(x,y,z);o.castShadow=shadow;o.receiveShadow=shadow;world.add(o);return o}
@@ -47,6 +48,9 @@ function corridorBackdrop(){const c=document.createElement('canvas');c.width=512
 
 function buildParallax(){
   irregularGround();addHorizon('assets/textures/complex-horizon-v1.png',39,1.05);
+  // The player starts at a recognizable threshold instead of an empty exterior apron.
+  box(4,.03,22,42,.06,118,mats.dark,false);for(const x of [-19,27])box(x,6,73,2,12,2,mats.wall,true);box(4,12,73,48,1.6,4,mats.dark,true);
+  for(const [x,z,w,d] of [[-30,35,48,30],[35,8,54,34],[-28,-35,46,28]]){box(x,14,z,w,1.1,d,mats.dark,true);for(let px=x-w/2+7;px<x+w/2;px+=14)lightPanel(px,13.35,z,5,2)}
   // Broken outer districts extend the playable complex beyond the original central floor plan.
   const districts=[[-132,72,56,45,28],[128,62,70,38,18],[-118,-82,82,46,14],[116,-88,62,54,32],[-62,118,76,34,20],[62,-121,88,28,12]],districtWindows=new THREE.InstancedMesh(new THREE.BoxGeometry(4,2.1,.2),mats.dark,180),districtDummy=new THREE.Object3D();let districtCount=0;
   for(const [i,[x,z,w,d,h]] of districts.entries()){roundedBlock(x,h/2,z,w,h,d,3+(i%3),mats.wall,true);const roof=mesh(new THREE.CylinderGeometry(w*.26,w*.34,3,10),mats.dark,x,h+1.5,z);roof.scale.z=d/w;for(let yy=5;yy<h-2;yy+=5)for(let xx=x-w/2+5;xx<x+w/2-2;xx+=9){districtDummy.position.set(xx,yy,z+d/2+.12);districtDummy.updateMatrix();districtWindows.setMatrixAt(districtCount++,districtDummy.matrix)}}districtWindows.count=districtCount;world.add(districtWindows);
@@ -73,6 +77,8 @@ function buildParallax(){
 }
 function buildSomnia(){
   irregularGround();addHorizon('assets/textures/distant-ruins.png',43,1.15);const road=new THREE.MeshStandardMaterial({color:0x596365,roughness:1,map:wallMap});box(0,.01,0,18,.08,310,road,false);box(0,.015,0,1,.09,300,mats.wall,false);
+  // Overlapping meadow islands break the single tiled ground plane without extra textures.
+  for(const [i,[x,z,s]] of [[-105,94,26],[-92,-18,19],[-36,106,17],[42,88,24],[104,30,22],[88,-82,28],[-68,-104,25],[22,-126,18]].entries()){const patch=mesh(roughCylinder(s*.82,s,.08,12,i*.9),mats.meadow,x,.03,z,false);patch.rotation.y=i*.37}
   // Secondary roads and sloping garden districts prevent the world reading as one central strip.
   for(const [x,z,w,d,r] of [[-78,64,145,13,-.18],[92,-32,165,12,.23],[-108,-102,92,11,.38],[116,105,108,10,-.3]]){const lane=box(x,.02,z,w,.09,d,road,false);lane.rotation.y=r}
   for(const [i,[x,z,s,h]] of [[-164,66,32,8],[-154,-34,55,13],[142,42,48,10],[112,-120,62,16],[-48,-132,44,7]].entries()){const hill=mesh(roughCylinder(s*.72,s,h,13,i*1.7),mats.carpet,x,h/2-.2,z);hill.rotation.y=(x+z)*.01;colliders.push({x,z,radius:s*1.02,bottom:0,top:h})}
@@ -104,6 +110,7 @@ function buildSomnia(){
   for(const [x,z] of [[-18,-20],[25,-12],[74,-20]]){box(x,5,z,.9,10,.9,mats.wood);box(x,10,z,13,.45,13,mats.wood,true);const garden=mesh(new THREE.IcosahedronGeometry(5.4,2),mats.leaf,x,12,z);garden.scale.y=.42;for(let i=0;i<6;i++){const petal=box(x,15,z,5,.16,2.5,mats.solar,false);petal.rotation.y=i*Math.PI/3;petal.rotation.z=.18}}
   // Aerial commons make altitude a distinct exploration layer instead of empty sky.
   for(const [x,y,z,r] of [[-86,20,-18,14],[18,28,-72,18],[98,23,76,15]]){const ring=mesh(new THREE.TorusGeometry(r,1.1,8,36),mats.leaf,x,y,z);ring.rotation.x=Math.PI/2;const core=mesh(new THREE.IcosahedronGeometry(r*.42,2),mats.leaf,x,y+1,z);core.scale.y=.22;for(let i=0;i<5;i++){const petal=box(x,y+2,z,r*.55,.18,3,mats.solar,false);petal.rotation.y=i*Math.PI*.4}}
+  for(const [x,z,h] of [[-138,-72,25],[132,-35,30],[18,126,27]]){box(x,h/2,z,.7,h,.7,mats.wall);for(let i=0;i<3;i++){const blade=box(x,h+1,z,10,.18,1.1,mats.solar,false);blade.rotation.z=i*Math.PI/3}}
 }
 (stageKey==='parallax'?buildParallax:buildSomnia)();
 console.assert(validGround(cfg.spawn[0],cfg.spawn[2]),'spawn must be inside the visible ground');
@@ -129,7 +136,7 @@ function setCharacterStyle(name){applyTravelerDesign(THREE,player,avatarModel,na
 const characterSelect=document.querySelector('#characterSelect');characterSelect.value=localStorage.getItem('aeolia-character')||'ember';setCharacterStyle(characterSelect.value);characterSelect.addEventListener('change',e=>{localStorage.setItem('aeolia-character',e.target.value);setCharacterStyle(e.target.value);if(started)renderer.domElement.focus()});
 new GLTFLoader().load('assets/aeolia-traveler.glb',gltf=>{const model=gltf.scene;avatarModel=model;model.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true}});player.add(model);setCharacterStyle(characterSelect.value);for(const o of [robe,head,hat,crown])o.visible=false;avatarMixer=new THREE.AnimationMixer(model);for(const clip of gltf.animations)avatarActions[clip.name]=avatarMixer.clipAction(clip);setAvatarAction('Idle')},undefined,error=>console.warn('Traveler model fallback in use',error));
 const sound=new WorldAudio(undefined,stageKey==='parallax'?'complex':'suburb'),motionEffects=new MotionEffects(THREE,scene,camera);
-const keys={},velocity=new THREE.Vector3(),lastSafe=player.position.clone(),targetCam=new THREE.Vector3(),cameraFocus=player.position.clone().add(new THREE.Vector3(0,2,0)),focusTarget=new THREE.Vector3();let yaw=0,pitch=.25,flying=true,flightBlend=1,started=false,dragging=false,previous=null,bob=0,nextAnomaly=performance.now()+360000+Math.random()*240000,recenterYaw=null,travelYaw=0;
+const keys={},velocity=new THREE.Vector3(),lastSafe=player.position.clone(),targetCam=new THREE.Vector3(),cameraFocus=player.position.clone().add(new THREE.Vector3(0,2,0)),focusTarget=new THREE.Vector3();let yaw=0,pitch=.25,flying=true,flightBlend=1,started=false,dragging=false,previous=null,bob=0,nextAnomaly=Date.now()+360000+Math.random()*240000,recenterYaw=null,travelYaw=0;
 function contains(c,x,z,margin=.55){return c.radius!==undefined?Math.hypot(x-c.x,z-c.z)<c.radius+margin:Math.abs(x-c.x)<c.w+margin&&Math.abs(z-c.z)<c.d+margin}
 function validGround(x,z){const [rx,rz,phase]=groundSpec,a=Math.atan2(z/rz,x/rx);return Math.hypot(x/rx,z/rz)<edgeScale(a,phase)-.012}
 function resetKeys(){for(const k in keys)delete keys[k];velocity.set(0,0,0);dragging=false}
@@ -137,7 +144,7 @@ function saveNote(note){let notes=[];try{notes=JSON.parse(localStorage.getItem('
 let nextDiscover=0;
 function discover(t){if(t<nextDiscover)return;nextDiscover=t+500;let nearest=cfg.notes[0],best=Infinity;for(const n of cfg.notes){const d=Math.hypot(player.position.x-n[0],player.position.z-n[2]);if(d<best){best=d;nearest=n}if(d<10&&saveNote(n)){sound.chime();showEvent(n[3])}}document.querySelector('#place').textContent=nearest[3]}
 let eventTimer;function showEvent(text){const e=document.querySelector('#event');e.querySelector('div').textContent=text;e.classList.add('on');clearTimeout(eventTimer);eventTimer=setTimeout(()=>e.classList.remove('on'),2600)}
-function anomaly(t){if(t<nextAnomaly)return;nextAnomaly=t+360000+Math.random()*300000;const candidates=[];world.traverse(o=>{if(o.userData.anomaly)candidates.push(o)});if(candidates.length){const o=candidates[Math.floor(Math.random()*candidates.length)];o.visible=!o.visible}scene.fog.density=cfg.fogDensity*1.8;setTimeout(()=>scene.fog.density=cfg.fogDensity,9000);showEvent(stageKey==='parallax'?'扉が現れた。':'チャイムが鳴った。')}
+function anomaly(){const now=Date.now();if(now<nextAnomaly)return;nextAnomaly=now+360000+Math.random()*300000;const candidates=[];world.traverse(o=>{if(o.userData.anomaly)candidates.push(o)});if(candidates.length){const o=candidates[Math.floor(Math.random()*candidates.length)];o.visible=!o.visible}scene.fog.density=cfg.fogDensity*1.8;setTimeout(()=>scene.fog.density=cfg.fogDensity,9000);showEvent(stageKey==='parallax'?'扉が現れた。':'チャイムが鳴った。')}
 function updateCreatures(dt,t){for(const c of creatures){c.phase+=c.speed*dt;const flee=Math.max(0,12-player.position.distanceTo(c.g.position));c.phase+=flee*dt*.025;c.g.position.x=(c.cx||0)+Math.cos(c.phase)*c.radius;c.g.position.z=(c.cz||0)+Math.sin(c.phase)*c.radius;if(c.kind==='bird'){c.g.position.y=10+(c.radius-35)*.18+Math.sin(t*.002+c.phase)*2;c.g.rotation.y=-c.phase+Math.PI/2;c.g.children.forEach((w,i)=>w.rotation.z=(i?-1:1)*(.22+Math.sin(t*.008+c.phase)*.35))}else{c.g.position.y=Math.abs(Math.sin(t*.003+c.phase))*.12;c.g.rotation.y=-c.phase;c.g.rotation.z=Math.sin(t*.004+c.phase)*.025}}}
 function update(dt,t){if(keys.KeyQ||keys.KeyE)recenterYaw=null;if(keys.KeyQ)yaw+=dt*1.2;if(keys.KeyE)yaw-=dt*1.2;if(recenterYaw!==null){const d=Math.atan2(Math.sin(recenterYaw-yaw),Math.cos(recenterYaw-yaw));yaw+=d*(1-Math.exp(-7*dt));pitch=THREE.MathUtils.damp(pitch,.25,7,dt);if(Math.abs(d)<.005)recenterYaw=null}const fwd=new THREE.Vector3(-Math.sin(yaw),0,-Math.cos(yaw)),right=new THREE.Vector3(Math.cos(yaw),0,-Math.sin(yaw)),input=new THREE.Vector3().addScaledVector(fwd,(keys.ArrowUp||keys.KeyW?1:0)-(keys.ArrowDown||keys.KeyS?1:0)).addScaledVector(right,(keys.ArrowRight||keys.KeyD?1:0)-(keys.ArrowLeft||keys.KeyA?1:0));if(input.lengthSq())input.normalize();const fast=keys.ControlLeft||keys.ControlRight,speed=flying?(fast?42:26):(fast?16:10);velocity.x=THREE.MathUtils.damp(velocity.x,input.x*speed,input.lengthSq()?5:15,dt);velocity.z=THREE.MathUtils.damp(velocity.z,input.z*speed,input.lengthSq()?5:15,dt);velocity.y=flying?THREE.MathUtils.damp(velocity.y,((keys.Space?1:0)-(keys.ShiftLeft||keys.ShiftRight?1:0))*16,6,dt):-12;
   const before=player.position.clone();for(const axis of ['x','z']){const old=player.position[axis];player.position[axis]+=velocity[axis]*dt;const blocked=colliders.some(c=>contains(c,player.position.x,player.position.z)&&player.position.y<c.top&&player.position.y+3.6>c.bottom);if(blocked||!validGround(player.position.x,player.position.z)){player.position[axis]=old;velocity[axis]=0}}
