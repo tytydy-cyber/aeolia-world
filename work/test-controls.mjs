@@ -43,6 +43,7 @@ assert.equal(run('houseBatches.length'),assetMeshes,'one draw batch per imported
 assert.equal(run('houses.every(h=>h.fallback.every(o=>!o.visible))'),true,'batched Blender models replace all fallback houses');
 let textured=0;for(const batch of run('houseBatches'))if(batch.material.userData.textureKind){textured++;assert.ok(batch.material.map&&batch.material.bumpMap);assert.ok(batch.geometry.attributes.uv)}assert.ok(textured>=8,'textures reach imported Blender materials');
 assert.ok(run('houseBatches.every(batch=>batch.count===houses.length)'),'each material batch contains every house');
+assert.ok(run('houseBatches.every(batch=>!batch.castShadow&&batch.receiveShadow)'),'houses receive nearby shadows without a second full geometry pass');
 assert.equal(run('cloudBatch.count'),160,'all distant clouds share one draw batch');
 
 assert.equal(run('paveCount<3000'),true);
@@ -82,6 +83,7 @@ reset();run('player.position.y=70;keys.ArrowUp=true;keys.ShiftLeft=true');frames
 // Every bridge collision height is generated from the same profile as its deck.
 for(const b of run('BRIDGES'))for(let i=0;i<=100;i++){const t=i/100,[ax,az,bx,bz,y1,y2]=b,x=ax+(bx-ax)*t,z=az+(bz-az)*t;const y=run(`groundAt(${x},${z})`);assert.ok(Math.abs(y-(y1+(y2-y1)*t+Math.sin(t*Math.PI)*2))<.001,'bridge height')}
 assert.ok(run('bridgeRails.length')>20);assert.ok(run('bridgeRails.filter(r=>Math.abs(r.rotation.z)>.01).length')>20,'rails follow bridge slopes');
+assert.equal(run('bridgeBatch.count'),run('bridgeParts.length'),'all bridge pieces share one draw batch');assert.equal(run('stairBatch.count'),50,'all stairs share one draw batch');
 run("setCharacterStyle('mist')");assert.equal(run('cloth.color.getHex()'),0x527b83,'character design changes without another rig');
 
 reset();run('player.position.set(28,3,39);keys.ArrowUp=true');frames(390);assert.ok(run('player.position.y')>17,'stairs reach upper terrace');
