@@ -52,6 +52,11 @@ assert.ok(js.includes('irregularGround()')&&js.includes('roughCylinder(')&&js.in
 assert.ok(js.includes('new THREE.ShapeGeometry(shape)')&&js.includes('o.rotation.x=-Math.PI/2'),'irregular ground renders its textured front face upward');
 assert.ok(js.includes('new THREE.CylinderGeometry(245*scale')&&js.includes('const silhouettes=new THREE.InstancedMesh'),'horizon art wraps around a real low-cost 3D foreground layer');
 assert.ok(!js.includes('box(0,-.35,0,350')&&!js.includes('box(0,-.4,0,400'),'world floors are no longer giant rectangles');
+assert.ok(js.includes('depthWrite:false,polygonOffset:true')&&js.includes('box(48,.045,-48,34,.035,22,mats.water)')&&js.includes('box(x,.055,z,w,.035,d,mats.water,false)'),'suburb water avoids coplanar depth artifacts');
+assert.ok(js.includes('corner:Math.min(r,w/2,d/2)')&&js.includes('Math.hypot(qx,qz)<c.corner+margin'),'rounded buildings use rounded collision bounds');
+const contains=(c,x,z,margin=.55)=>{const dx=Math.abs(x-c.x),dz=Math.abs(z-c.z),qx=Math.max(dx-(c.w-c.corner),0),qz=Math.max(dz-(c.d-c.corner),0);return dx<c.w+margin&&dz<c.d+margin&&Math.hypot(qx,qz)<c.corner+margin};
+const rounded={x:0,z:0,w:10,d:8,corner:4};assert.equal(contains(rounded,10,8),false,'empty rounded corner stays passable');assert.equal(contains(rounded,10,0),true,'visible rounded side still blocks');
+assert.ok(js.includes('const slide=box(-34,2.2,-45,10,.4,3,mats.pink,false)'),'rotated slide no longer leaves an unrotated invisible wall');
 const edgeScale=(a,phase)=>.91+.075*Math.sin(a*3+phase)+.045*Math.sin(a*5-phase*.7)+.025*Math.sin(a*9+phase*.3),specs={parallax:[178,148,.4],somnia:[204,168,2.1]};
 for(const [key,stage] of Object.entries(stages)){const [rx,rz,phase]=specs[key];for(const [x,,z,name] of [[...stage.spawn,'spawn'],...stage.notes]){const a=Math.atan2(z/rz,x/rx);assert.ok(Math.hypot(x/rx,z/rz)<edgeScale(a,phase)-.012,`${key} ${name} stays inside the irregular visible ground`)}}
 for(const [key,[x,z]] of Object.entries({parallax:[-95,-105],somnia:[0,-126]})){const [rx,rz,phase]=specs[key],a=Math.atan2(z/rz,x/rx);assert.ok(Math.hypot(x/rx,z/rz)<edgeScale(a,phase)-.012,`${key} landmark stays inside playable ground`)}
