@@ -50,7 +50,7 @@ assert.ok(js.includes("全地点を巡った")&&js.includes("best<90")&&js.inclu
 assert.ok(js.includes("addHorizon('assets/textures/complex-horizon-v1.png'")&&js.includes("addHorizon('assets/textures/distant-ruins.png'"),'both worlds have layered distant scenery');
 assert.ok(js.includes('irregularGround()')&&js.includes('roughCylinder(')&&js.includes('c.radius!==undefined'),'natural ground, hills and their colliders share non-rectangular shapes');
 assert.ok(js.includes('new THREE.ShapeGeometry(shape)')&&js.includes('o.rotation.x=-Math.PI/2'),'irregular ground renders its textured front face upward');
-assert.ok(js.includes('new THREE.CylinderGeometry(245*scale')&&js.includes('const silhouettes=new THREE.InstancedMesh'),'horizon art wraps around a real low-cost 3D foreground layer');
+assert.ok(js.includes('new THREE.CylinderGeometry(245*scale')&&js.includes("opacity:stageKey==='parallax'?.09")&&js.includes("material=stageKey==='parallax'?mats.frame")&&js.includes('new THREE.CylinderGeometry(.72,1,1,7)')&&js.includes('new THREE.TorusGeometry(1,.09,5,12,Math.PI)'),'faint horizon art sits behind a textured low-cost radial 3D skyline');
 assert.ok(!js.includes('box(0,-.35,0,350')&&!js.includes('box(0,-.4,0,400'),'world floors are no longer giant rectangles');
 assert.ok(js.includes('depthWrite:false,polygonOffset:true')&&js.includes('box(48,.045,-48,34,.035,22,mats.water)')&&js.includes('box(x,.055,z,w,.035,d,mats.water,false)'),'suburb water avoids coplanar depth artifacts');
 assert.ok(js.includes('corner:Math.min(r,w/2,d/2)')&&js.includes('Math.hypot(qx,qz)<c.corner+margin'),'rounded buildings use rounded collision bounds');
