@@ -35,6 +35,7 @@ assert.ok(js.includes('nextAnomaly=Infinity')&&js.includes('started=true;nextAno
 assert.ok(js.includes('d<NOTE_RADIUS&&low&&saveNote(n)')&&js.includes('降りると記録')&&js.includes('recenterYaw=Math.atan2(player.position.x-n[0]'),'discoveries require descending and turn the camera toward the place');
 assert.ok(js.includes('mats.glow.clone()')&&js.includes('i===nextGate')&&js.includes('気流を乗り継いだ'),'wind gates form an ordered chain with the next gate highlighted');
 assert.ok(html.includes('id="soundToggle"')&&html.includes('id="soundVolume"')&&js.includes('sound.setMuted(!sound.muted)'),'liminal worlds expose mute and volume like the floating islands');
+assert.ok(html.indexOf("const suburb=new URLSearchParams")<html.indexOf('type="importmap"')&&html.includes("replaceChildren(first.name)"),'stage copy is complete before the external 3D module loads');
 assert.ok(js.includes('smoothstep(player.position.y,5,24)')&&js.includes('boostTarget=diving?Math.min(10')&&js.includes('cameraProbe.lerpVectors'),'liminal flight changes with altitude, preserves dive momentum and avoids camera colliders');
 assert.ok(js.includes('function routeGate')&&js.includes('function updateRouteGates')&&js.includes('speed=THREE.MathUtils.lerp(fast?42:26,fast?52:36,altitude)+diveBoost+routeBoost'),'multi-height wind gates produce a temporary movement benefit');
 assert.ok(js.includes('A water tower anchors the horizon')&&js.includes('The solar collector closes the long view'),'both worlds have reachable navigation landmarks');

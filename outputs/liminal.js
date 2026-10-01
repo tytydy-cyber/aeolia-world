@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
 import {mergeGeometries} from 'three/addons/utils/BufferGeometryUtils.js';
 import {WorldAudio} from './audio.js?v=50';
-import {MotionEffects} from './effects.js?v=50';
+import {MotionEffects} from './effects.js?v=51';
 import {applyTravelerDesign} from './character-designs.js?v=45';
 
 const stageKey=new URLSearchParams(location.search).get('stage')==='somnia'?'somnia':'parallax';

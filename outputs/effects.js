@@ -24,7 +24,7 @@ export class MotionEffects {
   }
   emit(pool,x,y,z,vx,vy,vz,life,length=0){
     const p=pool.items[pool.next];pool.next=(pool.next+1)%pool.count;
-    Object.assign(p,{age:0,life,x,y,z,vx,vy,vz,ex:x-vx*length,ey:y-vy*length,ez:z-vz*length});
+    Object.assign(p,{age:0,life,x,y,z,vx,vy,vz,lx:-vx*length,ly:-vy*length,lz:-vz*length,ex:x-vx*length,ey:y-vy*length,ez:z-vz*length});
   }
   flightBurst(position,takeoff=true){
     if(!this.enabled)return;
@@ -49,19 +49,18 @@ export class MotionEffects {
     if(allow&&grounded&&!flying&&!this.wasGrounded){
       for(let i=0;i<12;i++){const a=i/12*Math.PI*2;this.emit(this.dust,position.x,position.y+.12,position.z,Math.cos(a)*1.6,.5,Math.sin(a)*1.6,.7)}
     }
-    const band=flying?(total>24?2:total>5?1:0):0;
-    if(allow&&band>this.flightBand)for(let i=0;i<14;i++){const a=i/14*Math.PI*2;this.emit(this.air,position.x+Math.cos(a)*.7,position.y+1.5+Math.sin(a*2)*.25,position.z+Math.sin(a)*.7,Math.cos(a)*3,Math.sin(a*2)*1.2,Math.sin(a)*3,.72,-.8)}
+    const band=flying?(total>=28?2:total>8?1:0):0;
     this.flightBand=band;
-    if(allow&&flying&&total>2){
+    if(allow&&flying&&total>8){
       this.airClock+=dt;
-      const interval=total>24?.018:.04;
+      const interval=total>28?.035:.065;
       if(this.airClock>interval){
-        this.airClock%=interval;this.right.set(1,0,0).applyQuaternion(this.camera.quaternion);
-        const streams=total>24?3:2;
+        this.airClock%=interval;this.right.set(velocity.z,0,-velocity.x).normalize();
+        const streams=total>28?2:1;
         for(let lane=0;lane<streams;lane++)for(const side of [-1,1]){
-          const offset=.55+lane*.42+Math.sin(this.time*7+lane)*.12,flutter=Math.sin(this.time*11+side*lane)*.7;
-          const x=position.x+this.right.x*side*offset,y=position.y+1.35+lane*.32+flutter*.15,z=position.z+this.right.z*side*offset;
-          this.emit(this.air,x,y,z,-velocity.x*(.1+lane*.025)+this.right.x*flutter,-velocity.y*.14+flutter*.3,-velocity.z*(.1+lane*.025)+this.right.z*flutter,.48+lane*.12,-1.2-lane*.35);
+          const offset=.52+lane*.38,flutter=Math.sin(this.time*8+side*2)*.25;
+          const x=position.x+this.right.x*side*offset,y=position.y+1.15+lane*.25+flutter*.12,z=position.z+this.right.z*side*offset;
+          this.emit(this.air,x,y,z,-velocity.x*(.07+lane*.015)+this.right.x*flutter,-velocity.y*.08,-velocity.z*(.07+lane*.015)+this.right.z*flutter,.38+lane*.08,-.75-lane*.2);
         }
       }
     }else this.airClock=0;
@@ -72,7 +71,7 @@ export class MotionEffects {
         p.age+=dt;const active=allow&&p.age<p.life;const n=pool.line?i*2:i;
         const opacity=active?(1-p.age/p.life)*(pool.line?.68:.58):0;
         pool.alpha[n]=opacity;
-        if(active){p.x+=p.vx*dt;p.y+=p.vy*dt;p.z+=p.vz*dt}
+        if(active){p.x+=p.vx*dt;p.y+=p.vy*dt;p.z+=p.vz*dt;p.ex=p.x+p.lx;p.ey=p.y+p.ly;p.ez=p.z+p.lz}
         pool.position.set([p.x,p.y,p.z],n*3);
         if(pool.line){pool.alpha[n+1]=opacity*.1;pool.position.set([p.ex,p.ey,p.ez],(n+1)*3)}
         else pool.size[n]=.46+p.age*.85;

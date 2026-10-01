@@ -10,6 +10,7 @@ advance(1,false,true);assert.equal(alive(fx.dust),0,'idle does not emit');
 v.z=-10;advance(1,false,true);assert.ok(alive(fx.dust)>0,'walking emits dust');assert.equal(alive(fx.air),0);
 v.z=-28;advance(2,true,false);assert.ok(alive(fx.air)>0,'flight emits a trail');assert.equal(alive(fx.dust),0,'dust expires during flight');
 assert.equal(fx.flightBand,2,'fast flight changes the effect band');
+assert.ok(fx.air.items.filter(p=>p.age<p.life).every(p=>Number.isFinite(p.lx)&&Math.abs(p.lx)>0),'flight streaks keep a movement-aligned local tail');
 v.set(0,0,0);advance(1,true,false);assert.equal(alive(fx.air),0,'stopping clears the trail');
 fx.update(1/60,p,v,false,true);assert.ok(alive(fx.dust)>=12,'landing burst');advance(2,false,true);assert.equal(alive(fx.dust),0);
 v.z=-70;advance(30,true,false);assert.ok(alive(fx.air)<=64);assert.equal(fx.air.position.length,384,'pool capacity is fixed');
