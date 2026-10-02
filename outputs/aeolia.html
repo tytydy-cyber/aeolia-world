@@ -437,7 +437,7 @@ function focusWorld(){if(started)renderer.domElement.focus({preventScroll:true})
 document.addEventListener('focusin',e=>{if(['INPUT','BUTTON','SELECT','TEXTAREA'].includes(e.target?.tagName))resetInput()});
 let yaw=0,pitch=.28,flying=true,started=false,bob=0,lastSafe=player.position.clone(),dragging=false,flightBlend=1,diveBoost=0,nextDiscovery=0,recenterYaw=null,travelYaw=0;
 const discoveries=[
-  {name:'市場',text:'花と収穫物を扱う屋台が並ぶ。',p:new THREE.Vector3(-30,3,-18)},
+  {name:'市場',text:'花と収穫物を扱う屋台が並ぶ。',p:new THREE.Vector3(-30,3,-28)},
   {name:'上段庭園',text:'高台の水盤から街を見渡せる。',p:new THREE.Vector3(28,18,-18)},
   {name:'雲の停留所',text:'雲海に面した小さな乗降場。',p:new THREE.Vector3(0,3,54)},
   {name:'鐘楼',text:'鐘は風だけで鳴るように吊られている。',p:new THREE.Vector3(-105,33,-105)},
@@ -596,16 +596,17 @@ Promise.all([reducedGPU?null:loadHouseAsset('assets/aeolia-house.glb'),loadHouse
   placeHouses(full&&houseParts(full),houseParts(lod));
   document.querySelector('#assetState').textContent='';
 }).catch(error=>{console.error('House asset could not load',error);document.querySelector('#assetState').textContent='建物の詳細を読み込めませんでした。再読み込みで再試行できます。'});
-const districtModules=[],districtPlacements=[
-  ['Market_module',-30,3.08,-18,{x:-30,z:-18,w:3.6,d:1.2,bottom:3,top:6.4}],
+const districtModules=[],districtBatches=[],districtPlacements=[
+  ['Market_module',-30,3.08,-28,{x:-30,z:-28,w:3.6,d:1.2,bottom:3,top:6.4}],
   ['Bell_tower_module',-105,34.08,-83,{x:-105,z:-83,w:1.4,d:1.4,bottom:34,top:40.5}],
   ['Windmill_module',112,54.08,-72,{x:112,z:-72,w:3.3,d:1.2,bottom:54,top:57}],
   ['Water_garden_module',28,18.08,-18,null],
   ['Cloud_stop_module',0,3.08,54,{x:0,z:54,w:6.2,d:1.8,bottom:3,top:6.9}]
 ];
 new GLTFLoader().load('assets/aeolia-island-modules.glb',gltf=>{
-  const modules=new Map(gltf.scene.children.map(object=>[object.name,object]));
-  for(const [name,x,y,z,collider] of districtPlacements){const object=modules.get(name);if(!object)continue;object.position.set(x,y,z);object.traverse(part=>{if(part.isMesh){part.castShadow=false;part.receiveShadow=true}});scene.add(object);districtModules.push(object);if(collider)solidColliders.push(collider)}
+  const modules=new Map(gltf.scene.children.map(object=>[object.name,object])),parts=new Map();
+  for(const [name,x,y,z,collider] of districtPlacements){const object=modules.get(name);if(!object)continue;object.position.set(x,y,z);object.updateMatrixWorld(true);object.traverse(part=>{if(!part.isMesh)return;const key=part.material.name;if(!parts.has(key))parts.set(key,{material:part.material,geometries:[]});parts.get(key).geometries.push(part.geometry.clone().applyMatrix4(part.matrixWorld))});districtModules.push(object);if(collider)solidColliders.push(collider)}
+  for(const {material,geometries} of parts.values()){const batch=new THREE.Mesh(mergeGeometries(geometries),material);batch.castShadow=false;batch.receiveShadow=true;scene.add(batch);districtBatches.push(batch)}
 },undefined,error=>console.error('Island district assets could not load',error));
 let previousFrame=null;
 const perfOutput=document.querySelector('#perf'),perfEnabled=Boolean(document.location?.search.includes('debug=1')),perfFrames=[];let perfStart=0;

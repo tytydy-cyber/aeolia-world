@@ -52,8 +52,11 @@ function reset(){document.activeElement=document.body;run('resetInput();player.p
 
 assert.equal(run('houses.length'),9);
 assert.equal(run('districtModules.length'),5,'all five district modules are placed');
+assert.ok(run('districtBatches.length')<=4,'five districts merge into at most four material batches');
 assert.equal(run('discoveries.length'),7,'the circuit covers the central island, three outer islands and cloud layer');
 assert.ok(run('districtPlacements.every(([,x,y,z])=>y-groundAt(x,z)>=.08-1e-9)'),'district modules sit above their ground instead of sharing a coplanar layer');
+assert.ok(run('districtPlacements.filter(p=>p[4]).every(([,x,,z,c])=>!propColliders.some(p=>Math.abs(x-p.x)<c.w+p.w&&Math.abs(z-p.z)<c.d+p.d))'),'district modules do not overlap existing street furniture');
+assert.ok(run('districtModules.every(object=>{const box=new THREE.Box3().setFromObject(object);return box.min.y-groundAt(object.position.x,object.position.z)>=.079})'),'district geometry stays physically above the terrain layer');
 assert.equal(run('scenicLayers.length'),2,'two parallax ruin layers');
 assert.equal(run("sky.material.map.image===null"),true,'generated panorama is loaded through the texture pipeline');
 assert.deepEqual(Array.from(run('player.position')), [-25,3,5], 'spawn starts in the open central plaza');
