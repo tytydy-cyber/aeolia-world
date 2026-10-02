@@ -536,6 +536,8 @@ function update(dt,t){
   body.position.y=Math.abs(Math.sin(bob))*.06*stride+flightBlend*Math.sin(t*.006)*.035;
   body.rotation.x=THREE.MathUtils.damp(body.rotation.x,horizontalSpeed*.009*flightBlend-lift*.13,4,dt);
   body.rotation.z=THREE.MathUtils.damp(body.rotation.z,THREE.MathUtils.clamp(-turn*.24,-.32,.32)*flightBlend,5,dt);
+  // The Blender traveler leans and banks like the fallback body; its parent only yaws, so this stays relative to the heading.
+  if(avatarModel){avatarModel.rotation.x=body.rotation.x;avatarModel.rotation.z=body.rotation.z}
   const vertices=scarf.geometry.attributes.position;
   for(let i=0;i<vertices.count;i++){const along=(scarfRest[i*3+1]+1.2)/2.4;vertices.setZ(i,Math.sin(t*.004-along*4)*.16*along+along*along*.25)}vertices.needsUpdate=true;scarf.geometry.computeVertexNormals();
   const dist=9+flightBlend*4,up=4.4+flightBlend;

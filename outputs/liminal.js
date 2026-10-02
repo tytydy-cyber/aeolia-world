@@ -174,6 +174,8 @@ function makeBird(i){creatures.push({batch:birdBatch,index:i,position:new THREE.
 for(let i=0;i<8;i++)makeGroundCreature(i);for(let i=0;i<18;i++)makeBird(i);
 
 const player=new THREE.Group(),coat=new THREE.MeshStandardMaterial({color:0x526e78,roughness:.9}),skin=new THREE.MeshStandardMaterial({color:0xd9ad88,roughness:.8});scene.add(player);
+// Yaw first, then pitch and roll about the traveler's own axes, so the lean follows the heading.
+player.rotation.order='YXZ';
 const robe=new THREE.Mesh(new THREE.CapsuleGeometry(.52,1.45,8,16),coat);robe.position.y=1.35;player.add(robe);const head=new THREE.Mesh(new THREE.SphereGeometry(.42,20,14),skin);head.position.y=2.65;player.add(head);const hat=new THREE.Mesh(new THREE.CylinderGeometry(.72,.78,.12,28),mats.wood);hat.position.y=3.02;player.add(hat);const crown=new THREE.Mesh(new THREE.CylinderGeometry(.38,.48,.34,24),mats.wood);crown.position.y=3.2;player.add(crown);player.traverse(o=>{if(o.isMesh)o.castShadow=true});player.position.set(...cfg.spawn);
 let avatarMixer=null,avatarActions={},avatarState='',avatarModel=null;function setAvatarAction(name){if(name===avatarState||!avatarActions[name])return;const next=avatarActions[name],previous=avatarActions[avatarState];next.reset().fadeIn(.2).play();if(previous)previous.fadeOut(.2);avatarState=name}
 function setCharacterStyle(name){applyTravelerDesign(THREE,player,avatarModel,name)}

@@ -151,6 +151,13 @@ assert.ok(nearHaze.every(o=>o===1)&&farHaze.every(o=>o<.5),`distant islands fade
 // The camera stays out of the tapered rock when the player flies beneath an island.
 // 0.3 m tolerance: the analytic rock shape differs from the faceted, rippled mesh the camera ray actually hits.
 for(const [y,z] of [[-20,44],[-30,32],[-40,22]]){reset();run(`player.position.set(0,${y},${z});yaw=Math.PI;pitch=.28`);frames(90);assert.ok(!run('islandRockContains(camera.position.x,camera.position.z,camera.position.y,-.3)'),`camera stays outside the rock below the cliff (${y}, ${z})`)}
+// The Blender traveler leans toward its direction of travel, whichever way it heads.
+assetCallbacks['assets/aeolia-traveler.glb']({scene:new Core.Group(),animations:['Idle','Walk','Fly'].map(name=>new Core.AnimationClip(name,1,[]))});
+for(const [key,direction] of [['ArrowRight',[1,0,0]],['ArrowUp',[0,0,-1]],['ArrowLeft',[-1,0,0]]]){
+  reset();run(`player.position.set(0,20,0);keys.${key}=true`);frames(90);run(`keys.${key}=false`);
+  const up=run('new THREE.Vector3(0,1,0).applyQuaternion(avatarModel.getWorldQuaternion(new THREE.Quaternion())).toArray()');
+  assert.ok(up[0]*direction[0]+up[2]*direction[2]>.1&&Math.abs(up[0]*direction[2]-up[2]*direction[0])<.1,`traveler leans forward, not sideways, when moving ${key} (${up.map(v=>v.toFixed(2))})`);
+}
 console.log('PASS: actual GLB parse/9 house placements, all arrow keys, passive mouse, drag/release, acceleration/braking, flight, focus loss, bridges, stairs, walls, speed slider, maximum-speed collision, 30/60/120 Hz, colonnade/blade collision, distant haze, under-island camera, discovery journal. GPU rendering is not tested.');
 const counts=Object.fromEntries(['pot','crate','bench','stall'].map(kind=>[kind,run(`props.filter(p=>p.kind==='${kind}').length`)]));
 assert.ok(run('props.length')>=40,'meaningful street furniture count');
