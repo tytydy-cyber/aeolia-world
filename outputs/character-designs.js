@@ -13,12 +13,12 @@ function clothFinish(THREE,player,materials){
 }
 
 function buildVariants(THREE,player){
-  const mist=new THREE.Group(),lilac=new THREE.Group(),lilacHead=new THREE.Group();player.add(mist,lilac,lilacHead);
+  const mist=new THREE.Group(),mistHead=new THREE.Group(),lilac=new THREE.Group(),lilacHead=new THREE.Group();player.add(mist,mistHead,lilac,lilacHead);
   const mistCloth=new THREE.MeshStandardMaterial({color:0x527b83,roughness:.9}),mistDark=new THREE.MeshStandardMaterial({color:0x274c59,roughness:.88}),glass=new THREE.MeshPhysicalMaterial({color:0xb9e5e3,metalness:.25,roughness:.18,transmission:.25});
-  const hood=part(THREE,new THREE.SphereGeometry(.62,28,18,0,Math.PI*2,0,2.62),mistCloth,0,3.06,-.12,mist);hood.scale.set(1.1,1.12,.98);
-  const hoodEdge=part(THREE,new THREE.TorusGeometry(.43,.075,10,28,Math.PI*1.34),mistDark,0,3.02,.48,mist);hoodEdge.rotation.z=-Math.PI*.17;
-  for(const side of [-1,1]){const lens=part(THREE,new THREE.TorusGeometry(.15,.035,8,22),glass,side*.18,3.1,.5,mist);lens.rotation.x=Math.PI/2}
-  part(THREE,new THREE.BoxGeometry(.22,.065,.08),mistDark,0,3.1,.48,mist);
+  const hood=part(THREE,new THREE.SphereGeometry(.62,28,18,0,Math.PI*2,0,2.62),mistCloth,0,3.06,-.12,mistHead);hood.scale.set(1.1,1.12,.98);
+  const hoodEdge=part(THREE,new THREE.TorusGeometry(.43,.075,10,28,Math.PI*1.34),mistDark,0,3.02,.48,mistHead);hoodEdge.rotation.z=-Math.PI*.17;
+  for(const side of [-1,1]){const lens=part(THREE,new THREE.TorusGeometry(.15,.035,8,22),glass,side*.18,3.1,.5,mistHead);lens.rotation.x=Math.PI/2}
+  part(THREE,new THREE.BoxGeometry(.22,.065,.08),mistDark,0,3.1,.48,mistHead);
   const cape=part(THREE,new THREE.PlaneGeometry(1.35,2.25,4,10),mistCloth,0,1.9,-.55,mist);cape.material.side=THREE.DoubleSide;
   part(THREE,new THREE.BoxGeometry(.9,1.05,.38),mistDark,0,1.9,-.55,mist);
   for(const side of [-1,1]){const tank=part(THREE,new THREE.CylinderGeometry(.12,.15,1.15,12),glass,side*.32,1.95,-.81,mist);tank.rotation.z=.05*side;const fin=part(THREE,new THREE.BoxGeometry(.15,.8,.05),mistCloth,side*.58,1.75,-.62,mist);fin.rotation.z=-side*.38}
@@ -27,16 +27,16 @@ function buildVariants(THREE,player){
   const mantle=part(THREE,new THREE.SphereGeometry(.86,28,18,0,Math.PI*2,0,1.35),lilacCloth,0,2.46,0,lilac);mantle.scale.set(1,.55,.8);
   const hoodCone=part(THREE,new THREE.ConeGeometry(.53,1.45,28),lilacDark,0,3.72,-.05,lilacHead);hoodCone.rotation.z=-.12;
   const halo=part(THREE,new THREE.TorusGeometry(.72,.035,8,40),light,0,3.65,-.08,lilacHead);halo.rotation.x=Math.PI/2;
-  const veil=part(THREE,new THREE.PlaneGeometry(1.18,2.5,4,12),lilacCloth,.12,1.85,-.6,lilac);veil.material.side=THREE.DoubleSide;veil.rotation.z=-.12;
+  for(const side of [-1,1]){const veil=part(THREE,new THREE.PlaneGeometry(.46,2.25,3,10),lilacCloth,side*.28,1.82,-.57,lilac);veil.material.side=THREE.DoubleSide;veil.rotation.z=side*.08}
   const lantern=part(THREE,new THREE.SphereGeometry(.2,18,12),light,.82,1.72,.12,lilac);part(THREE,new THREE.TorusGeometry(.24,.025,6,18,Math.PI),lilacDark,.82,2.02,.12,lilac).rotation.x=Math.PI/2;
-  return {mist,lilac,lilacHead,clothMaterials:[mistCloth,mistDark,lilacCloth,lilacDark]};
+  return {mist,mistHead,lilac,lilacHead,clothMaterials:[mistCloth,mistDark,lilacCloth,lilacDark]};
 }
 
 export function applyTravelerDesign(THREE,player,model,name='ember'){
   const style=palettes[name]||palettes.ember,variants=player.userData.designVariants??=buildVariants(THREE,player);
-  variants.mist.visible=name==='mist';variants.lilac.visible=variants.lilacHead.visible=name==='lilac';
-  const head=model?.getObjectByName('head');if(head&&variants.lilacHead.parent!==head){player.updateMatrixWorld(true);head.attach(variants.lilacHead)}
-  const cloth=[...variants.clothMaterials];model?.traverse(o=>{if(!o.isMesh)return;const objectName=o.name.toLowerCase().replace(/[^a-z]/g,''),replaceClassic=name!=='ember'&&(objectName.includes('hat')||objectName.includes('satchel')||objectName.includes('scarf'));o.visible=!replaceClassic;for(const material of [o.material].flat()){const color=style[material.name];if(color!==undefined){material.color.setHex(color);cloth.push(material)}}});clothFinish(THREE,player,cloth);
+  variants.mist.visible=variants.mistHead.visible=name==='mist';variants.lilac.visible=variants.lilacHead.visible=name==='lilac';
+  const head=model?.getObjectByName('head');if(head){player.updateMatrixWorld(true);for(const headwear of [variants.mistHead,variants.lilacHead])if(headwear.parent!==head)head.attach(headwear)}
+  const cloth=[...variants.clothMaterials];model?.traverse(o=>{if(!o.isMesh)return;const objectName=o.name.toLowerCase().replace(/[^a-z]/g,''),replaceClassic=name!=='ember'&&(objectName.includes('hat')||objectName.includes('satchel')||objectName.includes('scarf')||(name==='mist'&&objectName.includes('hair')));o.visible=!replaceClassic;for(const material of [o.material].flat()){const color=style[material.name];if(color!==undefined){material.color.setHex(color);cloth.push(material)}}});clothFinish(THREE,player,cloth);
   return style;
 }
 

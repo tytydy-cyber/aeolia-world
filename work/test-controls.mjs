@@ -20,6 +20,9 @@ let assetMeshes=0,assetTriangles=0;
 houseAsset.scene.traverse(o=>{if(o.isMesh){assetMeshes++;assetTriangles+=(o.geometry.index?.count??o.geometry.attributes.position.count)/3}});
 assert.ok(assetMeshes<=15,'asset draw-call budget');assert.ok(assetTriangles<70000,'asset triangle budget');
 console.log(`Blender asset: ${assetMeshes} material batches, ${assetTriangles} triangles`);
+const travelerAsset=await loadHouse('aeolia-traveler.glb'),flyClip=travelerAsset.animations.find(a=>a.name==='Fly');
+assert.deepEqual(travelerAsset.animations.map(a=>a.name).sort(),['Fly','Idle','Walk'],'traveler ships all three motions');
+for(const bone of ['head','armL','armR','legL','legR']){const track=flyClip.tracks.find(t=>t.name===`${bone}.quaternion`);assert.ok(track&&new Set([...track.values].map(v=>v.toFixed(4))).size>4,`${bone} moves during flight`)}
 const lodAsset=await loadHouse('aeolia-house-lod.glb');
 let lodMeshes=0,lodTriangles=0;
 lodAsset.scene.traverse(o=>{if(o.isMesh){lodMeshes++;lodTriangles+=o.geometry.index.count/3}});
