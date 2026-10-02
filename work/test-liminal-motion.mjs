@@ -20,6 +20,14 @@ for(const stage of ['parallax','somnia']){
     assert.ok(run('player.position.z')>=wall.z+wall.d,`${stage}: boosted flight stops at a wall at ${hz} Hz`);
   }
 }
+// Wide floors use a footprint-rounding geometry: their corner radius can never fold through their thickness.
+{
+  const facility=loadStage('parallax'),surfaces=facility.run('flatSurfaces.map(o=>({position:o.position.toArray(),spec:o.userData.flatSurface,box:new THREE.Box3().setFromObject(o).getSize(new THREE.Vector3()).toArray()}))');
+  assert.equal(surfaces.length,8,'facility registers five zone floors and three ceiling plates');
+  for(const surface of surfaces)assert.ok(surface.box[1]>=surface.spec.h-.001&&surface.spec.r<=Math.min(surface.spec.w,surface.spec.d)/2,'rounded surface keeps a valid footprint radius');
+  assert.ok(Math.max(...surfaces.slice(0,5).map(s=>s.box[1]))<.2,'zone floors stay thin instead of folding metres above and below the ground');
+  assert.equal(new Set(surfaces.slice(5).map(s=>s.position[1])).size,3,'overlapping ceiling plates occupy separate depth layers');
+}
 // Vertical movement respects solid tops and undersides, so the traveler never ends up inside a pillar or ceiling.
 {
   const suburb=loadStage('somnia');

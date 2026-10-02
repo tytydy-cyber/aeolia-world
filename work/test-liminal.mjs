@@ -43,7 +43,7 @@ for(const feature of ['const serviceDecks=','deckBatch=new THREE.InstancedMesh',
 assert.ok(js.includes('o.userData.trigger?o.userData.trigger()')&&js.includes('repeatDoors.userData={anomaly:true'),'facility anomalies can alter one repeated door without hiding the whole batch');
 for(const text of ['廊下の照明が順番に消えた。','受付の呼び鈴が一度だけ鳴った。','空の浴槽に反射だけが現れた。','搬入口の扉が一枚だけ消えた。'])assert.ok(js.includes(text),`facility event is concrete: ${text}`);
 assert.ok(js.includes('const zoneColors=')&&js.includes('zoneMaps=[frameMap,surfaceMap,frameMap,structuralMap,structuralMap]'),'facility uses reuse distinct floor textures without new downloads');
-assert.ok(js.includes('function roundedBlock')&&js.includes('new THREE.TubeGeometry')&&js.includes('Aerial commons'),'both new worlds use layered non-rectangular structures');
+assert.ok(js.includes('function roundedBlock')&&js.includes('function roundedFloor')&&js.includes('new THREE.TubeGeometry')&&js.includes('Aerial commons'),'both new worlds use layered non-rectangular structures');
 assert.ok(js.includes('recognizable threshold')&&js.includes('Overlapping meadow islands'),'playtest fixes preserve a readable entrance and varied near ground');
 assert.ok(js.includes('nextAnomaly=Infinity')&&js.includes('started=true;nextAnomaly=Date.now()+60000+Math.random()*60000')&&js.includes('function anomaly(){const now=Date.now()'),'events are scheduled from entry, first within about two minutes, and cannot fire on entry');
 assert.ok(js.includes('d<NOTE_RADIUS&&low&&saveNote(n)')&&js.includes('降りると記録')&&js.includes('recenterYaw=Math.atan2(player.position.x-n[0]'),'discoveries require descending and turn the camera toward the place');
@@ -70,7 +70,7 @@ assert.ok(js.includes('new THREE.CylinderGeometry(245*scale')&&js.includes("opac
 assert.ok(!js.includes('box(0,-.35,0,350')&&!js.includes('box(0,-.4,0,400'),'world floors are no longer giant rectangles');
 assert.ok(js.includes('box(48,.24,-48,34,.03,22,mats.water)')&&js.includes('box(x,.24,z,w,.03,d,mats.water,false)')&&js.includes('new THREE.Vector3(-145,.27,92)'),'suburb water is physically separated from ground and roads');
 assert.ok(js.includes("box(0,.16,-12,18,.06,390,road,false)")&&js.includes('dummy.position.set(x,.105,z)')&&js.includes('dummy.position.set(x,.16,z)'),'suburb ground, meadow and road surfaces use distinct depth tiers');
-assert.ok(js.includes("box(4,.16,22,42,.08,118,mats.dark,false)")&&js.includes("box(0,.24,-58,24,.08,94,mats.dark,false)")&&js.includes('zoneDummy.position.set(26+i*8,.22,-40)'),'overlapping facility floor sections use distinct depth tiers');
+assert.ok(js.includes("box(4,.16,22,42,.08,118,mats.dark,false)")&&js.includes("box(0,.24,-58,24,.08,94,mats.dark,false)")&&js.includes('roundedFloor(x,.08,z,w,.12,d,4')&&js.includes('zoneDummy.position.set(26+i*8,.22,-40)'),'overlapping facility floor sections use distinct depth tiers');
 assert.ok(js.includes("accent(x,15+i*.025,z")&&js.includes("accent(x,y+2+i*.025,z")&&js.includes("accent(x,h+1,z+i*.025")&&js.includes("accent(0,42+i*.025,-170"),'rotated garden, beacon and collector accents are staggered instead of coplanar');
 assert.ok(js.includes('corner:Math.min(r,w/2,d/2)')&&js.includes('Math.hypot(qx,qz)<c.corner+margin'),'rounded buildings use rounded collision bounds');
 const contains=(c,x,z,margin=.55)=>{const dx=Math.abs(x-c.x),dz=Math.abs(z-c.z),qx=Math.max(dx-(c.w-c.corner),0),qz=Math.max(dz-(c.d-c.corner),0);return dx<c.w+margin&&dz<c.d+margin&&Math.hypot(qx,qz)<c.corner+margin};
