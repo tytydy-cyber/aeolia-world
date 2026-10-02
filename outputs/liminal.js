@@ -10,7 +10,7 @@ const STAGES={
   parallax:{name:'閉鎖施設',code:'COMPLEX 02',intro:'複数の施設が街区規模で連結された、使われていない巨大複合施設。',sky:0x747462,fog:0x777666,fogDensity:.0022,ground:0x82775e,spawn:[11,0,82],limitY:38,
     notes:[[-55,0,34,'宴会場','椅子が並んでいる。'],[65,0,38,'受付','呼び鈴が置かれている。'],[-52,0,-38,'浴場','水は抜かれている。'],[48,0,-42,'搬入口','案内板がある。'],[0,0,-69,'渡り廊下','窓の外にも廊下が見える。']]},
   somnia:{name:'郊外',code:'SOLARPUNK SUBURB 03',intro:'丘陵と水路の先まで、発電設備と空中庭園の郊外が続いている。',sky:0x92c8c5,fog:0xb8d5bf,fogDensity:.0018,ground:0x718c69,spawn:[0,0,86],limitY:58,
-    notes:[[-54,0,24,'昇降口','靴箱に上履きがある。'],[53,0,30,'団地','同じカーテンが並んでいる。'],[-45,0,-42,'公園','遊具の影が動く。'],[47,0,-45,'プール','水面に教室の天井が映っている。'],[0,0,-74,'非常口','外は草地につながっている。']]}
+    notes:[[-105,0,55,'育苗室','旧校舎の温室で共同菜園の苗を育てている。'],[82,0,32,'配水庭','円形の分水槽から住宅と畑へ水が分かれている。'],[-92,0,-55,'修理工房','集光設備の交換部品と工具が並んでいる。'],[48,0,-48,'調整池','使われなくなったプールが余剰水を受けている。'],[0,0,-126,'集光塔','青い送電線が四つの地区へ伸びている。']]}
 };
 const cfg=STAGES[stageKey];
 document.title=`${cfg.name} — AEOLIA`;for(const id of ['title','worldName'])document.querySelector('#'+id).textContent=cfg.name;for(const id of ['code','worldCode'])document.querySelector('#'+id).textContent=cfg.code;document.querySelector('#intro').textContent=cfg.intro;
@@ -28,7 +28,7 @@ const floorMap=patternTexture(stageKey==='parallax'?'#85795d':'#879475',stageKey
 const textureLoader=new THREE.TextureLoader(),surfaceMap=textureLoader.load(stageKey==='parallax'?'assets/textures/plaster-color.jpg':'assets/textures/grass-color.jpg'),structuralMap=textureLoader.load(stageKey==='parallax'?'assets/textures/complex-surface-v2.jpg':'assets/textures/solarpunk-surface-v2.jpg'),frameMap=textureLoader.load(stageKey==='parallax'?'assets/textures/slate-color.jpg':'assets/textures/stone-color.jpg');for(const map of [surfaceMap,structuralMap,frameMap]){map.wrapS=map.wrapT=THREE.RepeatWrapping;map.colorSpace=THREE.SRGBColorSpace}surfaceMap.repeat.set(12,10);structuralMap.repeat.set(stageKey==='parallax'?6:3,stageKey==='parallax'?4:3);frameMap.repeat.set(4,4);
 const mats={
   carpet:new THREE.MeshStandardMaterial({map:surfaceMap,roughness:1}),wall:new THREE.MeshStandardMaterial({map:structuralMap,roughness:.9}),frame:new THREE.MeshStandardMaterial({map:frameMap,roughness:.92}),dark:new THREE.MeshStandardMaterial({color:0x273238,roughness:.75}),wood:new THREE.MeshStandardMaterial({color:0x765645,roughness:.9}),pink:new THREE.MeshStandardMaterial({color:0xcf8fa4,roughness:.8}),water:new THREE.MeshPhysicalMaterial({color:0x7ca9bd,transparent:true,opacity:.72,roughness:.16,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2}),glow:new THREE.MeshStandardMaterial({color:0xffecc0,emissive:0xffd98b,emissiveIntensity:1.3,roughness:.3}),solar:new THREE.MeshStandardMaterial({color:0x183e50,metalness:.72,roughness:.22,emissive:0x0c3541,emissiveIntensity:.45}),leaf:new THREE.MeshStandardMaterial({color:0x4d9b61,roughness:.82,emissive:0x183e23,emissiveIntensity:.2})
-  ,meadow:new THREE.MeshStandardMaterial({color:0x5f7958,roughness:1})
+  ,meadow:new THREE.MeshStandardMaterial({color:0x5f7958,roughness:1}),utility:new THREE.MeshStandardMaterial({color:0x416c72,roughness:.42,metalness:.28}),power:new THREE.MeshStandardMaterial({color:0x8fcfd0,emissive:0x397f83,emissiveIntensity:.72,roughness:.32}),glass:new THREE.MeshPhysicalMaterial({color:0xb8d8c8,transparent:true,opacity:.28,roughness:.18,depthWrite:false,side:THREE.DoubleSide})
 };
 const colliders=[],routeGates=[],world=new THREE.Group();scene.add(world);
 function mesh(g,m,x,y,z,shadow=false){const o=new THREE.Mesh(g,m);o.position.set(x,y,z);o.castShadow=shadow;o.receiveShadow=true;world.add(o);return o}
@@ -90,12 +90,28 @@ function buildParallax(){
   for(let x=-88;x<=88;x+=22)for(const z of [-72,-20,18,70]){dummy.position.set(x,5,z);dummy.updateMatrix();cols.setMatrixAt(n++,dummy.matrix);colliders.push({x,z,radius:.7,bottom:0,top:10})}cols.count=n;cols.castShadow=true;cols.receiveShadow=true;world.add(cols);
 }
 function buildSomnia(){
-  irregularGround();addHorizon('assets/textures/distant-ruins.png',43,1.15);const road=new THREE.MeshStandardMaterial({color:0x596365,roughness:1,map:wallMap}),accents=[],accent=(x,y,z,w,h,d,rx=0,ry=0,rz=0)=>accents.push([x,y,z,w,h,d,rx,ry,rz]);box(0,.01,0,18,.08,310,road,false);box(0,.015,0,1,.09,300,mats.wall,false);
+  irregularGround();addHorizon('assets/textures/distant-ruins.png',43,1.15);const road=new THREE.MeshStandardMaterial({color:0x596365,roughness:1,map:wallMap}),accents=[],accent=(x,y,z,w,h,d,rx=0,ry=0,rz=0)=>accents.push([x,y,z,w,h,d,rx,ry,rz]),dummy=new THREE.Object3D();box(0,.01,0,18,.08,310,road,false);box(0,.015,0,1,.09,300,mats.wall,false);
   // Overlapping meadow islands break the single tiled ground plane without extra textures.
   for(const [i,[x,z,s]] of [[-105,94,26],[-92,-18,19],[-36,106,17],[42,88,24],[104,30,22],[88,-82,28],[-68,-104,25],[22,-126,18]].entries()){const patch=mesh(roughCylinder(s*.82,s,.08,12,i*.9),mats.meadow,x,.03,z,false);patch.rotation.y=i*.37}
   // Secondary roads and sloping garden districts prevent the world reading as one central strip.
   for(const [x,z,w,d,r] of [[-78,64,145,13,-.18],[92,-32,165,12,.23],[-108,-102,92,11,.38],[116,105,108,10,-.3]]){const lane=box(x,.02,z,w,.09,d,road,false);lane.rotation.y=r}
   for(const [i,[x,z,s,h]] of [[-164,66,32,8],[-154,-34,55,13],[142,42,48,10],[112,-120,62,16],[-48,-132,44,7]].entries()){const hill=mesh(roughCylinder(s*.72,s,h,13,i*1.7),mats.carpet,x,h/2-.2,z);hill.rotation.y=(x+z)*.01;colliders.push({x,z,radius:s*1.02,bottom:0,top:h})}
+  // Water and power make the four districts read as one working settlement.
+  const utilityLine=(points,material,radius=.38)=>mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(points.map(([x,y,z])=>new THREE.Vector3(x,y,z))),36,radius,6,false),material,0,0,0,false);
+  utilityLine([[0,.7,-126],[-34,.6,-92],[-70,.55,-34],[-105,.55,55]],mats.utility,.52);utilityLine([[0,.72,-126],[34,.62,-85],[58,.58,-28],[82,.58,32]],mats.utility,.52);
+  utilityLine([[0,19,-126],[-38,16,-88],[-66,14,-18],[-105,12,55]],mats.power,.18);utilityLine([[0,19,-126],[42,17,-74],[70,14,-20],[82,12,32]],mats.power,.18);
+  const utilityPoles=[[-18,-108,17],[-45,-75,15],[-66,-18,13],[-91,34,12],[20,-102,17],[46,-68,15],[67,-16,13],[78,20,12]],poleBatch=new THREE.InstancedMesh(new THREE.CylinderGeometry(.18,.26,1,7),mats.utility,utilityPoles.length),crossbarBatch=new THREE.InstancedMesh(new THREE.BoxGeometry(1,1,1),mats.utility,utilityPoles.length);for(const [i,[x,z,h]] of utilityPoles.entries()){dummy.position.set(x,h/2,z);dummy.rotation.set(0,0,0);dummy.scale.set(1,h,1);dummy.updateMatrix();poleBatch.setMatrixAt(i,dummy.matrix);dummy.position.set(x,h,z);dummy.scale.set(4,.22,.22);dummy.updateMatrix();crossbarBatch.setMatrixAt(i,dummy.matrix)}world.add(poleBatch,crossbarBatch);
+  // Nursery greenhouse added to the old school.
+  const greenhouse=mesh(new THREE.CylinderGeometry(8,8,24,12,1,true,0,Math.PI),mats.glass,-105,8,55,false);greenhouse.rotation.z=Math.PI/2;greenhouse.rotation.y=Math.PI/2;
+  const greenhouseRibs=new THREE.InstancedMesh(new THREE.TorusGeometry(8,.16,6,16,Math.PI),mats.utility,7);for(let i=0;i<7;i++){dummy.position.set(-116+i*3.7,0,55);dummy.rotation.set(0,Math.PI/2,0);dummy.scale.set(1,1,1);dummy.updateMatrix();greenhouseRibs.setMatrixAt(i,dummy.matrix)}world.add(greenhouseRibs);
+  for(let row=0;row<3;row++)for(let i=0;i<7;i++)accent(-113+i*2.7,.35,51+row*4,1.5,.22,3.1,0,0,(i%2-.5)*.08);
+  // Housing cistern and visible distribution branches.
+  mesh(new THREE.CylinderGeometry(8,9,2.4,14),mats.utility,82,1.2,32);const cisternWater=mesh(new THREE.CircleGeometry(7.3,24),mats.water,82,2.43,32,false);cisternWater.rotation.x=-Math.PI/2;colliders.push({x:82,z:32,radius:8.5,bottom:0,top:2.4});
+  for(let i=0;i<5;i++){const a=i/5*Math.PI*2;const pipe=mesh(new THREE.TorusGeometry(10+i*.65,.13,5,28,Math.PI*.55),mats.utility,82,1.1,32,false);pipe.rotation.set(Math.PI/2,a,0)}
+  // An asymmetric repair workshop anchors the energy district.
+  roundedBlock(-92,4,-55,25,8,17,4,mats.wall,true);const workshopRoof=box(-95,9,-55,28,.7,19,mats.solar,false);workshopRoof.rotation.z=-.11;for(const [x,z] of [[-103,-45],[-98,-44],[-88,-45]])box(x,.7,z,3,1.4,2,mats.utility,false);
+  // The old pool now ends the water circuit as a planted balancing pond.
+  const reeds=new THREE.InstancedMesh(new THREE.CylinderGeometry(.06,.1,1.5,5),mats.leaf,42);let reedCount=0;for(let i=0;i<42;i++){const a=i*2.4,r=9+(i%4)*1.7;dummy.position.set(48+Math.cos(a)*r,.75,-48+Math.sin(a)*r*.58);dummy.rotation.set(0,a,0);dummy.scale.set(1,.7+(i%3)*.2,1);dummy.updateMatrix();reeds.setMatrixAt(reedCount++,dummy.matrix)}world.add(reeds);
   // The old school remains rectilinear, but later additions soften and overgrow its silhouette.
   roundedBlock(-58,9,24,58,18,32,5,mats.wall,true);for(let r=0;r<3;r++)for(let c=0;c<6;c++)box(-80+c*9,6+r*5,40.15,4,2.7,.3,mats.dark,false);box(-58,1,43,16,2,5,mats.wood,true);for(const [x,z] of [[-77,20],[-58,20],[-39,20]]){const dome=mesh(new THREE.SphereGeometry(6,14,8,0,Math.PI*2,0,Math.PI/2),mats.leaf,x,18,z);dome.scale.y=.55}
   // Rounded co-housing terraces replace the repeated rectangular apartment slabs.
@@ -113,7 +129,7 @@ function buildSomnia(){
   const canals=[[-72,-15,12,120,.15],[86,52,10,135,-.22],[-12,-112,115,9,.08]];for(const [x,z,w,d,r] of canals){const c=box(x,.055,z,w,.035,d,mats.water,false);c.rotation.y=r}
   const stream=mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3([new THREE.Vector3(-145,.075,92),new THREE.Vector3(-92,.075,35),new THREE.Vector3(-38,.075,55),new THREE.Vector3(20,.075,10),new THREE.Vector3(88,.075,-5),new THREE.Vector3(150,.075,-62)]),48,4,8,false),mats.water,0,0,0,false);stream.scale.y=.035;
   // Trees as a small instanced grove.
-  const trunks=new THREE.InstancedMesh(new THREE.CylinderGeometry(.25,.48,5,8),mats.wood,45),crowns=new THREE.InstancedMesh(new THREE.IcosahedronGeometry(2.2,1),new THREE.MeshStandardMaterial({color:0x667a64,roughness:1}),45),dummy=new THREE.Object3D();let treeCount=0;
+  const trunks=new THREE.InstancedMesh(new THREE.CylinderGeometry(.25,.48,5,8),mats.wood,45),crowns=new THREE.InstancedMesh(new THREE.IcosahedronGeometry(2.2,1),new THREE.MeshStandardMaterial({color:0x667a64,roughness:1}),45);let treeCount=0;
   for(let i=0;i<45;i++){const a=i*2.399,r=74+(i%5)*5,x=Math.cos(a)*r,z=Math.sin(a)*r;if(Math.hypot(x-cfg.spawn[0],z-cfg.spawn[2])<20||Math.abs(x)<14&&z>55)continue;dummy.position.set(x,2.5,z);dummy.scale.set(1,1,1);dummy.updateMatrix();trunks.setMatrixAt(treeCount,dummy.matrix);dummy.position.y=6;dummy.scale.set(1+(i%3)*.15,.8+(i%2)*.2,1);dummy.updateMatrix();crowns.setMatrixAt(treeCount++,dummy.matrix);colliders.push({x,z,radius:.55,bottom:0,top:7.5})}trunks.count=crowns.count=treeCount;trunks.castShadow=crowns.castShadow=true;world.add(trunks,crowns);
   // Solar roofs, planted balconies and elevated gardens establish the suburb's solarpunk identity.
   const panels=new THREE.InstancedMesh(new THREE.BoxGeometry(5,.16,2.7),mats.solar,30);let p=0;
