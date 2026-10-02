@@ -59,9 +59,10 @@ assert.ok(js.includes('corner:Math.min(r,w/2,d/2)')&&js.includes('Math.hypot(qx,
 const contains=(c,x,z,margin=.55)=>{const dx=Math.abs(x-c.x),dz=Math.abs(z-c.z),qx=Math.max(dx-(c.w-c.corner),0),qz=Math.max(dz-(c.d-c.corner),0);return dx<c.w+margin&&dz<c.d+margin&&Math.hypot(qx,qz)<c.corner+margin};
 const rounded={x:0,z:0,w:10,d:8,corner:4};assert.equal(contains(rounded,10,8),false,'empty rounded corner stays passable');assert.equal(contains(rounded,10,0),true,'visible rounded side still blocks');
 assert.ok(js.includes('const slide=box(-34,2.2,-45,10,.4,3,mats.pink,false)'),'rotated slide no longer leaves an unrotated invisible wall');
-const edgeScale=(a,phase)=>.91+.075*Math.sin(a*3+phase)+.045*Math.sin(a*5-phase*.7)+.025*Math.sin(a*9+phase*.3),specs={parallax:[178,148,.4],somnia:[204,168,2.1]};
+const edgeScale=(a,phase)=>.91+.075*Math.sin(a*3+phase)+.045*Math.sin(a*5-phase*.7)+.025*Math.sin(a*9+phase*.3),specs={parallax:[178,148,.4],somnia:[250,210,2.1]};
 for(const [key,stage] of Object.entries(stages)){const [rx,rz,phase]=specs[key];for(const [x,,z,name] of [[...stage.spawn,'spawn'],...stage.notes]){const a=Math.atan2(z/rz,x/rx);assert.ok(Math.hypot(x/rx,z/rz)<edgeScale(a,phase)-.012,`${key} ${name} stays inside the irregular visible ground`)}}
-for(const [key,[x,z]] of Object.entries({parallax:[-95,-105],somnia:[0,-126]})){const [rx,rz,phase]=specs[key],a=Math.atan2(z/rz,x/rx);assert.ok(Math.hypot(x/rx,z/rz)<edgeScale(a,phase)-.012,`${key} landmark stays inside playable ground`)}
+for(const [key,[x,z]] of Object.entries({parallax:[-95,-105],somnia:[0,-170]})){const [rx,rz,phase]=specs[key],a=Math.atan2(z/rz,x/rx);assert.ok(Math.hypot(x/rx,z/rz)<edgeScale(a,phase)-.012,`${key} landmark stays inside playable ground`)}
+assert.ok(js.includes("groundSpec=stageKey==='parallax'?[178,148,.4]:[250,210,2.1]")&&js.includes('Overlapping asymmetric district floors'),'suburb terrain is expanded and visually divided by asymmetric transition areas');
 for(const code of ['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Space','ShiftLeft'])assert.ok(mobile.includes(code),`mobile control exposes ${code}`);
 assert.ok(!mobile.includes("button('KeyF'")&&!html.includes('飛行切替')&&!aeolia.includes('飛行切替'),'flight toggle is removed from every control surface');
 assert.ok(mobile.includes('pointerdown')&&mobile.includes('pointercancel')&&mobile.includes('touch-action:none'),'mobile press-and-hold and swipe coexist safely');
