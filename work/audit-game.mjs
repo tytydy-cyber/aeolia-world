@@ -40,7 +40,8 @@ result.towerPosition=run('player.position.toArray()');
 assert.ok(Math.hypot(result.towerPosition[0]+105,result.towerPosition[2]+105)>=9.29,'tower wall blocks movement');
 reset();run('player.position.set(112,54,-78);keys.ArrowUp=true');frames(120);
 result.windmillPosition=run('player.position.toArray()');assert.ok(Math.hypot(result.windmillPosition[0]-112,result.windmillPosition[2]+92)>=9.65,'windmill blocks movement');
-for(const [x,z,y] of [[-105,-105,78],[112,-92,94]]){
+// The windmill pass clears the blade tips (hub 77 m + 20 m), not just the cap.
+for(const [x,z,y] of [[-105,-105,78],[112,-92,98]]){
   reset();run(`player.position.set(${x},${y},${z+15});flying=true;keys.ArrowUp=true`);frames(60);
   assert.ok(run('player.position.z')<z,'can fly over landmark roofs');
 }

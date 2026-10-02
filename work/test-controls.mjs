@@ -120,7 +120,29 @@ reset();inputPace('1.6');run('player.position.set(-43,3,-23);keys.ArrowUp=true;k
 reset();run('player.position.set(-105,80,-116)');run('discover()');assert.equal(localStorage.getItem('aeolia-notes'),null,'flying high over a landmark does not record it');assert.ok(document.querySelector('#place').textContent.includes('降りると記録'),'high pass hints that descending records the place');
 run('player.position.set(-105,34,-116)');run('discover()');run('discover()');const saved=JSON.parse(localStorage.getItem('aeolia-notes'));assert.deepEqual(saved.map(n=>n.id),['aeolia:鐘楼'],'floating-island discoveries persist once to the shared journal');assert.ok(saved[0].world&&saved[0].text,'journal entries carry world and description');
 frames(90);assert.ok(run('Math.hypot(-Math.sin(yaw)-0,-Math.cos(yaw)-1)')<.05,'camera turns toward the discovered landmark');assert.ok(document.querySelector('#place').textContent.includes('記録済'),'recorded places are marked');
-console.log('PASS: actual GLB parse/9 house placements, all arrow keys, passive mouse, drag/release, acceleration/braking, flight, focus loss, bridges, stairs, walls, speed slider, maximum-speed collision, 30/60/120 Hz, discovery journal. GPU rendering is not tested.');
+// Colonnade, ring beam and windmill blades block at cruise and boost speed and at 30/60/120 Hz.
+function sweep(start,direction,boost,hz,seconds=2){reset();run(`player.position.set(${start});yaw=Math.atan2(-(${direction[0]}),-(${direction[1]}));keys.ArrowUp=true;keys.ControlLeft=${boost}`);const steps=Math.ceil(120/hz),path=[];for(let i=0;i<hz*seconds;i++){for(let j=0;j<steps;j++)run(`update(${1/hz/steps},${i*1000/hz})`);path.push(run('player.position.toArray()'))}run('keys.ArrowUp=false;keys.ControlLeft=false');return path}
+const ringDirection=[Math.cos(Math.PI/10),Math.sin(Math.PI/10)];
+for(const hz of [30,60,120])for(const boost of [false,true]){
+  const label=`${hz} Hz${boost?' with boost':''}`;
+  assert.ok(sweep('88,8,85',[0,1],boost,hz).every(([x,,z])=>Math.hypot(x-88,z-100)>=.76+.58-.01),`colonnade column blocks at ${label}`);
+  assert.ok(sweep('78,13,100',ringDirection,boost,hz).every(([x,,z])=>Math.hypot(x-78,z-100)<10),`colonnade ring beam blocks at ${label}`);
+  assert.ok(sweep('125,77,-60',[0,-1],boost,hz).every(([,,z])=>z>=-84.2+.35+.58-.01),`windmill blades block at ${label}`);
+}
+sweep('125,77,-60',[0,-1],true,60);const bladeContact=run('player.position.toArray()');
+run('keys.ArrowDown=true');frames(60);run('keys.ArrowDown=false');assert.ok(run('player.position.z')>bladeContact[2]+5,'player can back away after touching the blades');
+sweep('125,77,-60',[0,-1],false,60);run('keys.Space=true');frames(60);run('keys.Space=false');assert.ok(run('player.position.y')>77+5,'player can climb along the blade disc without sticking');
+// Distant islands: unreachable scenery in two draws, hazier once the player flies out.
+assert.equal(run('distantIslands.length'),2,'twelve distant islands draw as two merged meshes');
+assert.ok(run('distantIslands.every(m=>!cameraBlockers.includes(m))&&!solidColliders.some(c=>Math.hypot(c.x,c.z)>200)&&groundAt(330,0)===-Infinity'),'distant islands stay without ground, collision or camera blocking');
+assert.ok(run('!distantMaterials[1].map&&!distantMaterials[1].color.equals(MAT.grass.color)'),'distant island tops do not reuse the reachable grass surface');
+reset();run('player.position.set(0,20,0)');frames(1);const nearHaze=run('distantMaterials.map(m=>m.opacity)');
+reset();run('player.position.set(0,20,330)');frames(1);const farHaze=run('distantMaterials.map(m=>m.opacity)');
+assert.ok(nearHaze.every(o=>o===1)&&farHaze.every(o=>o<.5),`distant islands fade beyond 220 m (${nearHaze} -> ${farHaze})`);
+// The camera stays out of the tapered rock when the player flies beneath an island.
+// 0.3 m tolerance: the analytic rock shape differs from the faceted, rippled mesh the camera ray actually hits.
+for(const [y,z] of [[-20,44],[-30,32],[-40,22]]){reset();run(`player.position.set(0,${y},${z});yaw=Math.PI;pitch=.28`);frames(90);assert.ok(!run('islandRockContains(camera.position.x,camera.position.z,camera.position.y,-.3)'),`camera stays outside the rock below the cliff (${y}, ${z})`)}
+console.log('PASS: actual GLB parse/9 house placements, all arrow keys, passive mouse, drag/release, acceleration/braking, flight, focus loss, bridges, stairs, walls, speed slider, maximum-speed collision, 30/60/120 Hz, colonnade/blade collision, distant haze, under-island camera, discovery journal. GPU rendering is not tested.');
 const counts=Object.fromEntries(['pot','crate','bench','stall'].map(kind=>[kind,run(`props.filter(p=>p.kind==='${kind}').length`)]));
 assert.ok(run('props.length')>=40,'meaningful street furniture count');
 assert.ok(run('propBatches.length')<=7,'batch draw-call budget');

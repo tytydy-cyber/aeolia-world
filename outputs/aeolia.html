@@ -113,7 +113,8 @@ function random(){seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/4294
 function mainIslandScale(a){return Math.max(.83,1+.22*Math.sin(a*3+.7)+.12*Math.sin(a*5-1.1)+.055*Math.sin(a*9+.3))}
 function minorIslandScale(a,phase=0){return Math.max(.76,1+.19*Math.sin(a*2+phase)+.11*Math.sin(a*5-phase*.7)+.06*Math.sin(a*9+phase*1.3))}
 function organicDisc(r,phase=0){const g=new THREE.CircleGeometry(r,48),v=g.attributes.position;for(let i=1;i<v.count;i++){const x=v.getX(i),y=v.getY(i),a=Math.atan2(y,x),s=.92+.07*Math.sin(a*3+phase)+.045*Math.sin(a*7-phase*.4);v.setXY(i,x*s,y*s)}g.computeVertexNormals();return g}
-function island(px,top,pz,r,depth,organic=false,phase=0){
+const islandRock=new THREE.MeshStandardMaterial({vertexColors:true,roughness:1,map:surfaceMaps.cliff.color,bumpMap:surfaceMaps.cliff.height,bumpScale:.24});
+function islandGeometries(px,top,pz,r,depth,organic=false,phase=0){
   const g=new THREE.CylinderGeometry(r,r*.18,depth,56,7),v=g.attributes.position;
   const colors=[];
   for(let i=0;i<v.count;i++){
@@ -124,13 +125,15 @@ function island(px,top,pz,r,depth,organic=false,phase=0){
     colors.push(shade,shade*.89,shade*.75);
   }
   g.setAttribute('color',new THREE.Float32BufferAttribute(colors,3));g.computeVertexNormals();
-  const rock=new THREE.MeshStandardMaterial({vertexColors:true,roughness:1,map:surfaceMaps.cliff.color,bumpMap:surfaceMaps.cliff.height,bumpScale:.24});
   const uv=g.attributes.uv;for(let i=0;i<uv.count;i++)uv.setXY(i,uv.getX(i)*r*mathTau/7,uv.getY(i)*depth/7);
-  mesh(g,rock,[px,top-depth/2-1,pz]);
+  g.translate(px,top-depth/2-1,pz);
   const cap=new THREE.CylinderGeometry(r,r,1,64,1),cv=cap.attributes.position;
   for(let i=0;i<cv.count;i++){const x=cv.getX(i),z=cv.getZ(i),a=Math.atan2(z,x),scale=organic?mainIslandScale(a):minorIslandScale(a,phase);cv.setXYZ(i,x*scale,cv.getY(i),z*scale)}
-  cap.computeVertexNormals();cameraBlockers.push(mesh(cap,MAT.grass,[px,top-.5,pz]));
+  cap.computeVertexNormals();cap.translate(px,top-.5,pz);
+  return {rock:g,cap};
 }
+// The rock stops the camera too, so it never ends up inside an island when the player flies underneath.
+function island(...shape){const {rock,cap}=islandGeometries(...shape);cameraBlockers.push(mesh(rock,islandRock,[0,0,0]),mesh(cap,MAT.grass,[0,0,0]))}
 const mathTau=Math.PI*2;
 const dummy=new THREE.Object3D();
 const ISLANDS={tower:{x:-105,z:-105,r:29,phase:1.8},mill:{x:112,z:-92,r:25,phase:0},palace:{x:78,z:100,r:22,phase:3.7}};
@@ -222,6 +225,8 @@ const cap=new THREE.Mesh(new THREE.ConeGeometry(9,8,16),MAT.roof2);cap.position.
 cameraBlockers.push(stem,cap);
 colliders.push({x:112,z:-92,radius:9+.65,bottom:53,top:92});
 const blades=new THREE.Group();blades.position.set(0,24,7.8);mill.add(blades);
+// Thin slabs approximate the disc the blades sweep (hub at 77 m, radius 20 m). They never move, so contact cannot trap the player.
+for(let y=-19;y<=19;y+=2)colliders.push({x:112,z:-84.2,w:Math.sqrt(400-y*y),d:.35,bottom:77+y-1,top:77+y+1});
 for(let i=0;i<4;i++){const arm=new THREE.Group();arm.rotation.z=i*Math.PI/2;blades.add(arm);const blade=new THREE.Mesh(new THREE.BoxGeometry(.35,20,.35),MAT.wood);blade.position.y=10;arm.add(blade);for(let j=5;j<20;j+=1){const slat=new THREE.Mesh(new THREE.BoxGeometry(3,.5,.15),MAT.pale);slat.position.set(1,j,0);arm.add(slat)}}
 
 // Gnarled trunks, branches and varied crowns share five instanced draw batches.
@@ -262,7 +267,9 @@ cyl(12,.35,[78,7.2,100],MAT.stone,48);
 for(let i=0;i<10;i++){
   const a=i/10*Math.PI*2,px=78+Math.cos(a)*10,pz=100+Math.sin(a)*10;
   cyl(.4,7,[px,10.8,pz],MAT.pale,12);cyl(.7,.4,[px,7.5,pz]);cyl(.7,.4,[px,14.2,pz]);
+  colliders.push({x:px,z:pz,radius:.76,bottom:7,top:14.4});
 }
+for(let i=0;i<30;i++){const a=i/30*mathTau;colliders.push({x:78+Math.cos(a)*10,z:100+Math.sin(a)*10,radius:.6,bottom:14.25,top:15.35})}
 const cornice=mesh(new THREE.TorusGeometry(10,.55,8,48),MAT.pale,[78,14.8,100]);cornice.rotation.x=Math.PI/2;
 const pool=mesh(organicDisc(6,2.4),new THREE.MeshStandardMaterial({color:0x739da0,metalness:.4,roughness:.18}),[78,7.4,100]);pool.rotation.x=-Math.PI/2;
 
@@ -350,8 +357,12 @@ for(const [x,z,r] of [[-55,18,.2],[57,-8,-.35],[-20,58,1.9],[31,45,2.75]]){
 }
 const orbMat=new THREE.MeshStandardMaterial({color:0xffd7dc,emissive:0xff8faa,emissiveIntensity:1.2,transparent:true,opacity:.72,roughness:.2});
 for(let i=0;i<7;i++){const orb=new THREE.Mesh(new THREE.SphereGeometry(.7+random()*1.1,24,16),orbMat);const a=random()*mathTau,r=38+random()*28;orb.position.set(Math.cos(a)*r,8+random()*17,Math.sin(a)*r);scene.add(orb);dreamObjects.push({object:orb,baseY:orb.position.y,phase:random()*mathTau})}
-// Distant silhouettes.
-for(let i=0;i<12;i++){const a=i/12*Math.PI*2,r=280+random()*110;island(Math.cos(a)*r,-5+random()*35,Math.sin(a)*r,18+random()*28,45+random()*30,false,random()*mathTau)}
+// Distant silhouettes are unreachable scenery: no ground, collision or camera blocking.
+// Merged into one rock and one top draw, tinted toward the haze, and fading further once the player flies out past 220 m.
+const distantRock=[],distantTop=[];
+for(let i=0;i<12;i++){const a=i/12*Math.PI*2,r=280+random()*110,{rock,cap}=islandGeometries(Math.cos(a)*r,-5+random()*35,Math.sin(a)*r,18+random()*28,45+random()*30,false,random()*mathTau);distantRock.push(rock);distantTop.push(cap)}
+const distantMaterials=[new THREE.MeshStandardMaterial({vertexColors:true,color:0xc9d4d4,roughness:1,map:surfaceMaps.cliff.color,transparent:true}),new THREE.MeshStandardMaterial({color:0xa9b7b2,roughness:1,transparent:true})];
+const distantIslands=[mesh(mergeGeometries(distantRock),distantMaterials[0],[0,0,0],false),mesh(mergeGeometries(distantTop),distantMaterials[1],[0,0,0],false)];
 
 // Traveler avatar.
 const player=new THREE.Group();scene.add(player);
@@ -534,6 +545,7 @@ function update(dt,t){
   lookTarget.copy(focus);cameraLook.lerp(lookTarget,1-Math.exp(-9*dt));camera.lookAt(cameraLook);
   sun.target.position.copy(player.position);sun.position.copy(player.position).add(new THREE.Vector3(-80,110,-50));
   blades.rotation.z-=dt*.35;clouds.forEach((c,i)=>{c.x+=dt*(.25+i%4*.07);if(c.x>400)c.x=-400;cloudDummy.position.set(c.x,c.y,c.z);cloudDummy.quaternion.copy(camera.quaternion);cloudDummy.scale.set(c.w,c.h,1);cloudDummy.updateMatrix();cloudBatch.setMatrixAt(i,cloudDummy.matrix)});cloudBatch.instanceMatrix.needsUpdate=true;
+  const haze=THREE.MathUtils.smoothstep(Math.hypot(player.position.x,player.position.z),220,280);for(const m of distantMaterials)m.opacity=1-.7*haze;
   scenicLayers.forEach((layer,i)=>{layer.sprite.position.y=layer.baseY+Math.sin(t*.00011+layer.phase)*1.8;layer.sprite.material.opacity=.68+Math.sin(t*.00017+layer.phase+i)*.05});
   dreamObjects.forEach((item,i)=>{item.object.position.y=item.baseY+Math.sin(t*.00045+item.phase)*(.35+i%3*.12);item.object.rotation.z=Math.sin(t*.00018+item.phase)*.018});
   if(t>=nextDiscovery){discover();nextDiscovery=t+500}
