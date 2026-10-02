@@ -19,7 +19,8 @@ main{position:relative;min-height:100vh;padding:7vh 7vw 6vh}.head{display:grid;g
 <footer class="foot"><span>エリアを選ぶ</span><button class="journal" id="journal">発見記録を見る</button></footer>
 </main><section class="sheet" id="sheet" hidden><button id="close">閉じる</button><span class="status">DISCOVERIES</span><h2>発見記録</h2><div class="entries" id="entries"></div></section>
 <script>
-const notes=JSON.parse(localStorage.getItem('aeolia-notes')||'[]'),found=document.querySelector('#found');found.textContent=`発見 ${notes.length}`;
+let notes=[];try{notes=JSON.parse(localStorage.getItem('aeolia-notes')||'[]')}catch{}
+const found=document.querySelector('#found');found.textContent=`発見 ${notes.length}`;
 const sheet=document.querySelector('#sheet'),entries=document.querySelector('#entries');
 document.querySelector('#journal').onclick=()=>{entries.innerHTML=notes.length?notes.map(n=>`<article class="entry"><small>${n.world}</small><h3>${n.name}</h3><p>${n.text}</p></article>`).join(''):'<p>まだ発見はありません。</p>';sheet.hidden=false};
 document.querySelector('#close').onclick=()=>sheet.hidden=true;addEventListener('keydown',e=>{if(e.code==='Escape')sheet.hidden=true});

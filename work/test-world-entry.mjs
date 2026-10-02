@@ -13,8 +13,9 @@ assert.ok(liminal.includes("get('stage')==='somnia'?'somnia':'parallax'"),'unkno
 const options=page=>[...page.matchAll(/<option value="([a-z]+)">([^<]+)/g)].map(m=>m[1]+':'+m[2]);
 assert.deepEqual(options(aeolia),options(liminalPage),'all stages offer the same traveler designs');
 for(const [name,source] of [['aeolia.html',aeolia],['liminal.js',liminal]]){
-  assert.ok(source.includes("localStorage.getItem('aeolia-character')")&&source.includes("localStorage.setItem('aeolia-character'"),`${name} reads and stores the traveler choice under the shared key`);
-  assert.ok(source.includes("localStorage.getItem('aeolia-notes')")&&source.includes("localStorage.setItem('aeolia-notes'"),`${name} reads and appends to the shared journal`);
+  assert.ok(source.includes("stored('aeolia-character')")&&source.includes("stored('aeolia-character',e.target.value)"),`${name} reads and stores the traveler choice under the shared key`);
+  assert.ok(source.includes("stored('aeolia-notes')")&&source.includes("stored('aeolia-notes',JSON.stringify(notes))"),`${name} reads and appends to the shared journal`);
+  assert.ok(source.includes('const memoryStore=new Map(),stored=(key,value)=>{try{'),`${name} falls back to memory when storage is blocked`);
 }
 assert.ok(aeolia.includes("id='aeolia:'+d.name")&&liminal.includes("id=stageKey+':'+note[3]"),'journal ids are namespaced per stage, so stages never overwrite each other');
 for(const [name,page] of [['aeolia.html',aeolia],['liminal.html',liminalPage]])assert.ok(page.includes('id="soundToggle"')&&page.includes('id="soundVolume"'),`${name} has mute and volume controls`);
@@ -28,4 +29,10 @@ new Function('localStorage','document','addEventListener',script)({getItem:k=>st
 assert.equal(document.querySelector('#found').textContent,'発見 3','world select counts discoveries from all stages');
 document.querySelector('#journal').onclick();
 for(const world of ['浮島の街','閉鎖施設','郊外'])assert.ok(document.querySelector('#entries').innerHTML.includes(world),`journal lists ${world}`);
-console.log('PASS: world select links, return links, stage fallback, shared traveler and journal keys, per-stage journal ids, sound controls, cross-stage journal listing.');
+// With storage blocked, the world select still renders.
+{
+  const blockedElements=new Map(),blocked={querySelector:s=>{if(!blockedElements.has(s))blockedElements.set(s,element());return blockedElements.get(s)}};
+  new Function('localStorage','document','addEventListener',script)({getItem(){throw new Error('SecurityError')}},blocked,()=>{});
+  assert.equal(blocked.querySelector('#found').textContent,'発見 0','world select shows zero discoveries when storage is blocked');
+}
+console.log('PASS: world select links, return links, stage fallback, shared traveler and journal keys, per-stage journal ids, sound controls, cross-stage journal listing, blocked storage.');

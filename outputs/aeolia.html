@@ -414,9 +414,11 @@ player.position.set(-25,3,5);
 const motionEffects=new MotionEffects(THREE,scene,camera);
 document.querySelector('#effectsToggle').checked=motionEffects.enabled;
 document.querySelector('#effectsToggle').addEventListener('change',e=>{motionEffects.enabled=e.target.checked});
-const characterSelect=document.querySelector('#characterSelect');characterSelect.value=localStorage.getItem('aeolia-character')||'ember';
+// Storage can be blocked by privacy settings; the game then keeps state in memory for this visit.
+const memoryStore=new Map(),stored=(key,value)=>{try{if(value===undefined)return localStorage.getItem(key);localStorage.setItem(key,value)}catch{if(value===undefined)return memoryStore.get(key)??null;memoryStore.set(key,value)}};
+const characterSelect=document.querySelector('#characterSelect');characterSelect.value=stored('aeolia-character')||'ember';
 setCharacterStyle(characterSelect.value);
-characterSelect.addEventListener('change',e=>{localStorage.setItem('aeolia-character',e.target.value);setCharacterStyle(e.target.value);focusWorld()});
+characterSelect.addEventListener('change',e=>{stored('aeolia-character',e.target.value);setCharacterStyle(e.target.value);focusWorld()});
 
 const keys={},velocity=new THREE.Vector3(),targetCam=new THREE.Vector3(),cameraLook=new THREE.Vector3(-25,5.4,5),lookTarget=new THREE.Vector3(),cameraRay=new THREE.Raycaster();
 const sound=new WorldAudio(undefined,'sky');
@@ -446,8 +448,8 @@ const discoveries=[
   {name:'雲下の滝口',text:'島から落ちる水が雲の中へ消えていく。',p:new THREE.Vector3(-105,-24,-128)}
 ];
 const DISCOVERY_RADIUS=13;
-function readNotes(){try{return JSON.parse(localStorage.getItem('aeolia-notes')||'[]')}catch{return []}}
-function saveNote(d){const notes=readNotes(),id='aeolia:'+d.name;if(notes.some(n=>n.id===id))return 0;notes.push({id,world:'浮島の街',name:d.name,text:d.text});localStorage.setItem('aeolia-notes',JSON.stringify(notes));return notes.filter(n=>n.id.startsWith('aeolia:')).length}
+function readNotes(){try{return JSON.parse(stored('aeolia-notes')||'[]')}catch{return []}}
+function saveNote(d){const notes=readNotes(),id='aeolia:'+d.name;if(notes.some(n=>n.id===id))return 0;notes.push({id,world:'浮島の街',name:d.name,text:d.text});stored('aeolia-notes',JSON.stringify(notes));return notes.filter(n=>n.id.startsWith('aeolia:')).length}
 let discoveryShown=0;
 function groundAt(x,z,maxBridgeHeight=Infinity){
   for(const b of BRIDGES){const y=bridgeSample(x,z,b);if(y!==null&&y<=maxBridgeHeight)return y}

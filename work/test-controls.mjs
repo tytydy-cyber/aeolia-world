@@ -164,6 +164,13 @@ reset();run('player.position.set(30,-49,0);yaw=Math.PI/2;keys.ArrowUp=true');fra
 assert.ok(!run('islandRockContains(player.position.x,player.position.z,player.position.y+PLAYER_HEIGHT)'),'head stays out of the island tip when sliding under it');
 run('keys.Space=true');frames(240);run('keys.Space=false');
 assert.ok(run('player.position.y')<-40&&!run('islandRockContains(player.position.x,player.position.z,player.position.y+PLAYER_HEIGHT*.5)'),`rising under the island tip stops at the rock (${run('player.position.toArray().map(v=>v.toFixed(1))')})`);
+// With storage blocked the floating islands still start, and a discovery is announced once.
+{
+  const blocked=gameContext({document:makeDocument(new Map(),()=>{}),addEventListener(){},GLTFLoader:class{load(){}},localStorage:{getItem(){throw new Error('SecurityError')},setItem(){throw new Error('SecurityError')}}});
+  vm.runInContext(script,blocked);
+  vm.runInContext('started=true;player.position.set(-30,4,-18);discover();discover();discover()',blocked);
+  assert.equal(vm.runInContext('discoveryShown',blocked),1,'blocked storage remembers a discovery for the visit instead of re-announcing it');
+}
 console.log('PASS: actual GLB parse/9 house placements, all arrow keys, passive mouse, drag/release, acceleration/braking, flight, focus loss, bridges, stairs, walls, speed slider, maximum-speed collision, 30/60/120 Hz, colonnade/blade collision, distant haze, under-island camera, discovery journal. GPU rendering is not tested.');
 const counts=Object.fromEntries(['pot','crate','bench','stall'].map(kind=>[kind,run(`props.filter(p=>p.kind==='${kind}').length`)]));
 assert.ok(run('props.length')>=40,'meaningful street furniture count');

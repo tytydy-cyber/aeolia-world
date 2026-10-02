@@ -15,10 +15,10 @@ class Renderer{constructor(){this.domElement=element('CANVAS');this.shadowMap={}
 class TextureLoader{load(){return new Core.Texture()}}
 class GLTFLoader{load(){}}
 
-export function loadStage(stage){
+export function loadStage(stage,{blockStorage=false}={}){
   const listeners=new Map(),elements=new Map(),store=new Map();
   const document={body:element('BODY'),hidden:false,title:'',createElement:element,addEventListener(){},querySelector(s){if(!elements.has(s))elements.set(s,element(s==='#characterSelect'?'SELECT':'DIV'));return elements.get(s)},querySelectorAll(){return []}};
-  const context=vm.createContext({THREE:{...Core,WebGLRenderer:Renderer,TextureLoader},GLTFLoader,mergeGeometries,WorldAudio,MotionEffects,applyTravelerDesign,document,location:{search:`?stage=${stage}`},URLSearchParams,localStorage:{getItem:k=>store.get(k)??null,setItem:(k,v)=>store.set(k,String(v))},innerWidth:1280,innerHeight:800,devicePixelRatio:1,matchMedia(){return {matches:false}},addEventListener(type,fn){if(!listeners.has(type))listeners.set(type,[]);listeners.get(type).push(fn)},requestAnimationFrame(){},setTimeout(){},clearTimeout(){},console:{...console,assert(condition,message){assert.ok(condition,message)}},performance,Date});
+  const context=vm.createContext({THREE:{...Core,WebGLRenderer:Renderer,TextureLoader},GLTFLoader,mergeGeometries,WorldAudio,MotionEffects,applyTravelerDesign,document,location:{search:`?stage=${stage}`},URLSearchParams,localStorage:blockStorage?{getItem(){throw new Error('SecurityError')},setItem(){throw new Error('SecurityError')}}:{getItem:k=>store.get(k)??null,setItem:(k,v)=>store.set(k,String(v))},innerWidth:1280,innerHeight:800,devicePixelRatio:1,matchMedia(){return {matches:false}},addEventListener(type,fn){if(!listeners.has(type))listeners.set(type,[]);listeners.get(type).push(fn)},requestAnimationFrame(){},setTimeout(){},clearTimeout(){},console:{...console,assert(condition,message){assert.ok(condition,message)}},performance,Date});
   vm.runInContext(source,context);
   const run=s=>vm.runInContext(s,context);
   const dispatch=(type,values={})=>{const e={target:document.body,preventDefault(){},...values};for(const fn of listeners.get(type)||[])fn(e);return e};

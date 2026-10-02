@@ -43,4 +43,13 @@ for(const stage of ['parallax','somnia']){
   assert.ok(game.elements.get('#event').querySelector('div').textContent.startsWith('気流'),'passing a wind gate shows its own message');
   assert.equal(heading().hidden,true,'wind gate messages hide the 発見 heading');
 }
-console.log('PASS: facility and suburb travel is frame-rate independent at 30/60/120 Hz and boosted flight cannot tunnel through walls; vertical flight stops on solid tops and under ceilings; notification headings; drag cancels camera recentering.');
+// With storage blocked the stage still starts, and a discovery is announced once, not every half second.
+{
+  const game=loadStage('somnia',{blockStorage:true});
+  const [x,,z]=game.run('cfg.notes[0]');game.reset(x+3,1,z);
+  const messages=new Set();for(let i=0;i<8;i++){game.frames(30);messages.add(game.elements.get('#event').querySelector('div').textContent)}
+  assert.equal(game.run('readNotes().length'),1,'blocked storage keeps the journal in memory');
+  game.elements.get('#event').querySelector('div').textContent='';game.frames(120);
+  assert.equal(game.elements.get('#event').querySelector('div').textContent,'','a remembered discovery is not announced again');
+}
+console.log('PASS: facility and suburb travel is frame-rate independent at 30/60/120 Hz and boosted flight cannot tunnel through walls; vertical flight stops on solid tops and under ceilings; notification headings; drag cancels camera recentering; blocked storage.');
