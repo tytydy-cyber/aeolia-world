@@ -5,6 +5,8 @@ import {loadStage} from './liminal-harness.mjs';
 for(const stage of ['parallax','somnia']){
   const game=loadStage(stage);
   const {run,frames,reset}=game;
+  assert.equal(run('boundaryBatch.count'),stage==='parallax'?64:72,`${stage}: visible boundary follows the full ground perimeter in one batch`);
+  assert.equal(run('boundaryBatch.userData.visibleWorldBoundary'),true,`${stage}: boundary geometry is marked as the visible world edge`);
 
   // Same travel in one second at 30/60/120 Hz.
   const travel=[30,60,120].map(hz=>{reset(0,20,0);run('keys.ArrowUp=true');frames(hz,hz);run('keys.ArrowUp=false');return -run('player.position.z')});

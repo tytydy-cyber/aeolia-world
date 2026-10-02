@@ -64,6 +64,7 @@ assert.ok(hub.includes(".parallax{--scene:url('assets/textures/complex-horizon-v
 assert.ok(js.includes("全地点を巡った")&&js.includes("best<90")&&js.includes("count} / ${cfg.notes.length}"),'exploration provides proximity and completion feedback');
 assert.ok(js.includes("addHorizon('assets/textures/complex-horizon-v1.png'")&&js.includes("addHorizon('assets/textures/distant-ruins.png'"),'both worlds have layered distant scenery');
 assert.ok(js.includes('irregularGround()')&&js.includes('roughCylinder(')&&js.includes('c.radius!==undefined'),'natural ground, hills and their colliders share non-rectangular shapes');
+assert.ok(js.includes('function visibleBoundary()')&&js.includes("count=stageKey==='parallax'?64:72")&&js.includes('visibleWorldBoundary=true'),'both liminal stages render their irregular movement boundary as one visible batch');
 assert.ok(js.includes('new THREE.ShapeGeometry(shape)')&&js.includes('o.rotation.x=-Math.PI/2'),'irregular ground renders its textured front face upward');
 assert.ok(js.includes('new THREE.CylinderGeometry(245*scale')&&js.includes("opacity:stageKey==='parallax'?.09")&&js.includes("material=stageKey==='parallax'?mats.frame")&&js.includes('new THREE.CylinderGeometry(.72,1,1,7)')&&js.includes('new THREE.TorusGeometry(1,.09,5,12,Math.PI)'),'faint horizon art sits behind a textured low-cost radial 3D skyline');
 assert.ok(!js.includes('box(0,-.35,0,350')&&!js.includes('box(0,-.4,0,400'),'world floors are no longer giant rectangles');
