@@ -177,6 +177,11 @@ assert.ok(run('player.position.y')<-40&&!run('islandRockContains(player.position
   vm.runInContext('started=true;player.position.set(-30,4,-18);discover();discover();discover()',blocked);
   assert.equal(vm.runInContext('discoveryShown',blocked),1,'blocked storage remembers a discovery for the visit instead of re-announcing it');
 }
+// Draw budget guards: repeated parts stay merged and point lights stay at three.
+assert.equal(run('blades.children.length'),2,'windmill arms render as one blade mesh and one slat mesh');
+assert.equal(run('(()=>{let n=0;scene.traverse(o=>{if(o.isPointLight)n++});return n})()'),3,'no more than three point lights');
+const visibleMeshes=run('(()=>{let n=0;scene.traverse(o=>{if(!o.isMesh)return;for(let p=o;p;p=p.parent)if(!p.visible)return;n++});return n})()');
+assert.ok(visibleMeshes<=90,`floating-island mesh count stays within budget (${visibleMeshes})`);
 console.log('PASS: actual GLB parse/9 house placements, all arrow keys, passive mouse, drag/release, acceleration/braking, flight, focus loss, bridges, stairs, walls, speed slider, maximum-speed collision, 30/60/120 Hz, colonnade/blade collision, distant haze, under-island camera, discovery journal. GPU rendering is not tested.');
 const counts=Object.fromEntries(['pot','crate','bench'].map(kind=>[kind,run(`props.filter(p=>p.kind==='${kind}').length`)]));
 assert.ok(run('props.length')>=40,'meaningful street furniture count');

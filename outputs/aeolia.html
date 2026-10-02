@@ -227,7 +227,10 @@ colliders.push({x:112,z:-92,radius:9+.65,bottom:53,top:92});
 const blades=new THREE.Group();blades.position.set(0,24,7.8);mill.add(blades);
 // Thin slabs approximate the disc the blades sweep (hub at 77 m, radius 20 m). They never move, so contact cannot trap the player.
 for(let y=-19;y<=19;y+=2)colliders.push({x:112,z:-84.2,w:Math.sqrt(400-y*y),d:.35,bottom:77+y-1,top:77+y+1});
-for(let i=0;i<4;i++){const arm=new THREE.Group();arm.rotation.z=i*Math.PI/2;blades.add(arm);const blade=new THREE.Mesh(new THREE.BoxGeometry(.35,20,.35),MAT.wood);blade.position.y=10;arm.add(blade);for(let j=5;j<20;j+=1){const slat=new THREE.Mesh(new THREE.BoxGeometry(3,.5,.15),MAT.pale);slat.position.set(1,j,0);arm.add(slat)}}
+// Four arms merge into one blade mesh and one slat mesh; the group still turns as a whole.
+const bladeArms=[],bladeSlats=[];
+for(let i=0;i<4;i++){const arm=new THREE.Matrix4().makeRotationZ(i*Math.PI/2);bladeArms.push(new THREE.BoxGeometry(.35,20,.35).translate(0,10,0).applyMatrix4(arm));for(let j=5;j<20;j++)bladeSlats.push(new THREE.BoxGeometry(3,.5,.15).translate(1,j,0).applyMatrix4(arm))}
+blades.add(new THREE.Mesh(mergeGeometries(bladeArms),MAT.wood),new THREE.Mesh(mergeGeometries(bladeSlats),MAT.pale));
 
 // Gnarled trunks, branches and varied crowns share five instanced draw batches.
 const leaves=[0x405b3f,0x637a4e,0x839064].map(color=>new THREE.MeshStandardMaterial({color,roughness:.94}));
@@ -264,11 +267,13 @@ for(let i=0;i<900;i++){
 scene.add(flowers);dummy.scale.setScalar(1);
 // Open colonnade at the last island, with a shallow reflecting pool.
 cyl(12,.35,[78,7.2,100],MAT.stone,48);
+const columnShafts=[],columnRings=[],column=(r,h,y,n,px,pz)=>new THREE.CylinderGeometry(r,r*1.08,h,n).translate(px,y,pz);
 for(let i=0;i<10;i++){
   const a=i/10*Math.PI*2,px=78+Math.cos(a)*10,pz=100+Math.sin(a)*10;
-  cyl(.4,7,[px,10.8,pz],MAT.pale,12);cyl(.7,.4,[px,7.5,pz]);cyl(.7,.4,[px,14.2,pz]);
+  columnShafts.push(column(.4,7,10.8,12,px,pz));columnRings.push(column(.7,.4,7.5,24,px,pz),column(.7,.4,14.2,24,px,pz));
   colliders.push({x:px,z:pz,radius:.76,bottom:7,top:14.4});
 }
+mesh(mergeGeometries(columnShafts),MAT.pale,[0,0,0]);mesh(mergeGeometries(columnRings),MAT.stone,[0,0,0]);
 for(let i=0;i<30;i++){const a=i/30*mathTau;colliders.push({x:78+Math.cos(a)*10,z:100+Math.sin(a)*10,radius:.6,bottom:14.25,top:15.35})}
 const cornice=mesh(new THREE.TorusGeometry(10,.55,8,48),MAT.pale,[78,14.8,100]);cornice.rotation.x=Math.PI/2;
 const palaceWater=organicDisc(6,2.4),gardenWater=organicDisc(4.55,.8);palaceWater.rotateX(-Math.PI/2);palaceWater.translate(78,7.4,100);gardenWater.rotateX(-Math.PI/2);gardenWater.translate(28,18.2,-18);const waterSurfaces=mesh(mergeGeometries([palaceWater,gardenWater]),new THREE.MeshPhysicalMaterial({color:0x739da0,metalness:.35,roughness:.16,transparent:true,opacity:.86}),[0,0,0],false);
@@ -329,9 +334,14 @@ for(const batch of [underDecks,underFrames,underLights]){batch.castShadow=false;
 const solidColliders=colliders.concat(propColliders);
 const PLAYER_RADIUS=.58,PLAYER_HEIGHT=3.85;
 
-function lamp(px,py,pz){cyl(.12,5,[px,py+2.5,pz],MAT.dark,6);const glow=mesh(new THREE.SphereGeometry(.7,8,6),new THREE.MeshBasicMaterial({color:0xffd98b}),[px,py+5.3,pz],false);const light=new THREE.PointLight(0xffc56c,7,15);light.position.copy(glow.position);scene.add(light)}
-[[-10,3,-8],[20,17,-11],[49,3,18],[-42,3,18],[-105,33,-83],[112,53,-75],[78,6,91]].forEach(v=>lamp(...v));
-for(let i=0;i<7;i++){const postX=-35+i*11;box([.2,9,.2],[postX,7,-53],MAT.wood);const cloth=box([8,.08,3],[postX+4,11,-53],i%2?MAT.roof:MAT.roof2,false);cloth.rotation.z=.08*Math.sin(i)}
+// Lamp posts and glows merge into two draws. Point lights cost every lit pixel, so only the three central-island lamps cast light.
+const lampSpots=[[-10,3,-8,true],[20,17,-11,true],[-42,3,18,true],[49,3,18],[-105,33,-83],[112,53,-75],[78,6,91]];
+mesh(mergeGeometries(lampSpots.map(([x,y,z])=>new THREE.CylinderGeometry(.12,.13,5,6).translate(x,y+2.5,z))),MAT.dark,[0,0,0]);
+mesh(mergeGeometries(lampSpots.map(([x,y,z])=>new THREE.SphereGeometry(.7,8,6).translate(x,y+5.3,z))),new THREE.MeshBasicMaterial({color:0xffd98b}),[0,0,0],false);
+for(const [x,y,z,lit] of lampSpots)if(lit){const light=new THREE.PointLight(0xffc56c,7,15);light.position.set(x,y+5.3,z);scene.add(light)}
+const clothPosts=[],clothSheets=[[],[]];
+for(let i=0;i<7;i++){const postX=-35+i*11;clothPosts.push(new THREE.BoxGeometry(.2,9,.2).translate(postX,7,-53));clothSheets[i%2].push(new THREE.BoxGeometry(8,.08,3).rotateZ(.08*Math.sin(i)).translate(postX+4,11,-53))}
+mesh(mergeGeometries(clothPosts),MAT.wood,[0,0,0]);mesh(mergeGeometries(clothSheets[0]),MAT.roof2,[0,0,0],false);mesh(mergeGeometries(clothSheets[1]),MAT.roof,[0,0,0],false);
 
 // Waterfalls visibly connect high islands to the cloud layer.
 const waterMat=new THREE.MeshPhysicalMaterial({color:0x9edbe0,transparent:true,opacity:.62,roughness:.1});
