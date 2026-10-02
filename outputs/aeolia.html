@@ -365,14 +365,6 @@ function scenicRuin(position,scale,offset,repeat,phase){
 }
 scenicRuin([-270,55,-330],[190,95],0,.54,0);
 scenicRuin([310,78,-260],[170,85],.52,.48,2.4);
-// Liminal landmarks: familiar doors and lights placed where no buildings exist.
-const dreamObjects=[],dreamFrameMat=new THREE.MeshStandardMaterial({color:0xd8c9e9,emissive:0x604878,emissiveIntensity:.55,roughness:.55});
-for(const [x,z,r] of [[-55,18,.2],[57,-8,-.35],[-20,58,1.9],[31,45,2.75]]){
-  const g=new THREE.Group();for(const [sx,sy,px,py] of [[.32,5.2,-2.2,2.6],[.32,5.2,2.2,2.6],[4.7,.32,0,5.05]]){const p=new THREE.Mesh(new THREE.BoxGeometry(sx,sy,.38),dreamFrameMat);p.position.set(px,py,0);p.castShadow=true;g.add(p)}
-  g.position.set(x,groundAt(x,z),z);g.rotation.y=r;scene.add(g);dreamObjects.push({object:g,baseY:g.position.y,phase:random()*mathTau});
-}
-const orbMat=new THREE.MeshStandardMaterial({color:0xffd7dc,emissive:0xff8faa,emissiveIntensity:1.2,transparent:true,opacity:.72,roughness:.2});
-for(let i=0;i<7;i++){const orb=new THREE.Mesh(new THREE.SphereGeometry(.7+random()*1.1,24,16),orbMat);const a=random()*mathTau,r=38+random()*28;orb.position.set(Math.cos(a)*r,8+random()*17,Math.sin(a)*r);scene.add(orb);dreamObjects.push({object:orb,baseY:orb.position.y,phase:random()*mathTau})}
 // Distant silhouettes are unreachable scenery: no ground, collision or camera blocking.
 // Merged into one rock and one top draw at low subdivision (the merge disables per-island culling), tinted toward the haze, and fading further once the player flies out past 220 m.
 const distantRock=[],distantTop=[];
@@ -573,7 +565,6 @@ function update(dt,t){
   blades.rotation.z-=dt*.35;clouds.forEach((c,i)=>{c.x+=dt*(.25+i%4*.07);if(c.x>400)c.x=-400;cloudDummy.position.set(c.x,c.y,c.z);cloudDummy.quaternion.copy(camera.quaternion);cloudDummy.scale.set(c.w,c.h,1);cloudDummy.updateMatrix();cloudBatch.setMatrixAt(i,cloudDummy.matrix)});cloudBatch.instanceMatrix.needsUpdate=true;
   const haze=THREE.MathUtils.smoothstep(Math.hypot(player.position.x,player.position.z),220,280);for(const m of distantMaterials)m.opacity=1-.7*haze;
   scenicLayers.forEach((layer,i)=>{layer.sprite.position.y=layer.baseY+Math.sin(t*.00011+layer.phase)*1.8;layer.sprite.material.opacity=.68+Math.sin(t*.00017+layer.phase+i)*.05});
-  dreamObjects.forEach((item,i)=>{item.object.position.y=item.baseY+Math.sin(t*.00045+item.phase)*(.35+i%3*.12);item.object.rotation.z=Math.sin(t*.00018+item.phase)*.018});
   if(t>=nextDiscovery){discover();nextDiscovery=t+500}
 }
 // Desktop keeps full detail on the two houses in front of the spawn; other houses and every phone house use the LOD asset.
