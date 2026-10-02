@@ -81,14 +81,13 @@ export class WorldAudio {
   }
   environmentDetail(){
     if(!this.audible||!['complex','suburb'].includes(this.mood))return;
-    const c=this.ctx,t=c.currentTime,details=this.mood==='complex'?[[1760,0,.035],[820,.09,.024],[2460,.16,.012]]:[[[620,880],[310,470],[150,230],[760,1040],[220,330]][this.environment][0],0,.018];
-    for(const [frequency,delay,level] of this.mood==='complex'?details:[details]){const osc=c.createOscillator(),gain=c.createGain();osc.type=this.mood==='suburb'&&this.environment===2?'triangle':'sine';osc.frequency.value=this.mood==='suburb'?frequency+Math.random()*([[620,880],[310,470],[150,230],[760,1040],[220,330]][this.environment][1]-frequency):frequency;gain.gain.setValueAtTime(.0001,t+delay);gain.gain.linearRampToValueAtTime(level,t+delay+.008);gain.gain.exponentialRampToValueAtTime(.0001,t+delay+1.8);osc.connect(gain);gain.connect(this.master);if(this.voice(osc,[gain])){osc.start(t+delay);osc.stop(t+delay+1.9)}}
+    const c=this.ctx,t=c.currentTime,ranges=this.mood==='complex'?[[560,720],[1500,1850],[280,420],[90,150],[2200,2700]]:[[620,880],[310,470],[150,230],[760,1040],[220,330]],range=ranges[this.environment],osc=c.createOscillator(),gain=c.createGain();osc.type=this.environment===2?'triangle':'sine';osc.frequency.value=range[0]+Math.random()*(range[1]-range[0]);gain.gain.setValueAtTime(.0001,t);gain.gain.linearRampToValueAtTime(this.mood==='complex'?.024:.018,t+.008);gain.gain.exponentialRampToValueAtTime(.0001,t+1.8);osc.connect(gain);gain.connect(this.master);if(this.voice(osc,[gain])){osc.start(t);osc.stop(t+1.9)}
   }
   update(dt,speed,flying,grounded,onBridge){
     if(!this.audible){this.distance=0;return}
     const t=this.ctx.currentTime;
     if(t>=this.nextMix){
-      const movement=Math.min(1,speed/35),breeze=.1+Math.sin(t*.31)*.025,zoneShift=this.mood==='suburb'?[80,20,-90,140,-40][this.environment]:0;
+      const movement=Math.min(1,speed/35),breeze=.1+Math.sin(t*.31)*.025,zoneShift=(this.mood==='suburb'?[80,20,-90,140,-40]:this.mood==='complex'?[0,-80,-140,-210,120]:[0])[this.environment]||0;
       this.windGain.gain.setTargetAtTime(breeze+(flying?.2*movement:.015*movement),t,.3);
       this.filter.frequency.setTargetAtTime(350+(flying?1100*movement:150)+zoneShift+this.altitude*260,t,.3);this.nextMix=t+.05;
     }

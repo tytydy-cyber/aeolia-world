@@ -8,7 +8,7 @@ import {applyTravelerDesign} from './character-designs.js?v=45';
 const stageKey=new URLSearchParams(location.search).get('stage')==='somnia'?'somnia':'parallax';
 const STAGES={
   parallax:{name:'閉鎖施設',code:'COMPLEX 02',intro:'複数の施設が街区規模で連結された、使われていない巨大複合施設。',sky:0x747462,fog:0x777666,fogDensity:.0022,ground:0x82775e,spawn:[11,0,82],limitY:38,
-    notes:[[-55,0,34,'宴会場','椅子が並んでいる。'],[65,0,38,'受付','呼び鈴が置かれている。'],[-52,0,-38,'浴場','水は抜かれている。'],[48,0,-42,'搬入口','案内板がある。'],[0,0,-69,'渡り廊下','窓の外にも廊下が見える。']]},
+    notes:[[-55,0,34,'宴会場','全席が出口と反対を向いている。'],[65,0,38,'受付','鍵の数より客室扉のほうが多い。'],[-52,0,-38,'浴場','水はないが循環設備が動いている。'],[48,0,-42,'搬入口','4番の隣に6番が二つある。'],[0,0,-69,'渡り廊下','向こう側にも同じ形の廊下がある。']]},
   somnia:{name:'郊外',code:'SOLARPUNK SUBURB 03',intro:'丘陵と水路の先まで、発電設備と空中庭園の郊外が続いている。',sky:0x92c8c5,fog:0xb8d5bf,fogDensity:.0018,ground:0x718c69,spawn:[0,0,86],limitY:58,
     notes:[[-105,0,55,'育苗室','旧校舎の温室で共同菜園の苗を育てている。'],[82,0,32,'配水庭','円形の分水槽から住宅と畑へ水が分かれている。'],[-92,0,-55,'修理工房','集光設備の交換部品と工具が並んでいる。'],[48,0,-48,'調整池','使われなくなったプールが余剰水を受けている。'],[0,0,-170,'集光塔','青い送電線が四つの地区へ伸びている。']]}
 };
@@ -33,10 +33,10 @@ const mats={
 const colliders=[],routeGates=[],world=new THREE.Group();scene.add(world);
 function mesh(g,m,x,y,z,shadow=false){const o=new THREE.Mesh(g,m);o.position.set(x,y,z);o.castShadow=shadow;o.receiveShadow=true;world.add(o);return o}
 function box(x,y,z,w,h,d,m=mats.wall,solid=false){const o=mesh(new THREE.BoxGeometry(w,h,d),m,x,y,z);if(solid)colliders.push({x,z,w:w/2,d:d/2,bottom:y-h/2,top:y+h/2});return o}
-function wall(x,z,w,d,h=10,m=mats.wall){return box(x,h/2,z,w,h,d,m,true)}
+const wallParts=[];function wall(x,z,w,d,h=10,m=mats.wall){wallParts.push([x,z,w,d,h,m]);colliders.push({x,z,w:w/2,d:d/2,bottom:0,top:h})}
 function routeGate(x,y,z,r,turn=0){const o=mesh(new THREE.TorusGeometry(r,.48,8,28),mats.glow.clone(),x,y,z,false);o.rotation.y=turn;routeGates.push({o,r,ready:true});return o}
 function roundedBlock(x,y,z,w,h,d,r=2,m=mats.wall,solid=false){const s=new THREE.Shape();s.moveTo(-w/2+r,-h/2);s.lineTo(w/2-r,-h/2);s.quadraticCurveTo(w/2,-h/2,w/2,-h/2+r);s.lineTo(w/2,h/2-r);s.quadraticCurveTo(w/2,h/2,w/2-r,h/2);s.lineTo(-w/2+r,h/2);s.quadraticCurveTo(-w/2,h/2,-w/2,h/2-r);s.lineTo(-w/2,-h/2+r);s.quadraticCurveTo(-w/2,-h/2,-w/2+r,-h/2);const g=new THREE.ExtrudeGeometry(s,{depth:d,bevelEnabled:false,curveSegments:3});g.translate(0,0,-d/2);const o=mesh(g,m,x,y,z);if(solid)colliders.push({x,z,w:w/2,d:d/2,corner:Math.min(r,w/2,d/2),bottom:y-h/2,top:y+h/2});return o}
-function lightPanel(x,y,z,w=4,d=1.2){return box(x,y,z,w,.12,d,mats.glow,false)}
+const lightPanels=[];function lightPanel(x,y,z,w=4,d=1.2){lightPanels.push([x,y,z,w,d])}
 function edgeScale(a,phase){return .91+.075*Math.sin(a*3+phase)+.045*Math.sin(a*5-phase*.7)+.025*Math.sin(a*9+phase*.3)}
 const groundSpec=stageKey==='parallax'?[178,148,.4]:[250,210,2.1];
 function irregularGround(){const [rx,rz,phase]=groundSpec,shape=new THREE.Shape();for(let i=0;i<56;i++){const a=i/56*Math.PI*2,s=edgeScale(a,phase),x=Math.cos(a)*rx*s,z=Math.sin(a)*rz*s;i?shape.lineTo(x,z):shape.moveTo(x,z)}shape.closePath();const g=new THREE.ShapeGeometry(shape),p=g.attributes.position,uv=g.attributes.uv;for(let i=0;i<p.count;i++)uv.setXY(i,(p.getX(i)/rx+1)*6,(p.getY(i)/rz+1)*5);const o=mesh(g,mats.carpet,0,0,0);o.rotation.x=-Math.PI/2;o.receiveShadow=true;return o}
@@ -58,6 +58,10 @@ function corridorBackdrop(){const c=document.createElement('canvas');c.width=512
 
 function buildParallax(){
   irregularGround();addHorizon('assets/textures/complex-horizon-v1.png',39,1.05);
+  // Five uses form a bent ring: their floors, lamps and repeated doors carry fixed differences.
+  const zoneMaterials=[0xb39a68,0x796c51,0x66817c,0x6e6257,0x555c58].map(color=>new THREE.MeshStandardMaterial({color,roughness:.95,map:surfaceMap})),zones=[[11,66,50,32,0],[-58,30,54,38,1],[-55,-40,50,34,2],[52,-43,54,38,3],[4,-82,72,22,4]];for(const [x,z,w,d,i] of zones){const floor=roundedBlock(x,.06,z,w,.12,d,4,zoneMaterials[i]);floor.rotation.y=(i-2)*.025}
+  const repeatDoors=new THREE.InstancedMesh(new THREE.BoxGeometry(4.6,6,.35),mats.dark,24),zoneLights=new THREE.InstancedMesh(new THREE.BoxGeometry(6,.12,1.3),mats.glow,24),zoneDummy=new THREE.Object3D();for(let i=0;i<24;i++){const side=i<12?-1:1,x=side*(26+(i%4)*14),z=54-Math.floor((i%12)/4)*43+(i%3)*2;zoneDummy.position.set(x,3,z);zoneDummy.rotation.set(0,side<0?Math.PI/2:-Math.PI/2,0);zoneDummy.scale.set(1,1,1);zoneDummy.updateMatrix();repeatDoors.setMatrixAt(i,zoneDummy.matrix);zoneDummy.position.set(x-side*4,9+(i%3)*2,z);zoneDummy.rotation.set(0,0,0);zoneDummy.updateMatrix();zoneLights.setMatrixAt(i,zoneDummy.matrix)}world.add(repeatDoors,zoneLights);
+  const facilityLine=points=>mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(points.map(([x,y,z])=>new THREE.Vector3(x,y,z))),28,.42,6,false),mats.frame,0,0,0,false);facilityLine([[65,8,38],[15,10,44],[-45,9,34],[-60,7,-20],[-52,6,-38]]);facilityLine([[-52,4,-38],[-8,6,-58],[48,7,-42],[22,14,-70],[0,23,-69]]);
   // Broken ceiling plates enclose the complex while leaving tall atriums around the route.
   for(const [x,z,w,d,r] of [[-66,20,104,116,-.035],[62,18,108,120,.028],[0,-91,136,58,-.018]]){const ceiling=roundedBlock(x,42,z,w,2.2,d,5,mats.dark);ceiling.rotation.z=r}
   // The player starts at a recognizable threshold instead of an empty exterior apron.
@@ -78,7 +82,7 @@ function buildParallax(){
   for(let row=-2;row<=2;row++)for(let i=-4;i<=4;i++)lightPanel(i*20,23.4,row*31+8,7,1.4);
   for(const x of [-62,0,62]){const l=new THREE.PointLight(0xffe5aa,58,115,2);l.position.set(x,18,0);world.add(l)}
   const backdrop=corridorBackdrop();for(const [x,z,w,ry] of [[-5,53.05,17,0],[34,53.05,30,0]]){const p=mesh(new THREE.PlaneGeometry(w,20),backdrop,x,11,z,false);p.rotation.y=ry}
-  for(const x of [-82,-67,-52,-37,-22]){box(x,1.5,34,9,3,1,mats.wood,true);box(x,3.3,34,8,.3,3,mats.wall)}
+  const banquetSeats=new THREE.InstancedMesh(new THREE.BoxGeometry(1,1,1),mats.wood,10),seatDummy=new THREE.Object3D();let seatPart=0;for(const x of [-82,-67,-52,-37,-22])for(const [y,w,h,d] of [[1.5,9,3,1],[3.3,8,.3,3]]){seatDummy.position.set(x,y,34);seatDummy.scale.set(w,h,d);seatDummy.updateMatrix();banquetSeats.setMatrixAt(seatPart++,seatDummy.matrix);colliders.push({x,z:34,w:w/2,d:d/2,bottom:y-h/2,top:y+h/2})}world.add(banquetSeats);
   // Hotel desk and luggage rhythm.
   box(65,1.2,38,26,2.4,3,mats.wood,true);for(let i=0;i<7;i++)box(55+i*4,.45,31,1.8,.9,1.3,i%2?mats.dark:mats.pink,true);const bell=mesh(new THREE.SphereGeometry(.32,16,10,0,Math.PI*2,0,Math.PI*.58),mats.glow,65,2.58,38);bell.rotation.x=Math.PI;box(65,2.38,38,.85,.12,.85,mats.frame);
   // Empty bath and tiled rim.
@@ -154,7 +158,7 @@ function buildSomnia(){
   box(0,20,-170,1.8,40,1.8,mats.frame,true);const collector=mesh(new THREE.IcosahedronGeometry(8,2),mats.glow,0,42,-170);collector.scale.y=.42;for(let i=0;i<8;i++)accent(0,42,-170,12,.22,3.2,0,i*Math.PI/4,.18);for(const [x,y,z,r,turn] of [[0,6,60,5,0],[78,14,30,5,.3],[-70,25,-35,6,-.2],[0,38,-150,7,0]])routeGate(x,y,z,r,turn);
   const accentBatch=new THREE.InstancedMesh(new THREE.BoxGeometry(1,1,1),mats.solar,accents.length);for(let i=0;i<accents.length;i++){const [x,y,z,w,h,d,rx,ry,rz]=accents[i];dummy.position.set(x,y,z);dummy.rotation.set(rx,ry,rz);dummy.scale.set(w,h,d);dummy.updateMatrix();accentBatch.setMatrixAt(i,dummy.matrix)}accentBatch.count=accents.length;world.add(accentBatch);
 }
-(stageKey==='parallax'?buildParallax:buildSomnia)();
+(stageKey==='parallax'?buildParallax:buildSomnia)();if(wallParts.length){const batch=new THREE.InstancedMesh(new THREE.BoxGeometry(1,1,1),mats.wall,wallParts.length),d=new THREE.Object3D();for(const [i,[x,z,w,depth,h]] of wallParts.entries()){d.position.set(x,h/2,z);d.scale.set(w,h,depth);d.updateMatrix();batch.setMatrixAt(i,d.matrix)}world.add(batch)}if(lightPanels.length){const batch=new THREE.InstancedMesh(new THREE.BoxGeometry(1,1,1),mats.glow,lightPanels.length),d=new THREE.Object3D();for(const [i,[x,y,z,w,depth]] of lightPanels.entries()){d.position.set(x,y,z);d.scale.set(w,.12,depth);d.updateMatrix();batch.setMatrixAt(i,d.matrix)}world.add(batch)}
 console.assert(validGround(cfg.spawn[0],cfg.spawn[2]),'spawn must be inside the visible ground');
 console.assert(cfg.notes.every(n=>validGround(n[0],n[2])),'discoveries must be inside the visible ground');
 console.assert(colliders.every(c=>['x','z','bottom','top'].every(k=>Number.isFinite(c[k]))&&(Number.isFinite(c.radius)||(Number.isFinite(c.w)&&Number.isFinite(c.d)))&&c.top>c.bottom),'colliders must have finite positive bounds');
@@ -178,7 +182,7 @@ const keys={},velocity=new THREE.Vector3(),lastSafe=player.position.clone(),targ
 function contains(c,x,z,margin=.55){if(c.radius!==undefined)return Math.hypot(x-c.x,z-c.z)<c.radius+margin;const dx=Math.abs(x-c.x),dz=Math.abs(z-c.z);if(!c.corner)return dx<c.w+margin&&dz<c.d+margin;const qx=Math.max(dx-(c.w-c.corner),0),qz=Math.max(dz-(c.d-c.corner),0);return dx<c.w+margin&&dz<c.d+margin&&Math.hypot(qx,qz)<c.corner+margin}
 function validGround(x,z){const [rx,rz,phase]=groundSpec,a=Math.atan2(z/rz,x/rx);return Math.hypot(x/rx,z/rz)<edgeScale(a,phase)-.012}
 function resetKeys(){for(const k in keys)delete keys[k];velocity.set(0,0,0);diveBoost=routeBoost=0;dragging=false}
-function updateEnvironment(){if(stageKey!=='somnia')return;const {x,y,z}=player.position,zone=z< -120?4:x< -40&&z>0?0:x>35&&z>0?1:x< -35?2:3;sound.setEnvironment(zone,THREE.MathUtils.smoothstep(y,8,40))}
+function updateEnvironment(){const {x,y,z}=player.position,zone=stageKey==='somnia'?(z< -120?4:x< -40&&z>0?0:x>35&&z>0?1:x< -35?2:3):(y>22?4:z>15?(x<0?1:0):z< -18?(x<0?2:3):0);sound.setEnvironment(zone,THREE.MathUtils.smoothstep(y,8,40))}
 function readNotes(){try{return JSON.parse(localStorage.getItem('aeolia-notes')||'[]')}catch{return []}}
 function saveNote(note){const notes=readNotes(),id=stageKey+':'+note[3];if(notes.some(n=>n.id===id))return 0;notes.push({id,world:cfg.name,name:note[3],text:note[4]});localStorage.setItem('aeolia-notes',JSON.stringify(notes));return notes.filter(n=>n.id.startsWith(stageKey+':')).length}
 // Discoveries require coming down near the floor, so the ground layer has its own reason to visit.

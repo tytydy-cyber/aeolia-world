@@ -22,6 +22,8 @@ for(const code of ['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','KeyW','KeyA',
 assert.ok(js.includes("new MotionEffects")&&js.includes("new WorldAudio"),'existing effects and audio are shared');
 assert.ok(js.includes('flightBlend=THREE.MathUtils.damp')&&js.includes('cameraFocus.lerp'),'camera transition and aim are smoothed');
 assert.equal((js.match(/new THREE\.PointLight/g)||[]).length,1,'facility lights are created by one bounded loop');
+assert.ok(js.includes('const lightPanels=[]')&&js.includes('mats.glow,lightPanels.length'),'facility ceiling panels render in one batch');
+assert.ok(js.includes('const wallParts=[]')&&js.includes('mats.wall,wallParts.length')&&js.includes('const banquetSeats=new THREE.InstancedMesh'),'facility walls and banquet seating render in two batches while keeping colliders');
 assert.ok(hub.includes('aeolia.html')&&hub.includes('stage=parallax')&&hub.includes('stage=somnia'),'station exposes all worlds');
 for(const page of [html,aeolia]){
   assert.ok(page.includes('世界選択へ')&&page.includes('id="characterSelect"'),'every world exposes world and character selection');
@@ -34,6 +36,8 @@ assert.ok(js.includes('const utilityLine=')&&js.includes('const utilityPoles=')&
 for(const batch of ['cisternPipes','workshopDetails','schoolWindows','terraces','doorFrames'])assert.ok(js.includes(`const ${batch}=new THREE.InstancedMesh`),`${batch} keeps detailed suburb geometry in one draw batch`);
 assert.ok(js.includes('const lifeParts={crate:[],cloth:[],work:[],deck:[]}')&&js.includes('const lifeMaterials={crate:mats.wood'),'four districts contain batched, concentrated traces of daily work');
 assert.ok(js.includes('function updateEnvironment()')&&js.includes('sound.setEnvironment(zone,THREE.MathUtils.smoothstep(y,8,40))'),'suburb sound changes by district and altitude');
+assert.ok(js.includes("stageKey==='somnia'?")&&js.includes('y>22?4'),'closed facility sound changes across five uses and the ceiling layer');
+for(const feature of ['const zoneMaterials=','const repeatDoors=','zoneLights=new THREE.InstancedMesh','const facilityLine='])assert.ok(js.includes(feature),`${feature} distinguishes the five facility uses`);
 assert.ok(js.includes('function roundedBlock')&&js.includes('new THREE.TubeGeometry')&&js.includes('Aerial commons'),'both new worlds use layered non-rectangular structures');
 assert.ok(js.includes('recognizable threshold')&&js.includes('Overlapping meadow islands'),'playtest fixes preserve a readable entrance and varied near ground');
 assert.ok(js.includes('nextAnomaly=Infinity')&&js.includes('started=true;nextAnomaly=Date.now()+60000+Math.random()*60000')&&js.includes('function anomaly(){const now=Date.now()'),'events are scheduled from entry, first within about two minutes, and cannot fire on entry');
