@@ -561,13 +561,16 @@ function update(dt,t){
 // Desktop keeps full detail on the two houses in front of the spawn; other houses and every phone house use the LOD asset.
 // Parts sharing a surface are merged across houses into one draw; the existing collision proxies stay.
 const houseBatches=[],FULL_DETAIL_HOUSES=2;
+// Blender material names map to the shared surface textures; the UV scale is in meters per repeat.
+const surfaceKind=name=>name.includes('plaster')?'plaster':name.includes('limestone')||name.includes('mouldings')?'stone':name.startsWith('Slate')?'slate':name.includes('chestnut')||name.includes('shutters')?'wood':null;
+const surfaceScale=kind=>kind==='slate'?1.6:kind==='wood'?2:3;
 function houseParts(gltf){
   const parts=[];gltf.scene.updateMatrixWorld(true);
   gltf.scene.traverse(o=>{
     if(!o.isMesh)return;
     const name=o.material.name;
-    const kind=name.includes('plaster')?'plaster':name.includes('limestone')||name.includes('mouldings')?'stone':name.startsWith('Slate')?'slate':name.includes('chestnut')||name.includes('shutters')?'wood':null;
-    if(kind){surfaceUV(o.geometry,kind==='slate'?1.6:kind==='wood'?2:3);textureMaterial(o.material,kind)}
+    const kind=surfaceKind(name);
+    if(kind){surfaceUV(o.geometry,surfaceScale(kind));textureMaterial(o.material,kind)}
     parts.push({key:kind||name,kind,mesh:o});
   });
   return parts;
@@ -601,6 +604,8 @@ Promise.all([reducedGPU?null:loadHouseAsset('assets/aeolia-house.glb'),loadHouse
   placeHouses(full&&houseParts(full),houseParts(lod));
   document.querySelector('#assetState').textContent='';
 }).catch(error=>{console.error('House asset could not load',error);document.querySelector('#assetState').textContent='建物の詳細を読み込めませんでした。再読み込みで再試行できます。'});
+// glTF UVs assume an unflipped image, like GLTFLoader's own textures.
+const islandLifeAtlas=textureLoader.load('assets/textures/island-life-atlas.png');islandLifeAtlas.colorSpace=THREE.SRGBColorSpace;islandLifeAtlas.flipY=false;
 const districtModules=[],districtBatches=[],districtPlacements=[
   ['Market_module',-30,3.08,-28,{x:-30,z:-28,w:3.6,d:1.2,bottom:3,top:6.4}],
   ['Bell_tower_module',-105,34.08,-83,{x:-105,z:-83,w:1.4,d:1.4,bottom:34,top:40.5}],
@@ -611,7 +616,12 @@ const districtModules=[],districtBatches=[],districtPlacements=[
 new GLTFLoader().load('assets/aeolia-island-modules.glb',gltf=>{
   const modules=new Map(gltf.scene.children.map(object=>[object.name,object])),parts=new Map();
   for(const [name,x,y,z,collider] of districtPlacements){const object=modules.get(name);if(!object)continue;object.position.set(x,y,z);object.updateMatrixWorld(true);object.traverse(part=>{if(!part.isMesh)return;const key=part.material.name;if(!parts.has(key))parts.set(key,{material:part.material,geometries:[]});parts.get(key).geometries.push(part.geometry.clone().applyMatrix4(part.matrixWorld))});districtModules.push(object);if(collider)solidColliders.push(collider)}
-  for(const {material,geometries} of parts.values()){const batch=new THREE.Mesh(mergeGeometries(geometries),material);batch.castShadow=false;batch.receiveShadow=true;scene.add(batch);districtBatches.push(batch)}
+  for(const {material,geometries} of parts.values()){
+    // Atlas parts keep their cell UVs; stone and wood get the same textures and meter-based UVs as the houses.
+    const geometry=mergeGeometries(geometries),kind=surfaceKind(material.name);
+    if(material.name==='Island life atlas'){material.map=islandLifeAtlas;material.color.set(0xffffff);material.needsUpdate=true}
+    else if(kind){surfaceUV(geometry,surfaceScale(kind));textureMaterial(material,kind)}
+    const batch=new THREE.Mesh(geometry,material);batch.castShadow=false;batch.receiveShadow=true;scene.add(batch);districtBatches.push(batch)}
 },undefined,error=>console.error('Island district assets could not load',error));
 let previousFrame=null;
 const perfOutput=document.querySelector('#perf'),perfEnabled=Boolean(document.location?.search.includes('debug=1')),perfFrames=[];let perfStart=0;
