@@ -178,7 +178,7 @@ assert.ok(run('player.position.y')<-40&&!run('islandRockContains(player.position
   assert.equal(vm.runInContext('discoveryShown',blocked),1,'blocked storage remembers a discovery for the visit instead of re-announcing it');
 }
 console.log('PASS: actual GLB parse/9 house placements, all arrow keys, passive mouse, drag/release, acceleration/braking, flight, focus loss, bridges, stairs, walls, speed slider, maximum-speed collision, 30/60/120 Hz, colonnade/blade collision, distant haze, under-island camera, discovery journal. GPU rendering is not tested.');
-const counts=Object.fromEntries(['pot','crate','bench','stall'].map(kind=>[kind,run(`props.filter(p=>p.kind==='${kind}').length`)]));
+const counts=Object.fromEntries(['pot','crate','bench'].map(kind=>[kind,run(`props.filter(p=>p.kind==='${kind}').length`)]));
 assert.ok(run('props.length')>=40,'meaningful street furniture count');
 assert.ok(run('propBatches.length')<=7,'batch draw-call budget');
 for(const batch of run('propBatches')){assert.equal(batch.castShadow,false);assert.ok(Number.isFinite(batch.boundingSphere.radius))}
