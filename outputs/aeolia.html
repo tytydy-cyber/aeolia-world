@@ -505,10 +505,11 @@ function update(dt,t){
   velocity.x=THREE.MathUtils.damp(velocity.x,input.x*speed,response,dt);velocity.z=THREE.MathUtils.damp(velocity.z,input.z*speed,response,dt);
   const before=player.position.clone(),wasGrounded=!flying&&before.y<=groundAt(before.x,before.z,before.y+.55)+.15;
   // Separate axes allow sliding along walls instead of freezing against them.
+  // Rock checks sample the body centre and the head: the rock widens upward, so a clear head keeps the whole body clear.
   for(const axis of ['x','z']){
     const old=player.position[axis];player.position[axis]+=velocity[axis]*dt;
     const h=groundAt(player.position.x,player.position.z,before.y+.55);
-    const blocked=solidColliders.some(c=>colliderContains(c,player.position.x,player.position.z,PLAYER_RADIUS)&&player.position.y<c.top&&player.position.y+PLAYER_HEIGHT>c.bottom)||islandRockContains(player.position.x,player.position.z,player.position.y+PLAYER_HEIGHT*.5,PLAYER_RADIUS)||BRIDGES.some(b=>{const deck=bridgeSample(player.position.x,player.position.z,b);return deck!==null&&deck>before.y+.55&&deck-.3<before.y+PLAYER_HEIGHT});
+    const blocked=solidColliders.some(c=>colliderContains(c,player.position.x,player.position.z,PLAYER_RADIUS)&&player.position.y<c.top&&player.position.y+PLAYER_HEIGHT>c.bottom)||islandRockContains(player.position.x,player.position.z,player.position.y+PLAYER_HEIGHT*.5,PLAYER_RADIUS)||islandRockContains(player.position.x,player.position.z,player.position.y+PLAYER_HEIGHT,PLAYER_RADIUS)||BRIDGES.some(b=>{const deck=bridgeSample(player.position.x,player.position.z,b);return deck!==null&&deck>before.y+.55&&deck-.3<before.y+PLAYER_HEIGHT});
     if(blocked||Math.hypot(player.position.x,player.position.z)>720||h>before.y+.55||(wasGrounded&&h===-Infinity)){player.position[axis]=old;velocity[axis]=0}
   }
   player.position.y+=velocity.y*dt;

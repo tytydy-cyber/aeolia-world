@@ -158,6 +158,11 @@ for(const [key,direction] of [['ArrowRight',[1,0,0]],['ArrowUp',[0,0,-1]],['Arro
   const up=run('new THREE.Vector3(0,1,0).applyQuaternion(avatarModel.getWorldQuaternion(new THREE.Quaternion())).toArray()');
   assert.ok(up[0]*direction[0]+up[2]*direction[2]>.1&&Math.abs(up[0]*direction[2]-up[2]*direction[0])<.1,`traveler leans forward, not sideways, when moving ${key} (${up.map(v=>v.toFixed(2))})`);
 }
+// Sliding in just under the tip of an island cannot put the head inside the rock and then rise through it.
+reset();run('player.position.set(30,-49,0);yaw=Math.PI/2;keys.ArrowUp=true');frames(90);run('keys.ArrowUp=false');
+assert.ok(!run('islandRockContains(player.position.x,player.position.z,player.position.y+PLAYER_HEIGHT)'),'head stays out of the island tip when sliding under it');
+run('keys.Space=true');frames(240);run('keys.Space=false');
+assert.ok(run('player.position.y')<-40&&!run('islandRockContains(player.position.x,player.position.z,player.position.y+PLAYER_HEIGHT*.5)'),`rising under the island tip stops at the rock (${run('player.position.toArray().map(v=>v.toFixed(1))')})`);
 console.log('PASS: actual GLB parse/9 house placements, all arrow keys, passive mouse, drag/release, acceleration/braking, flight, focus loss, bridges, stairs, walls, speed slider, maximum-speed collision, 30/60/120 Hz, colonnade/blade collision, distant haze, under-island camera, discovery journal. GPU rendering is not tested.');
 const counts=Object.fromEntries(['pot','crate','bench','stall'].map(kind=>[kind,run(`props.filter(p=>p.kind==='${kind}').length`)]));
 assert.ok(run('props.length')>=40,'meaningful street furniture count');
