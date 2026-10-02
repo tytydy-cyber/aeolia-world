@@ -31,6 +31,8 @@ for(const page of [html,aeolia]){
 assert.ok(js.includes('SOLARPUNK SUBURB 03')&&js.includes('const panels=new THREE.InstancedMesh')&&js.includes('const planters=new THREE.InstancedMesh'),'suburb has instanced solarpunk landmarks');
 for(const name of ['育苗室','配水庭','修理工房','調整池','集光塔'])assert.ok(stages.somnia.notes.some(n=>n[3]===name),`${name} is a concrete suburb discovery`);
 assert.ok(js.includes('const utilityLine=')&&js.includes('const utilityPoles=')&&js.includes('const greenhouse=')&&js.includes('const greenhouseRibs=')&&js.includes('const cisternWater=')&&js.includes('const workshopRoof=')&&js.includes('const reeds='),'water, supported power lines and all four district anchors are visible geometry');
+assert.ok(js.includes('const lifeParts={crate:[],cloth:[],work:[],deck:[]}')&&js.includes('const lifeMaterials={crate:mats.wood'),'four districts contain batched, concentrated traces of daily work');
+assert.ok(js.includes('function updateEnvironment()')&&js.includes('sound.setEnvironment(zone,THREE.MathUtils.smoothstep(y,8,40))'),'suburb sound changes by district and altitude');
 assert.ok(js.includes('function roundedBlock')&&js.includes('new THREE.TubeGeometry')&&js.includes('Aerial commons'),'both new worlds use layered non-rectangular structures');
 assert.ok(js.includes('recognizable threshold')&&js.includes('Overlapping meadow islands'),'playtest fixes preserve a readable entrance and varied near ground');
 assert.ok(js.includes('nextAnomaly=Infinity')&&js.includes('started=true;nextAnomaly=Date.now()+60000+Math.random()*60000')&&js.includes('function anomaly(){const now=Date.now()'),'events are scheduled from entry, first within about two minutes, and cannot fire on entry');

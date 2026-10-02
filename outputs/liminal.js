@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
 import {mergeGeometries} from 'three/addons/utils/BufferGeometryUtils.js';
-import {WorldAudio} from './audio.js?v=50';
+import {WorldAudio} from './audio.js?v=51';
 import {MotionEffects} from './effects.js?v=51';
 import {applyTravelerDesign} from './character-designs.js?v=45';
 
@@ -114,6 +114,14 @@ function buildSomnia(){
   roundedBlock(-92,4,-55,25,8,17,4,mats.wall,true);const workshopRoof=box(-95,9,-55,28,.7,19,mats.solar,false);workshopRoof.rotation.z=-.11;for(const [x,z] of [[-103,-45],[-98,-44],[-88,-45]])box(x,.7,z,3,1.4,2,mats.utility,false);
   // The old pool now ends the water circuit as a planted balancing pond.
   const reeds=new THREE.InstancedMesh(new THREE.CylinderGeometry(.06,.1,1.5,5),mats.leaf,42);let reedCount=0;for(let i=0;i<42;i++){const a=i*2.4,r=9+(i%4)*1.7;dummy.position.set(48+Math.cos(a)*r,.75,-48+Math.sin(a)*r*.58);dummy.rotation.set(0,a,0);dummy.scale.set(1,.7+(i%3)*.2,1);dummy.updateMatrix();reeds.setMatrixAt(reedCount++,dummy.matrix)}world.add(reeds);
+  // Concentrated traces of work make each district feel used without filling every open space.
+  const lifeParts={crate:[],cloth:[],work:[],deck:[]},lifePart=(kind,x,y,z,sx,sy,sz,ry=0)=>{dummy.position.set(x,y,z);dummy.rotation.set(0,ry,0);dummy.scale.set(sx,sy,sz);dummy.updateMatrix();lifeParts[kind].push(dummy.matrix.clone())};
+  for(let i=0;i<10;i++)lifePart('crate',-116+(i%5)*3.2,.45,44+Math.floor(i/5)*3,1.25,.9,1.05,(i%3-1)*.08);
+  for(let i=0;i<8;i++)lifePart('crate',72+(i%4)*3.4,.5,51+Math.floor(i/4)*2.8,1.4,1,1.1,(i%2-.5)*.12);
+  for(let i=0;i<9;i++)lifePart('work',-106+(i%3)*5,.6,-42+Math.floor(i/3)*3.2,1.7,1.2,1.1,i*.17);
+  for(let i=0;i<8;i++)lifePart('cloth',50+(i%4)*7,9+(i%2)*5,6.8+Math.floor(i/4)*27.2,2.2,.08,1.4,(i%3-.5)*.08);
+  for(let i=0;i<16;i++){const a=i/16*Math.PI*2;lifePart('deck',48+Math.cos(a)*18,.16,-48+Math.sin(a)*12,3.4,.22,1.1,-a)}
+  const lifeMaterials={crate:mats.wood,cloth:mats.pink,work:mats.utility,deck:mats.frame};for(const [kind,parts] of Object.entries(lifeParts)){const batch=new THREE.InstancedMesh(new THREE.BoxGeometry(1,1,1),lifeMaterials[kind],parts.length);parts.forEach((matrix,i)=>batch.setMatrixAt(i,matrix));batch.receiveShadow=true;world.add(batch)}
   // The old school remains rectilinear, but later additions soften and overgrow its silhouette.
   roundedBlock(-58,9,24,58,18,32,5,mats.wall,true);for(let r=0;r<3;r++)for(let c=0;c<6;c++)box(-80+c*9,6+r*5,40.15,4,2.7,.3,mats.dark,false);box(-58,1,43,16,2,5,mats.wood,true);for(const [x,z] of [[-77,20],[-58,20],[-39,20]]){const dome=mesh(new THREE.SphereGeometry(6,14,8,0,Math.PI*2,0,Math.PI/2),mats.leaf,x,18,z);dome.scale.y=.55}
   // Rounded co-housing terraces replace the repeated rectangular apartment slabs.
@@ -171,6 +179,7 @@ const keys={},velocity=new THREE.Vector3(),lastSafe=player.position.clone(),targ
 function contains(c,x,z,margin=.55){if(c.radius!==undefined)return Math.hypot(x-c.x,z-c.z)<c.radius+margin;const dx=Math.abs(x-c.x),dz=Math.abs(z-c.z);if(!c.corner)return dx<c.w+margin&&dz<c.d+margin;const qx=Math.max(dx-(c.w-c.corner),0),qz=Math.max(dz-(c.d-c.corner),0);return dx<c.w+margin&&dz<c.d+margin&&Math.hypot(qx,qz)<c.corner+margin}
 function validGround(x,z){const [rx,rz,phase]=groundSpec,a=Math.atan2(z/rz,x/rx);return Math.hypot(x/rx,z/rz)<edgeScale(a,phase)-.012}
 function resetKeys(){for(const k in keys)delete keys[k];velocity.set(0,0,0);diveBoost=routeBoost=0;dragging=false}
+function updateEnvironment(){if(stageKey!=='somnia')return;const {x,y,z}=player.position,zone=z< -120?4:x< -40&&z>0?0:x>35&&z>0?1:x< -35?2:3;sound.setEnvironment(zone,THREE.MathUtils.smoothstep(y,8,40))}
 function readNotes(){try{return JSON.parse(localStorage.getItem('aeolia-notes')||'[]')}catch{return []}}
 function saveNote(note){const notes=readNotes(),id=stageKey+':'+note[3];if(notes.some(n=>n.id===id))return 0;notes.push({id,world:cfg.name,name:note[3],text:note[4]});localStorage.setItem('aeolia-notes',JSON.stringify(notes));return notes.filter(n=>n.id.startsWith(stageKey+':')).length}
 // Discoveries require coming down near the floor, so the ground layer has its own reason to visit.
@@ -190,7 +199,7 @@ function update(dt,t){if(keys.KeyQ||keys.KeyE)recenterYaw=null;if(keys.KeyQ)yaw+
   const hs=Math.hypot(velocity.x,velocity.z);let turn=0;if(hs>.15){travelYaw=Math.atan2(-velocity.x,-velocity.z);const a=Math.atan2(velocity.x,velocity.z);turn=Math.atan2(Math.sin(a-player.rotation.y),Math.cos(a-player.rotation.y));player.rotation.y+=turn*(1-Math.exp(-7*dt))}bob+=hs*dt;robe.position.y=1.35+Math.abs(Math.sin(bob))*.045+Math.sin(t*.006)*.035;player.rotation.x=THREE.MathUtils.damp(player.rotation.x,hs*.007-velocity.y*.012,4,dt);player.rotation.z=THREE.MathUtils.damp(player.rotation.z,THREE.MathUtils.clamp(-turn*.22,-.3,.3),5,dt);if(avatarMixer){setAvatarAction('Fly');if(avatarActions.Fly)avatarActions.Fly.timeScale=.8+Math.min(1.2,velocity.length()/24);avatarMixer.update(dt)}
   flightBlend=THREE.MathUtils.damp(flightBlend,flying?1:0,3.5,dt);const dist=9+flightBlend*3,up=4.2+flightBlend*1.8;focusTarget.set(player.position.x,player.position.y+2,player.position.z);targetCam.set(player.position.x+Math.sin(yaw)*dist,player.position.y+up+Math.sin(pitch)*6,player.position.z+Math.cos(yaw)*dist);let clearance=1;for(let i=1;i<=10;i++){cameraProbe.lerpVectors(focusTarget,targetCam,i/10);if(colliders.some(c=>cameraProbe.y>c.bottom&&cameraProbe.y<c.top&&contains(c,cameraProbe.x,cameraProbe.z,.15))){clearance=Math.max(.18,(i-1)/10);break}}targetCam.lerpVectors(focusTarget,targetCam,clearance);camera.position.lerp(targetCam,1-Math.exp(-8*dt));cameraFocus.lerp(focusTarget,1-Math.exp(-9*dt));camera.lookAt(cameraFocus);updateCreatures(dt,t);motionEffects.update(dt,player.position,velocity,flying,player.position.y<.15);sound.update(dt,velocity.length(),flying,player.position.y<.15,false);discover(t);anomaly(t)
 }
-function loop(t){const elapsed=previous===null?0:Math.min(.1,(t-previous)/1000);previous=t;if(started&&elapsed){const steps=Math.ceil(elapsed*120);for(let i=0;i<steps;i++)update(elapsed/steps,t)}renderer.render(scene,camera);if(location.search.includes('debug=1'))document.querySelector('#perf').value=`${renderer.info.render.calls} calls\n${renderer.info.render.triangles.toLocaleString()} triangles\n${player.position.x.toFixed(1)}, ${player.position.y.toFixed(1)}, ${player.position.z.toFixed(1)}`;requestAnimationFrame(loop)}
+function loop(t){const elapsed=previous===null?0:Math.min(.1,(t-previous)/1000);previous=t;if(started&&elapsed){const steps=Math.ceil(elapsed*120);for(let i=0;i<steps;i++){update(elapsed/steps,t);updateEnvironment()}}renderer.render(scene,camera);if(location.search.includes('debug=1'))document.querySelector('#perf').value=`${renderer.info.render.calls} calls\n${renderer.info.render.triangles.toLocaleString()} triangles\n${player.position.x.toFixed(1)}, ${player.position.y.toFixed(1)}, ${player.position.z.toFixed(1)}`;requestAnimationFrame(loop)}
 camera.position.set(cfg.spawn[0],7,cfg.spawn[2]+10);camera.lookAt(player.position);requestAnimationFrame(loop);
 addEventListener('keydown',e=>{if(!started)return;if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Space'].includes(e.code))e.preventDefault();keys[e.code]=true;if(e.code==='KeyC'&&!e.repeat)recenterYaw=travelYaw});addEventListener('keyup',e=>keys[e.code]=false);addEventListener('blur',()=>{resetKeys();previous=null;sound.pause()});document.addEventListener('visibilitychange',()=>{if(document.hidden){resetKeys();previous=null;sound.pause()}else if(started)sound.start()});
 renderer.domElement.addEventListener('pointerdown',e=>{if(started){dragging=true;renderer.domElement.setPointerCapture(e.pointerId);renderer.domElement.style.cursor='grabbing'}});addEventListener('pointerup',()=>{dragging=false;renderer.domElement.style.cursor='grab'});addEventListener('pointermove',e=>{if(dragging&&e.buttons){yaw-=e.movementX*.003;pitch=THREE.MathUtils.clamp(pitch+e.movementY*.002,-.5,1.1)}});renderer.domElement.addEventListener('contextmenu',e=>e.preventDefault());

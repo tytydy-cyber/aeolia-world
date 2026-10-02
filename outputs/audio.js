@@ -2,7 +2,7 @@
 export class WorldAudio {
   constructor(Context=globalThis.AudioContext||globalThis.webkitAudioContext,mood='sky'){
     this.Context=Context;this.mood=mood;this.ctx=null;this.volume=.5;this.muted=false;this.paused=true;
-    this.voices=new Set();this.distance=0;this.nextMix=0;this.nextChord=0;this.nextPhrase=0;this.nextDetail=0;
+    this.voices=new Set();this.distance=0;this.nextMix=0;this.nextChord=0;this.nextPhrase=0;this.nextDetail=0;this.environment=0;this.altitude=0;
   }
   async start(){
     if(!this.Context)return false;
@@ -33,6 +33,7 @@ export class WorldAudio {
   }
   setVolume(value){this.volume=Number.isFinite(value)?Math.max(0,Math.min(1,value)):.35;this.applyVolume()}
   setMuted(value){this.muted=Boolean(value);this.applyVolume()}
+  setEnvironment(zone=0,altitude=0){this.environment=Math.max(0,Math.min(4,Math.round(Number(zone)||0)));this.altitude=Math.max(0,Math.min(1,Number(altitude)||0))}
   pause(){
     this.paused=true;this.distance=0;this.applyVolume();
     if(this.ctx)this.ctx.suspend().catch(()=>{});
@@ -79,16 +80,17 @@ export class WorldAudio {
     }
   }
   environmentDetail(){
-    if(!this.audible||this.mood!=='complex')return;
-    const c=this.ctx,t=c.currentTime;for(const [frequency,delay,level] of [[1760,0,.035],[820,.09,.024],[2460,.16,.012]]){const osc=c.createOscillator(),gain=c.createGain();osc.type='sine';osc.frequency.value=frequency;gain.gain.setValueAtTime(.0001,t+delay);gain.gain.linearRampToValueAtTime(level,t+delay+.008);gain.gain.exponentialRampToValueAtTime(.0001,t+delay+1.8);osc.connect(gain);gain.connect(this.master);if(this.voice(osc,[gain])){osc.start(t+delay);osc.stop(t+delay+1.9)}}
+    if(!this.audible||!['complex','suburb'].includes(this.mood))return;
+    const c=this.ctx,t=c.currentTime,details=this.mood==='complex'?[[1760,0,.035],[820,.09,.024],[2460,.16,.012]]:[[[620,880],[310,470],[150,230],[760,1040],[220,330]][this.environment][0],0,.018];
+    for(const [frequency,delay,level] of this.mood==='complex'?details:[details]){const osc=c.createOscillator(),gain=c.createGain();osc.type=this.mood==='suburb'&&this.environment===2?'triangle':'sine';osc.frequency.value=this.mood==='suburb'?frequency+Math.random()*([[620,880],[310,470],[150,230],[760,1040],[220,330]][this.environment][1]-frequency):frequency;gain.gain.setValueAtTime(.0001,t+delay);gain.gain.linearRampToValueAtTime(level,t+delay+.008);gain.gain.exponentialRampToValueAtTime(.0001,t+delay+1.8);osc.connect(gain);gain.connect(this.master);if(this.voice(osc,[gain])){osc.start(t+delay);osc.stop(t+delay+1.9)}}
   }
   update(dt,speed,flying,grounded,onBridge){
     if(!this.audible){this.distance=0;return}
     const t=this.ctx.currentTime;
     if(t>=this.nextMix){
-      const movement=Math.min(1,speed/35),breeze=.1+Math.sin(t*.31)*.025;
+      const movement=Math.min(1,speed/35),breeze=.1+Math.sin(t*.31)*.025,zoneShift=this.mood==='suburb'?[80,20,-90,140,-40][this.environment]:0;
       this.windGain.gain.setTargetAtTime(breeze+(flying?.2*movement:.015*movement),t,.3);
-      this.filter.frequency.setTargetAtTime(350+(flying?1100*movement:150),t,.3);this.nextMix=t+.05;
+      this.filter.frequency.setTargetAtTime(350+(flying?1100*movement:150)+zoneShift+this.altitude*260,t,.3);this.nextMix=t+.05;
     }
     if(t>=this.nextChord){
       const progressions={sky:[174.61,146.83,196,164.81],complex:[110,123.47,103.83,130.81],suburb:[146.83,174.61,196,220]},roots=progressions[this.mood]||progressions.sky,root=roots[Math.floor(t/8)%roots.length];
