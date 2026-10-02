@@ -54,4 +54,11 @@ for(const stage of ['parallax','somnia']){
   game.elements.get('#event').querySelector('div').textContent='';game.frames(120);
   assert.equal(game.elements.get('#event').querySelector('div').textContent,'','a remembered discovery is not announced again');
 }
-console.log('PASS: facility and suburb travel is frame-rate independent at 30/60/120 Hz and boosted flight cannot tunnel through walls; vertical flight stops on solid tops and under ceilings; notification headings; drag cancels camera recentering; blocked storage.');
+// Returning to the window resumes sound that leaving it paused, as on the floating islands.
+for(const stage of ['parallax','somnia']){
+  const game=loadStage(stage);
+  game.run("started=true;sound.start=async()=>{sound.paused=false;return true};sound.pause=()=>{sound.paused=true};sound.start()");
+  game.dispatch('blur');assert.equal(game.run('sound.paused'),true,`${stage}: leaving the window pauses sound`);
+  game.dispatch('focus');assert.equal(game.run('sound.paused'),false,`${stage}: returning to the window resumes sound`);
+}
+console.log('PASS: facility and suburb travel is frame-rate independent at 30/60/120 Hz and boosted flight cannot tunnel through walls; vertical flight stops on solid tops and under ceilings; notification headings; drag cancels camera recentering; blocked storage; sound resumes on focus.');
