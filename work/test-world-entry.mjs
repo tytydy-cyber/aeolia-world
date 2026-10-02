@@ -1,0 +1,31 @@
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+
+// Entry, return and shared-state wiring between the world select and the three stages.
+const read=name=>readFileSync(new URL('../outputs/'+name,import.meta.url),'utf8');
+const hub=read('index.html'),aeolia=read('aeolia.html'),liminalPage=read('liminal.html'),liminal=read('liminal.js');
+
+const gates=[...hub.matchAll(/class="gate [a-z]+" href="([^"]+)"/g)].map(m=>m[1]);
+assert.deepEqual(gates,['aeolia.html','liminal.html?stage=parallax','liminal.html?stage=somnia'],'world select links each stage once');
+for(const [name,page] of [['aeolia.html',aeolia],['liminal.html',liminalPage]])assert.ok(page.includes('class="return" href="index.html"'),`${name} links back to the world select`);
+assert.ok(liminal.includes("get('stage')==='somnia'?'somnia':'parallax'"),'unknown stage values fall back to the facility');
+
+const options=page=>[...page.matchAll(/<option value="([a-z]+)">([^<]+)/g)].map(m=>m[1]+':'+m[2]);
+assert.deepEqual(options(aeolia),options(liminalPage),'all stages offer the same traveler designs');
+for(const [name,source] of [['aeolia.html',aeolia],['liminal.js',liminal]]){
+  assert.ok(source.includes("localStorage.getItem('aeolia-character')")&&source.includes("localStorage.setItem('aeolia-character'"),`${name} reads and stores the traveler choice under the shared key`);
+  assert.ok(source.includes("localStorage.getItem('aeolia-notes')")&&source.includes("localStorage.setItem('aeolia-notes'"),`${name} reads and appends to the shared journal`);
+}
+assert.ok(aeolia.includes("id='aeolia:'+d.name")&&liminal.includes("id=stageKey+':'+note[3]"),'journal ids are namespaced per stage, so stages never overwrite each other');
+for(const [name,page] of [['aeolia.html',aeolia],['liminal.html',liminalPage]])assert.ok(page.includes('id="soundToggle"')&&page.includes('id="soundVolume"'),`${name} has mute and volume controls`);
+
+// The world select counts and lists entries from every stage.
+const store=new Map([['aeolia-notes',JSON.stringify([{id:'aeolia:市場',world:'浮島の街',name:'市場',text:'a'},{id:'parallax:受付',world:'閉鎖施設',name:'受付',text:'b'},{id:'somnia:公園',world:'郊外',name:'公園',text:'c'}])]]);
+const elements=new Map(),element=()=>({textContent:'',innerHTML:'',hidden:true,onclick:null});
+const document={querySelector:s=>{if(!elements.has(s))elements.set(s,element());return elements.get(s)}};
+const script=hub.match(/<script>([\s\S]*?)<\/script>/)[1];
+new Function('localStorage','document','addEventListener',script)({getItem:k=>store.get(k)??null},document,()=>{});
+assert.equal(document.querySelector('#found').textContent,'発見 3','world select counts discoveries from all stages');
+document.querySelector('#journal').onclick();
+for(const world of ['浮島の街','閉鎖施設','郊外'])assert.ok(document.querySelector('#entries').innerHTML.includes(world),`journal lists ${world}`);
+console.log('PASS: world select links, return links, stage fallback, shared traveler and journal keys, per-stage journal ids, sound controls, cross-stage journal listing.');

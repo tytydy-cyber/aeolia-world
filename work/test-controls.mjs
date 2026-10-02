@@ -24,8 +24,10 @@ const lodAsset=await loadHouse('aeolia-house-lod.glb');
 let lodMeshes=0,lodTriangles=0;
 lodAsset.scene.traverse(o=>{if(o.isMesh){lodMeshes++;lodTriangles+=o.geometry.index.count/3}});
 assert.ok(lodMeshes<=4&&lodTriangles<=5000,`LOD house budget (${lodMeshes} batches, ${lodTriangles} triangles)`);
+const districtAsset=await loadHouse('aeolia-island-modules.glb');
+assert.deepEqual(districtAsset.scene.children.map(o=>o.name),['Market_module','Bell_tower_module','Windmill_module','Water_garden_module','Cloud_stop_module'],'five district modules exist in the shipped GLB');
 const assetCallbacks={};
-class Loader{load(url,callback){assert.ok(['assets/aeolia-house.glb','assets/aeolia-house-lod.glb','assets/aeolia-traveler.glb'].includes(url));assetCallbacks[url]=callback}}
+class Loader{load(url,callback){assert.ok(['assets/aeolia-house.glb','assets/aeolia-house-lod.glb','assets/aeolia-traveler.glb','assets/aeolia-island-modules.glb'].includes(url));assetCallbacks[url]=callback}}
 const localStorage={data:new Map(),getItem(k){return this.data.get(k)||null},setItem(k,v){this.data.set(k,String(v))}};
 const gameContext=(overrides={})=>vm.createContext({THREE:{...Core,WebGLRenderer:Renderer,TextureLoader},GLTFLoader:Loader,mergeGeometries,houseAsset,lodAsset,WorldAudio,MotionEffects,applyTravelerDesign,document,localStorage,innerWidth:1280,innerHeight:800,devicePixelRatio:1,matchMedia(){return {matches:false}},addEventListener:on,requestAnimationFrame(){},setTimeout(){},console:{...console,assert(condition,message){assert.ok(condition,message)}},performance,...overrides});
 const context=gameContext();
@@ -33,6 +35,7 @@ const html=readFileSync(new URL('../outputs/aeolia.html',import.meta.url),'utf8'
 const script=html.match(/<script type="module">([\s\S]*?)<\/script>/)[1].replace(/^import .*$/gm,'');
 vm.runInContext(script,context);
 assetCallbacks['assets/aeolia-house.glb'](houseAsset);assetCallbacks['assets/aeolia-house-lod.glb'](lodAsset);await new Promise(resolve=>setImmediate(resolve));
+assetCallbacks['assets/aeolia-island-modules.glb'](districtAsset);await new Promise(resolve=>setImmediate(resolve));
 const run=s=>vm.runInContext(s,context);
 // A failed house download keeps the procedural fallback houses and tells the player.
 {
@@ -48,6 +51,9 @@ function frames(n=60,hz=60){const steps=Math.ceil(120/hz);for(let i=0;i<n;i++)fo
 function reset(){document.activeElement=document.body;run('resetInput();player.position.set(0,3,40);yaw=0;pitch=.28;flying=true;started=true;pace=1;travelYaw=0;scene.updateMatrixWorld(true)')}
 
 assert.equal(run('houses.length'),9);
+assert.equal(run('districtModules.length'),5,'all five district modules are placed');
+assert.equal(run('discoveries.length'),7,'the circuit covers the central island, three outer islands and cloud layer');
+assert.ok(run('districtPlacements.every(([,x,y,z])=>y-groundAt(x,z)>=.08-1e-9)'),'district modules sit above their ground instead of sharing a coplanar layer');
 assert.equal(run('scenicLayers.length'),2,'two parallax ruin layers');
 assert.equal(run("sky.material.map.image===null"),true,'generated panorama is loaded through the texture pipeline');
 assert.deepEqual(Array.from(run('player.position')), [-25,3,5], 'spawn starts in the open central plaza');
@@ -117,7 +123,7 @@ const positions=[];for(const hz of [30,60,120]){reset();dispatch('keydown',{code
 assert.ok(Math.max(...positions)-Math.min(...positions)<.1,'frame-rate independence');
 reset();inputPace('1.6');assert.equal(run('pace'),1.6);inputPace('bad');assert.equal(run('pace'),1);
 reset();inputPace('1.6');run('player.position.set(-43,3,-23);keys.ArrowUp=true;keys.ControlLeft=true');frames(100,20);assert.ok(run('player.position.z')>=-26.35,'maximum speed cannot tunnel through wall');
-reset();run('player.position.set(-105,80,-116)');run('discover()');assert.equal(localStorage.getItem('aeolia-notes'),null,'flying high over a landmark does not record it');assert.ok(document.querySelector('#place').textContent.includes('降りると記録'),'high pass hints that descending records the place');
+localStorage.data.clear();reset();run('player.position.set(-105,80,-116)');run('discover()');assert.equal(localStorage.getItem('aeolia-notes'),null,'flying high over a landmark does not record it');assert.ok(document.querySelector('#place').textContent.includes('降りると記録'),'high pass hints that descending records the place');
 run('player.position.set(-105,34,-116)');run('discover()');run('discover()');const saved=JSON.parse(localStorage.getItem('aeolia-notes'));assert.deepEqual(saved.map(n=>n.id),['aeolia:鐘楼'],'floating-island discoveries persist once to the shared journal');assert.ok(saved[0].world&&saved[0].text,'journal entries carry world and description');
 frames(90);assert.ok(run('Math.hypot(-Math.sin(yaw)-0,-Math.cos(yaw)-1)')<.05,'camera turns toward the discovered landmark');assert.ok(document.querySelector('#place').textContent.includes('記録済'),'recorded places are marked');
 // Colonnade, ring beam and windmill blades block at cruise and boost speed and at 30/60/120 Hz.
