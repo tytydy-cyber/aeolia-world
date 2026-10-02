@@ -1,5 +1,9 @@
 # 浮島の街 単独QAレポート
 
+## 追補：`b20b207` 後の修正
+
+Codexが後続修正で候補1〜4と9へ対応した。スマートフォン相当の実ブラウザ計測は79 calls・119,269 triangles・60 FPSで、90 calls・120k trianglesの上限内。島の岩形状に沿う高度別衝突、半径720mの世界境界、直近の島・橋を使う雲下復帰、モバイル消音ボタンを追加し、再現テストを `work/test-controls.mjs` と `work/test-liminal.mjs` に追加した。静的シーンは304,379から218,699 trianglesへ減少した。候補5〜8と10、および探索内容の不足は引き続き作業対象。
+
 2026-10-02、Claude Code。対象は `efb561a`（住宅LOD統合）時点の `outputs/aeolia.html`。修正は行わず、再現手順だけを記録する。確認基準は `DREAMCORE-ISLANDS-PLAN.md` の性能、コリジョン、視差、操作の条件。
 
 ## 確認環境と方法

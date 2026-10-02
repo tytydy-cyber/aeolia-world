@@ -78,6 +78,7 @@ assert.ok(js.includes("groundSpec=stageKey==='parallax'?[178,148,.4]:[250,210,2.
 for(const code of ['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Space','ShiftLeft'])assert.ok(mobile.includes(code),`mobile control exposes ${code}`);
 assert.ok(!mobile.includes("button('KeyF'")&&!html.includes('飛行切替')&&!aeolia.includes('飛行切替'),'flight toggle is removed from every control surface');
 assert.ok(mobile.includes('pointerdown')&&mobile.includes('pointercancel')&&mobile.includes('touch-action:none'),'mobile press-and-hold and swipe coexist safely');
+assert.ok(mobile.includes('#soundControls{display:flex!important')&&mobile.includes('#soundControls label,#soundNotice{display:none!important'),'mobile keeps a compact mute control without crowding movement controls');
 const player=new THREE.Group(),model=new THREE.Group(),coat=new THREE.Mesh(new THREE.BoxGeometry(),new THREE.MeshStandardMaterial());coat.name='Sculpted coat';coat.material.name='Coat';const hat=new THREE.Mesh(new THREE.BoxGeometry(),new THREE.MeshStandardMaterial());hat.name='Hat brim';model.add(coat,hat);
 applyTravelerDesign(THREE,player,model,'mist');assert.equal(hat.visible,false);assert.equal(player.userData.designVariants.mist.visible,true);assert.equal(player.userData.designVariants.lilac.visible,false);
 applyTravelerDesign(THREE,player,model,'lilac');assert.equal(player.userData.designVariants.mist.visible,false);assert.equal(player.userData.designVariants.lilac.visible,true);assert.ok(player.userData.designVariants.lilac.children.length>=4,'lilac changes silhouette');

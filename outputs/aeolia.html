@@ -134,6 +134,7 @@ function island(px,top,pz,r,depth,organic=false,phase=0){
 const mathTau=Math.PI*2;
 const dummy=new THREE.Object3D();
 const ISLANDS={tower:{x:-105,z:-105,r:29,phase:1.8},mill:{x:112,z:-92,r:25,phase:0},palace:{x:78,z:100,r:22,phase:3.7}};
+const ISLAND_BODIES=[{x:0,z:0,r:67,top:3,depth:48,organic:true,phase:0},{...ISLANDS.tower,top:34,depth:45},{...ISLANDS.mill,top:54,depth:58},{...ISLANDS.palace,top:7,depth:32}];
 island(0,3,0,67,48,true);island(-105,34,-105,29,45,false,ISLANDS.tower.phase);island(112,54,-92,25,58,false,ISLANDS.mill.phase);island(78,7,100,22,32,false,ISLANDS.palace.phase);
 cameraBlockers.push(cyl(35,15,[28,10.5,-18],MAT.stone,48));
 const BRIDGES=[[-48,-45,-86,-85,3,34],[47,-43,93,-78,18,54],[49,44,70,84,3,7]];
@@ -229,23 +230,23 @@ const treeParts={trunk:[],branch:[],leaf0:[],leaf1:[],leaf2:[]},treeBatches=[],t
 function tree(px,py,pz,s=1){
   colliders.push({x:px,z:pz,radius:.5*s,bottom:py,top:py+5.8*s});
   dummy.position.set(px,py+2.8*s,pz);dummy.rotation.set(.05*Math.sin(px),0,.07*Math.sin(pz));dummy.scale.set(.72*s,1.15*s,.72*s);dummy.updateMatrix();treeParts.trunk.push(dummy.matrix.clone());
-  for(let i=0;i<7;i++){
+  for(let i=0;i<(reducedGPU?3:7);i++){
     const a=i*2.399+px*.07,dir=new THREE.Vector3(Math.cos(a)*.72,.66+(.08*(i%2)),Math.sin(a)*.72).normalize();
     dummy.position.set(px+dir.x*1.05*s,py+(4.1+i*.32)*s,pz+dir.z*1.05*s);dummy.quaternion.setFromUnitVectors(treeUp,dir);dummy.scale.set(.7*s,1.05*s,.7*s);dummy.updateMatrix();treeParts.branch.push(dummy.matrix.clone());
   }
-  for(let i=0;i<15;i++){
+  for(let i=0;i<(reducedGPU?5:9);i++){
     const a=i*2.17+px*.09,r=i<3?.35*s:(1.05+(i%5)*.4)*s;
     dummy.position.set(px+Math.cos(a)*r,py+(5.9+Math.sin(i*1.7)*1.45+(i%4)*.28)*s,pz+Math.sin(a)*r);
-    dummy.rotation.set(a*.13,a,.18*Math.sin(i));dummy.scale.set((1.05+(i%3)*.16)*s,(.82+(i%2)*.2)*s,(.92+((i+1)%3)*.14)*s);dummy.updateMatrix();treeParts['leaf'+i%3].push(dummy.matrix.clone());
+    dummy.rotation.set(a*.13,a,.18*Math.sin(i));dummy.scale.set((1.35+(i%3)*.2)*s,(1.02+(i%2)*.24)*s,(1.18+((i+1)%3)*.16)*s);dummy.updateMatrix();treeParts['leaf'+i%3].push(dummy.matrix.clone());
   }
 }
 for(let i=0;i<25;i++){const a=i*2.4,r=44+9*Math.sin(i*4),px=Math.cos(a)*r,pz=Math.sin(a)*r;tree(px,groundAt(px,pz),pz,.7+random()*.35)}
 for(let i=0;i<9;i++)tree(112+Math.cos(i*.7)*17,53,-92+Math.sin(i*.7)*17,.65);
-const crownGeometry=new THREE.IcosahedronGeometry(1.2,2),crownPositions=crownGeometry.attributes.position;
+const crownGeometry=new THREE.IcosahedronGeometry(1.2,0),crownPositions=crownGeometry.attributes.position;
 for(let i=0;i<crownPositions.count;i++){const x=crownPositions.getX(i),y=crownPositions.getY(i),z=crownPositions.getZ(i),d=1+.065*Math.sin(x*3.1+y*4.7+z*2.3);crownPositions.setXYZ(i,x*d,y*d,z*d)}crownGeometry.computeVertexNormals();
 for(const [kind,parts] of Object.entries(treeParts)){
   const batch=new THREE.InstancedMesh(kind==='trunk'?new THREE.CylinderGeometry(.28,.48,5,10):kind==='branch'?new THREE.CylinderGeometry(.12,.24,3.2,8):crownGeometry,kind.startsWith('leaf')?leaves[Number(kind.at(-1))]:MAT.wood,parts.length);
-  parts.forEach((matrix,i)=>batch.setMatrixAt(i,matrix));batch.castShadow=true;batch.receiveShadow=true;batch.computeBoundingSphere();scene.add(batch);treeBatches.push(batch);
+  parts.forEach((matrix,i)=>batch.setMatrixAt(i,matrix));batch.castShadow=false;batch.receiveShadow=true;batch.computeBoundingSphere();scene.add(batch);treeBatches.push(batch);
 }
 dummy.scale.setScalar(1);dummy.rotation.set(0,0,0);
 // Flowering verges and trailing ivy add scale beside the stone lanes.
@@ -436,12 +437,13 @@ function saveNote(d){const notes=readNotes(),id='aeolia:'+d.name;if(notes.some(n
 let discoveryShown=0;
 function groundAt(x,z,maxBridgeHeight=Infinity){
   for(const b of BRIDGES){const y=bridgeSample(x,z,b);if(y!==null&&y<=maxBridgeHeight)return y}
-  if(Math.abs(x-28)<=4&&z>=9&&z<=39)return 3+(39-z)*.5;
-  for(const [island,y] of [[ISLANDS.mill,54],[ISLANDS.tower,34],[ISLANDS.palace,7]]){const dx=x-island.x,dz=z-island.z,a=Math.atan2(dz,dx);if(Math.hypot(dx,dz)<island.r*minorIslandScale(a,island.phase))return y}
-  if(Math.hypot(x-28,z+18)<35)return 18;
-  const mainDistance=Math.hypot(x,z);if(mainDistance<67*mainIslandScale(Math.atan2(z,x)))return 3;
+  if(3<=maxBridgeHeight&&Math.abs(x-28)<=4&&z>=9&&z<=39)return 3+(39-z)*.5;
+  for(const [island,y] of [[ISLANDS.mill,54],[ISLANDS.tower,34],[ISLANDS.palace,7]]){const dx=x-island.x,dz=z-island.z,a=Math.atan2(dz,dx);if(y<=maxBridgeHeight&&Math.hypot(dx,dz)<island.r*minorIslandScale(a,island.phase))return y}
+  if(18<=maxBridgeHeight&&Math.hypot(x-28,z+18)<35)return 18;
+  const mainDistance=Math.hypot(x,z);if(3<=maxBridgeHeight&&mainDistance<67*mainIslandScale(Math.atan2(z,x)))return 3;
   return -Infinity;
 }
+function islandRockContains(x,z,y,margin=0){for(const island of ISLAND_BODIES){const bottom=island.top-island.depth-1;if(y<bottom||y>island.top)continue;const dx=x-island.x,dz=z-island.z,a=Math.atan2(dz,dx),t=THREE.MathUtils.clamp((y-bottom)/island.depth,0,1),shape=island.organic?mainIslandScale(a):minorIslandScale(a,island.phase);if(Math.hypot(dx,dz)<island.r*(.18+.82*t)*shape+margin)return true}return false}
 function discover(){
   let nearest=discoveries[0],best=Infinity;
   for(const d of discoveries){
@@ -492,10 +494,11 @@ function update(dt,t){
   for(const axis of ['x','z']){
     const old=player.position[axis];player.position[axis]+=velocity[axis]*dt;
     const h=groundAt(player.position.x,player.position.z,before.y+.55);
-    const blocked=solidColliders.some(c=>colliderContains(c,player.position.x,player.position.z,PLAYER_RADIUS)&&player.position.y<c.top&&player.position.y+PLAYER_HEIGHT>c.bottom)||BRIDGES.some(b=>{const deck=bridgeSample(player.position.x,player.position.z,b);return deck!==null&&deck>before.y+.55&&deck-.3<before.y+PLAYER_HEIGHT});
-    if(blocked||h>before.y+.55||(wasGrounded&&h===-Infinity)){player.position[axis]=old;velocity[axis]=0}
+    const blocked=solidColliders.some(c=>colliderContains(c,player.position.x,player.position.z,PLAYER_RADIUS)&&player.position.y<c.top&&player.position.y+PLAYER_HEIGHT>c.bottom)||islandRockContains(player.position.x,player.position.z,player.position.y+PLAYER_HEIGHT*.5,PLAYER_RADIUS)||BRIDGES.some(b=>{const deck=bridgeSample(player.position.x,player.position.z,b);return deck!==null&&deck>before.y+.55&&deck-.3<before.y+PLAYER_HEIGHT});
+    if(blocked||Math.hypot(player.position.x,player.position.z)>720||h>before.y+.55||(wasGrounded&&h===-Infinity)){player.position[axis]=old;velocity[axis]=0}
   }
   player.position.y+=velocity.y*dt;
+  if(velocity.y>0&&islandRockContains(player.position.x,player.position.z,player.position.y+PLAYER_HEIGHT)&&!islandRockContains(before.x,before.z,before.y+PLAYER_HEIGHT)){player.position.y=before.y;velocity.y=0}
   const floor=groundAt(player.position.x,player.position.z,before.y+.55);
   if(!flying&&floor>-Infinity&&player.position.y<=floor){player.position.y=floor;velocity.y=0;lastSafe.copy(player.position)}
   if(flying&&floor>-Infinity&&player.position.y<floor+1){player.position.y=floor+1;velocity.y=Math.max(0,velocity.y)}
@@ -504,7 +507,8 @@ function update(dt,t){
     if(before.y+PLAYER_HEIGHT<=c.bottom&&player.position.y+PLAYER_HEIGHT>c.bottom){player.position.y=c.bottom-PLAYER_HEIGHT;velocity.y=0}
   }
   for(const b of BRIDGES){const deck=bridgeSample(player.position.x,player.position.z,b);if(deck!==null&&before.y+PLAYER_HEIGHT<=deck-.3&&player.position.y+PLAYER_HEIGHT>deck-.3){player.position.y=deck-.3-PLAYER_HEIGHT;velocity.y=0}}
-  if(player.position.y<-45){player.position.copy(lastSafe);velocity.set(0,0,0)}
+  if(floor>-Infinity&&player.position.y>=floor+.8&&player.position.y<floor+16)lastSafe.set(player.position.x,floor+1,player.position.z);
+  if(player.position.y<-85){player.position.copy(lastSafe);velocity.set(0,0,0)}
   const horizontalSpeed=Math.hypot(velocity.x,velocity.z),moving=horizontalSpeed>.08;
   if(horizontalSpeed>.2)travelYaw=Math.atan2(-velocity.x,-velocity.z);
   let turn=0;
@@ -609,5 +613,5 @@ camera.position.set(-25,9,14);camera.lookAt(player.position.clone().add(new THRE
 console.assert(groundAt(0,40)===3&&groundAt(500,500)===-Infinity,'walkable-world bounds');
 </script>
 <script>setTimeout(()=>{if(!document.querySelector('canvas'))document.querySelector('#error').style.display='block'},5000)</script>
-<script type="module" src="mobile-controls.js?v=50"></script>
+<script type="module" src="mobile-controls.js?v=80"></script>
 </body></html>

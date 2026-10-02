@@ -73,7 +73,7 @@ assert.equal(run('groundAt(112,-92)'),54);
 for(const island of run('Object.values(ISLANDS)')){const scales=Array.from({length:360},(_,i)=>run(`minorIslandScale(${i}*Math.PI/180,${island.phase})`));assert.ok(Math.max(...scales)-Math.min(...scales)>.45,'satellite island outline is strongly asymmetric')}
 assert.ok(run('Math.hypot(BRIDGES[0][2]+105,BRIDGES[0][3]+105)')>27,'tower bridge ends at the island rim');
 assert.ok(run('ISLANDS.tower.r*minorIslandScale(Math.atan2(BRIDGES[0][3]-ISLANDS.tower.z,BRIDGES[0][2]-ISLANDS.tower.x),ISLANDS.tower.phase)-Math.hypot(BRIDGES[0][2]-ISLANDS.tower.x,BRIDGES[0][3]-ISLANDS.tower.z)')<1,'tower bridge overlaps the irregular rim only enough for safe walking');
-assert.equal(run('treeBatches.length'),5,'all trees share five draw batches');assert.ok(run('treeParts.branch.length')>=150);assert.ok(run('treeParts.leaf0.length+treeParts.leaf1.length+treeParts.leaf2.length')>=350);
+assert.equal(run('treeBatches.length'),5,'all trees share five draw batches');assert.ok(run('treeParts.branch.length')>=150);assert.ok(run('treeParts.leaf0.length+treeParts.leaf1.length+treeParts.leaf2.length')>=300);assert.ok(run('treeBatches.every(b=>!b.castShadow&&b.receiveShadow)'),'trees keep lighting without a duplicate shadow pass');
 for(const m of run('scene.children').filter(m=>m.isMesh))assert.ok(Number.isFinite(m.position.y),'finite scene position');
 
 reset();const yaw0=run('yaw');dispatch('pointermove',{movementX:300,movementY:100,buttons:0});assert.equal(run('yaw'),yaw0,'normal mouse movement must not rotate');
@@ -108,6 +108,9 @@ run("setCharacterStyle('mist')");assert.equal(run('cloth.color.getHex()'),0x527b
 
 reset();run('player.position.set(28,3,39);keys.ArrowUp=true');frames(390);assert.ok(run('player.position.y')>17,'stairs reach upper terrace');
 reset();run('player.position.set(-43,3,-23);keys.ArrowUp=true');frames(100);assert.ok(run('player.position.z')>=-26.35,'wall collision');
+reset();run('player.position.set(0,-30,80);keys.ArrowUp=true');frames(120);assert.ok(run('player.position.z')<55,'island underside uses its tapered rock shape instead of the top footprint');
+reset();run('player.position.set(0,20,715);keys.ArrowDown=true;keys.ControlLeft=true');frames(120);assert.ok(run('Math.hypot(player.position.x,player.position.z)')<=720.01,'world boundary stays inside the sky sphere');
+reset();run('player.position.set(112,60,-92);update(.016,0);player.position.y=-86;update(.016,16)');assert.ok(run('Math.hypot(player.position.x-112,player.position.z+92)<1&&player.position.y===55'),'cloud fall returns to the most recent island');
 
 // Time-step behavior should agree at common refresh rates.
 const positions=[];for(const hz of [30,60,120]){reset();dispatch('keydown',{code:'ArrowUp'});frames(hz,hz);positions.push(run('player.position.z'))}
