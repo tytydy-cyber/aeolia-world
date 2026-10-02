@@ -10,7 +10,7 @@ const STAGES={
   parallax:{name:'閉鎖施設',code:'COMPLEX 02',intro:'複数の施設が街区規模で連結された、使われていない巨大複合施設。',sky:0x747462,fog:0x777666,fogDensity:.0022,ground:0x82775e,spawn:[11,0,82],limitY:38,
     notes:[[-55,0,34,'宴会場','全席が出口と反対を向いている。'],[65,0,38,'受付','鍵の数より客室扉のほうが多い。'],[-52,0,-38,'浴場','水はないが循環設備が動いている。'],[48,0,-42,'搬入口','4番の隣に6番が二つある。'],[0,0,-69,'渡り廊下','向こう側にも同じ形の廊下がある。']]},
   somnia:{name:'郊外',code:'SOLARPUNK SUBURB 03',intro:'丘陵と水路の先まで、発電設備と空中庭園の郊外が続いている。',sky:0x92c8c5,fog:0xb8d5bf,fogDensity:.0018,ground:0x718c69,spawn:[0,0,86],limitY:58,
-    notes:[[-105,0,55,'育苗室','旧校舎の温室で共同菜園の苗を育てている。'],[82,0,32,'配水庭','円形の分水槽から住宅と畑へ水が分かれている。'],[-92,0,-55,'修理工房','集光設備の交換部品と工具が並んでいる。'],[48,0,-48,'調整池','使われなくなったプールが余剰水を受けている。'],[0,0,-170,'集光塔','青い送電線が四つの地区へ伸びている。']]}
+    notes:[[-105,0,55,'育苗室','旧校舎の温室で共同菜園の苗を育てている。'],[82,0,32,'配水庭','円形の分水槽から住宅と畑へ水が分かれている。'],[-92,0,-55,'修理工房','集光設備の交換部品と工具が並んでいる。'],[48,0,-48,'調整池','使われなくなったプールが余剰水を受けている。'],[8,0,-162,'集光塔','青い送電線が四つの地区へ伸びている。']]}
 };
 const cfg=STAGES[stageKey];
 document.title=`${cfg.name} — AEOLIA`;for(const id of ['title','worldName'])document.querySelector('#'+id).textContent=cfg.name;for(const id of ['code','worldCode'])document.querySelector('#'+id).textContent=cfg.code;document.querySelector('#intro').textContent=cfg.intro;

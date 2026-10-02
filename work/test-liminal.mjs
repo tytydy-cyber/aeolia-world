@@ -32,6 +32,7 @@ for(const page of [html,aeolia]){
 }
 assert.ok(js.includes('SOLARPUNK SUBURB 03')&&js.includes('const panels=new THREE.InstancedMesh')&&js.includes('const planters=new THREE.InstancedMesh'),'suburb has instanced solarpunk landmarks');
 for(const name of ['育苗室','配水庭','修理工房','調整池','集光塔'])assert.ok(stages.somnia.notes.some(n=>n[3]===name),`${name} is a concrete suburb discovery`);
+const collectorNote=stages.somnia.notes.find(n=>n[3]==='集光塔');assert.ok(Math.hypot(collectorNote[0],collectorNote[2]+170)>10,'collector discovery is beside the solid tower instead of inside it');
 assert.ok(js.includes('const utilityLine=')&&js.includes('const utilityPoles=')&&js.includes('const greenhouse=')&&js.includes('const greenhouseRibs=')&&js.includes('const cisternWater=')&&js.includes('const workshopRoof=')&&js.includes('const reeds='),'water, supported power lines and all four district anchors are visible geometry');
 for(const batch of ['cisternPipes','workshopDetails','schoolWindows','terraces','doorFrames'])assert.ok(js.includes(`const ${batch}=new THREE.InstancedMesh`),`${batch} keeps detailed suburb geometry in one draw batch`);
 assert.ok(js.includes('const lifeParts={crate:[],cloth:[],work:[],deck:[]}')&&js.includes('const lifeMaterials={crate:mats.wood'),'four districts contain batched, concentrated traces of daily work');

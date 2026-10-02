@@ -271,7 +271,7 @@ for(let i=0;i<10;i++){
 }
 for(let i=0;i<30;i++){const a=i/30*mathTau;colliders.push({x:78+Math.cos(a)*10,z:100+Math.sin(a)*10,radius:.6,bottom:14.25,top:15.35})}
 const cornice=mesh(new THREE.TorusGeometry(10,.55,8,48),MAT.pale,[78,14.8,100]);cornice.rotation.x=Math.PI/2;
-const pool=mesh(organicDisc(6,2.4),new THREE.MeshStandardMaterial({color:0x739da0,metalness:.4,roughness:.18}),[78,7.4,100]);pool.rotation.x=-Math.PI/2;
+const palaceWater=organicDisc(6,2.4),gardenWater=organicDisc(4.55,.8);palaceWater.rotateX(-Math.PI/2);palaceWater.translate(78,7.4,100);gardenWater.rotateX(-Math.PI/2);gardenWater.translate(28,18.2,-18);const waterSurfaces=mesh(mergeGeometries([palaceWater,gardenWater]),new THREE.MeshPhysicalMaterial({color:0x739da0,metalness:.35,roughness:.16,transparent:true,opacity:.86}),[0,0,0],false);
 
 // Street furniture: shared geometry/material batches instead of a draw per object.
 const props=[],propBatches=[],propColliders=[];

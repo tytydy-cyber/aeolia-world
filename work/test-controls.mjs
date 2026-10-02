@@ -53,6 +53,7 @@ function reset(){document.activeElement=document.body;run('resetInput();player.p
 assert.equal(run('houses.length'),9);
 assert.equal(run('districtModules.length'),5,'all five district modules are placed');
 assert.ok(run('districtBatches.length')<=4,'five districts merge into at most four material batches');
+assert.ok(run("new THREE.Raycaster(new THREE.Vector3(28,30,-18),new THREE.Vector3(0,-1,0)).intersectObject(waterSurfaces).some(hit=>Math.abs(hit.point.y-18.2)<.01)"),'upper garden discovery has a visible water surface');
 assert.ok(run("districtBatches.find(b=>b.material.name==='Island life atlas').material.map===islandLifeAtlas"),'district atlas parts show the island life atlas');
 assert.equal(run('islandLifeAtlas.flipY'),false,'the atlas is read unflipped to match glTF UVs, so each part shows its own cell');
 assert.ok(run("districtBatches.filter(b=>surfaceKind(b.material.name)).every(b=>b.material.map&&b.material.userData.textureKind)"),'district stone and wood use the shared surface textures');
