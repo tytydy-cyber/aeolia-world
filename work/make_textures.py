@@ -6,6 +6,11 @@ import math
 
 OUT=Path(__file__).resolve().parents[1]/'outputs'/'assets'/'textures'
 OUT.mkdir(parents=True,exist_ok=True)
+# Previews, the unused panorama and the not-yet-used atlases go to source/textures, outside the published folder.
+SOURCE=Path(__file__).resolve().parents[1]/'source'/'textures'
+SOURCE.mkdir(parents=True,exist_ok=True)
+PREVIEWS=Path(__file__).resolve().parents[1]/'source'/'previews'
+PREVIEWS.mkdir(parents=True,exist_ok=True)
 N=512
 rng=random.Random(710)
 
@@ -63,7 +68,7 @@ for mi,(kind,base) in enumerate(materials.items()):
     color=Image.new('RGB',(N,N));color.putdata(rgb);color.save(OUT/f'{kind}-color.jpg',quality=90)
     bump=Image.new('L',(N,N));bump.putdata(height);bump.save(OUT/f'{kind}-height.png')
     col=mi%3;row=mi//3;sheet.paste(color,(col*N,row*(N+36)));draw.text((col*N+12,row*(N+36)+N+8),kind.upper(),fill='#ead4a9')
-sheet.save(OUT/'material-preview.jpg',quality=90)
+sheet.save(PREVIEWS/'material-preview.jpg',quality=90)
 
 # Panoramic background: multi-scale clouds and atmospheric mountain silhouettes.
 W,H=2048,1024
@@ -97,7 +102,7 @@ for y in range(540,H):
     alpha=int(min(.96,max(0,(y-540)/200))*255)
     vd.line([(0,y),(W,y)],fill=(200,212,210,alpha))
 panorama=Image.alpha_composite(panorama.convert('RGBA'),veil).convert('RGB')
-panorama=panorama.filter(ImageFilter.GaussianBlur(.65));panorama.save(OUT/'sky-panorama.jpg',quality=90)
+panorama=panorama.filter(ImageFilter.GaussianBlur(.65));panorama.save(SOURCE/'sky-panorama.jpg',quality=90)
 assert all((OUT/f'{name}-color.jpg').exists() and (OUT/f'{name}-height.png').exists() for name in materials)
 print('Generated six paired 512px material maps and a 2048×1024 panorama.')
 
@@ -298,10 +303,10 @@ distance_cells=[
     grime('rain'),grime('soot'),grime('moss'),grime('lichen'),
 ]
 
-def atlas(cells,name):
+def atlas(cells,name,folder=OUT):
     sheet=Image.new('RGB',(C*4,C*4))
     for i,cell in enumerate(cells):sheet.paste(cell.convert('RGB'),((i%4)*C,(i//4)*C))
-    sheet.save(OUT/name,optimize=True)
+    sheet.save(folder/name,optimize=True)
     return sheet
 
 def mask_wet():
@@ -330,10 +335,10 @@ def mask_steps():
     return soften(m,1.2)
 
 life=atlas(life_cells,'island-life-atlas.png')
-distance=atlas(distance_cells,'island-distance-atlas.png')
+distance=atlas(distance_cells,'island-distance-atlas.png',SOURCE)
 mask=Image.new('L',(512,512))
 for i,cell in enumerate([mask_wet(),mask_repair(),mask_dust(),mask_steps()]):mask.paste(cell,((i%2)*C,(i//2)*C))
-mask.save(OUT/'island-mark-mask.png',optimize=True)
+mask.save(SOURCE/'island-mark-mask.png',optimize=True)
 
 # Each cell's saturation and brightness must sit inside the range of the existing plaster, stone, slate and wood maps.
 def stats(image):

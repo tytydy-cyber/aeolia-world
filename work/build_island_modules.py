@@ -15,6 +15,9 @@ from mathutils import Vector
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / 'outputs' / 'assets'
 TEX = OUT / 'textures'
+SOURCE = ROOT / 'source'  # editable originals and previews; not published
+(SOURCE / 'blender').mkdir(parents=True, exist_ok=True)
+(SOURCE / 'previews').mkdir(parents=True, exist_ok=True)
 MAX_TRIANGLES = 45000
 MAX_BATCHES = 12
 INSET = 4 / 1024
@@ -44,7 +47,7 @@ STONE = material('Carved limestone', (.62, .56, .44), 'stone-color.jpg')
 WOOD = material('Aged chestnut', (.3, .2, .12), 'wood-color.jpg')
 IRON = material('Bronze ironwork', (.15, .12, .07), rough=.42, metal=.65)
 
-# Atlas cells (see textures/GENERATED-ASSETS.md): row-major 4x4 from the top-left.
+# Atlas cells (see source/textures/GENERATED-ASSETS.md): row-major 4x4 from the top-left.
 CELL = dict(awning=0, check=1, linen=2, canvas=3, lavender=4, blossom=5, crate=8, crate_brace=9,
             tools=10, boards=11, clock=12, clock_green=13, timetable=14, timetable_light=15)
 
@@ -310,7 +313,7 @@ for obj in modules:
     obj.select_set(True)
 bpy.ops.export_scene.gltf(filepath=str(OUT / 'aeolia-island-modules.glb'), export_format='GLB', use_selection=True,
                           export_apply=True, export_animations=False, export_image_format='NONE')
-bpy.ops.wm.save_as_mainfile(filepath=str(OUT / 'aeolia-island-modules.blend'))
+bpy.ops.wm.save_as_mainfile(filepath=str(SOURCE / 'blender' / 'aeolia-island-modules.blend'))
 
 # Preview from about 15 m, the middle of the 10-30 m recognition range.
 scene = bpy.context.scene
@@ -335,5 +338,5 @@ camera.data.ortho_scale = 66
 scene.camera = camera
 scene.render.resolution_x, scene.render.resolution_y = 1600, 520
 scene.render.image_settings.file_format = 'PNG'
-scene.render.filepath = str(OUT / 'island-modules-preview.png')
+scene.render.filepath = str(SOURCE / 'previews' / 'island-modules-preview.png')
 bpy.ops.render.render(write_still=True)

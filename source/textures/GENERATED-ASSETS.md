@@ -1,5 +1,7 @@
 # Generated background assets
 
+置き場所：ゲームが読み込む画像は `outputs/assets/textures/`（公開）。生成原本、未使用の画像、確認用画像は `source/textures/` と `source/previews/`（非公開）。Blenderの原本は `source/blender/`。
+
 2026-09-16、Codex組み込みの画像生成機能で作成。ゲーム用に保存した最終素材は `sky-cities.jpg` と `distant-ruins.png`。
 
 ## sky-cities.jpg

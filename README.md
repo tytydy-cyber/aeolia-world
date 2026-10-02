@@ -16,7 +16,7 @@
 python3 -m http.server 8765 --bind 127.0.0.1 --directory outputs
 ```
 
-`http://localhost:8765/` を開いてください。公開設定は `outputs/PUBLISH.md` にあります。
+`http://localhost:8765/` を開いてください。公開設定は `docs/PUBLISH.md` にあります。
 
 ## 操作
 

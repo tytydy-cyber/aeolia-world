@@ -9,6 +9,9 @@ random.seed(37)
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / 'outputs' / 'assets'
 OUT.mkdir(parents=True, exist_ok=True)
+SOURCE = ROOT / 'source'  # editable originals and previews; not published
+(SOURCE / 'blender').mkdir(parents=True, exist_ok=True)
+(SOURCE / 'previews').mkdir(parents=True, exist_ok=True)
 bpy.ops.object.select_all(action='SELECT')
 bpy.ops.object.delete(use_global=False)
 
@@ -180,7 +183,7 @@ for obj in models:obj.select_set(True)
 bpy.ops.export_scene.gltf(filepath=str(OUT/'aeolia-house.glb'),export_format='GLB',use_selection=True,export_apply=True,export_animations=False)
 
 # Save a directly editable source, then render a preview with real light/shadows.
-bpy.ops.wm.save_as_mainfile(filepath=str(OUT/'aeolia-house.blend'))
+bpy.ops.wm.save_as_mainfile(filepath=str(SOURCE/'blender'/'aeolia-house.blend'))
 scene=bpy.context.scene
 scene.render.engine='CYCLES'
 scene.cycles.device='CPU'
@@ -204,5 +207,5 @@ camera.data.type='ORTHO';camera.data.ortho_scale=23
 scene.camera=camera
 scene.render.resolution_x=1000;scene.render.resolution_y=1000;scene.render.resolution_percentage=100
 scene.render.image_settings.file_format='PNG'
-scene.render.filepath=str(OUT/'house-preview.png')
+scene.render.filepath=str(SOURCE/'previews'/'house-preview.png')
 bpy.ops.render.render(write_still=True)

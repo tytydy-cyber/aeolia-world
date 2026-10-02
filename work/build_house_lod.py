@@ -13,6 +13,9 @@ from mathutils import Vector
 
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / 'outputs' / 'assets'
+SOURCE = ROOT / 'source'  # editable originals and previews; not published
+(SOURCE / 'blender').mkdir(parents=True, exist_ok=True)
+(SOURCE / 'previews').mkdir(parents=True, exist_ok=True)
 MAX_TRIANGLES = 5000
 MAX_BATCHES = 4
 
@@ -250,7 +253,7 @@ try:
     bpy.ops.export_scene.gltf(**export, export_vertex_color='ACTIVE')
 except TypeError:
     bpy.ops.export_scene.gltf(**export, export_colors=True)
-bpy.ops.wm.save_as_mainfile(filepath=str(OUT / 'aeolia-house-lod.blend'))
+bpy.ops.wm.save_as_mainfile(filepath=str(SOURCE / 'blender' / 'aeolia-house-lod.blend'))
 
 # Side-by-side preview: full-detail asset on the left, LOD on the right.
 for obj in models:
@@ -279,5 +282,5 @@ camera.data.ortho_scale = 36
 scene.camera = camera
 scene.render.resolution_x, scene.render.resolution_y = 1200, 640
 scene.render.image_settings.file_format = 'PNG'
-scene.render.filepath = str(OUT / 'house-lod-preview.png')
+scene.render.filepath = str(SOURCE / 'previews' / 'house-lod-preview.png')
 bpy.ops.render.render(write_still=True)

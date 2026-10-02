@@ -116,5 +116,5 @@ bpy.context.view_layer.objects.active=rig
 
 out=os.path.abspath(os.path.join(os.path.dirname(__file__),'../outputs/assets/aeolia-traveler.glb'))
 bpy.ops.export_scene.gltf(filepath=out,export_format='GLB',use_selection=True,export_animations=True,export_nla_strips=True,export_apply=True)
-bpy.ops.wm.save_as_mainfile(filepath=os.path.abspath(os.path.join(os.path.dirname(__file__),'../outputs/assets/aeolia-traveler.blend')))
+bpy.ops.wm.save_as_mainfile(filepath=os.path.abspath(os.path.join(os.path.dirname(__file__),'../source/blender/aeolia-traveler.blend')))
 print(out)
