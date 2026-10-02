@@ -9,14 +9,13 @@
 #veil{position:fixed;inset:0;z-index:20;display:grid;place-items:center;background:linear-gradient(115deg,rgba(7,26,39,.82),rgba(25,49,57,.24));transition:opacity 1s}
 .opening{width:min(650px,86vw);padding:40px;border-left:1px solid rgba(245,216,154,.65)}.eyebrow,.mono{font:11px 'Space Mono',monospace;letter-spacing:.2em;text-transform:uppercase}.eyebrow{color:#efcf8d}.opening h1{font-size:clamp(50px,9vw,104px);font-weight:400;line-height:.88;letter-spacing:.08em;margin:24px 0}.opening h1 i{display:block;font-size:.24em;font-style:normal;letter-spacing:.5em;margin-top:24px}.opening p{font-size:14px;line-height:2;letter-spacing:.08em}.opening button{margin-top:20px;padding:12px 24px;color:#f4e7ca;background:transparent;border:1px solid #efcf8d;font:12px 'Space Mono';letter-spacing:.14em;cursor:pointer}.opening button:hover,.opening button:focus-visible{background:#efcf8d;color:#173644;outline:none}
 #hud{position:fixed;inset:0;z-index:10;pointer-events:none;padding:28px 34px;display:flex;justify-content:space-between}.brand{font-size:17px;letter-spacing:.25em;text-shadow:0 2px 8px #16313d}.brand small{display:block;font:9px 'Space Mono';color:#efcf8d;margin-bottom:6px}.place{text-align:right;font-size:13px;letter-spacing:.12em;text-shadow:0 2px 8px #16313d}.place small{display:block;font:9px 'Space Mono';margin-bottom:6px;color:#efcf8d}
-#mode{position:fixed;z-index:10;left:34px;bottom:30px;font:10px 'Space Mono';letter-spacing:.12em;text-shadow:0 2px 8px #16313d}.line{display:inline-block;width:30px;height:1px;background:#efcf8d;vertical-align:middle;margin-right:10px}
 #help{position:fixed;z-index:10;right:34px;bottom:28px;display:flex;gap:9px;align-items:center;font:9px 'Space Mono';letter-spacing:.08em;color:#f7f0dccc;text-shadow:0 2px 8px #16313d}.key{border:1px solid #f7f0dc99;padding:4px 7px;color:#fff}
 #discovery{position:fixed;z-index:12;left:50%;top:16%;transform:translateX(-50%);text-align:center;opacity:0;transition:opacity .6s;text-shadow:0 2px 12px #102b3a}.discovery-on{opacity:1!important}#discovery small{font:9px 'Space Mono';letter-spacing:.25em;color:#efcf8d}#discovery div{font-size:25px;letter-spacing:.16em;margin-top:8px}
 #cross{position:fixed;z-index:9;left:50%;top:50%;width:4px;height:4px;border:1px solid #fff;border-radius:50%;opacity:.55}
 #error{display:none;position:fixed;inset:0;z-index:30;background:#142d3a;padding:15vh 10vw;font-size:18px;line-height:2}
 #pace{position:fixed;z-index:11;left:34px;bottom:61px;display:flex;gap:8px;align-items:center;font:11px system-ui;color:#fff;text-shadow:0 1px 5px #16313d}#pace input{width:95px;accent-color:#e7ba67}#assetState{position:fixed;top:83px;right:34px;font:11px system-ui;color:#f7f0dc}
 #soundControls{position:fixed;z-index:11;left:34px;bottom:93px;display:flex;gap:9px;align-items:center;font:11px system-ui;color:#fff;text-shadow:0 1px 5px #16313d}#soundControls button{font:inherit;color:inherit;background:#16313db0;border:1px solid #e7ba6790;border-radius:3px;padding:5px 9px;cursor:pointer}#soundControls input{width:95px;accent-color:#e7ba67}#soundControls button:focus-visible,#soundControls input:focus-visible{outline:2px solid #e7ba67;outline-offset:3px}#soundNotice{max-width:210px;font-size:10px}#soundControls label{display:flex;align-items:center;gap:6px}
-@media(max-width:650px){#hud{padding:20px}.brand{font-size:13px}.place{font-size:11px}#help{right:20px;bottom:20px;max-width:60%;flex-wrap:wrap;justify-content:flex-end}#mode{left:20px;bottom:20px}.opening{padding:25px}}
+@media(max-width:650px){#hud{padding:20px}.brand{font-size:13px}.place{font-size:11px}#help{right:20px;bottom:20px;max-width:60%;flex-wrap:wrap;justify-content:flex-end}.opening{padding:25px}}
 #effectsControl{position:fixed;z-index:11;left:34px;bottom:130px;display:flex;gap:6px;align-items:center;font:11px system-ui;color:#fff;text-shadow:0 1px 5px #16313d}#effectsControl input{accent-color:#e7ba67}
 #characterControl{position:fixed;z-index:11;left:34px;bottom:160px;display:flex;gap:8px;align-items:center;font:11px system-ui;color:#fff;text-shadow:0 1px 5px #16313d}#characterControl select{color:#fff;background:#16313dcc;border:1px solid #e7ba6790;border-radius:3px;padding:5px 8px;font:inherit}#characterControl select:focus-visible{outline:2px solid #e7ba67;outline-offset:3px}
 .return{position:fixed;z-index:12;left:28px;top:82px;color:#f7f0dc;text-decoration:none;font:11px 'Space Mono';letter-spacing:.08em;text-shadow:0 2px 8px #16313d}
@@ -27,7 +26,6 @@
 <body>
 <div id="veil"><section class="opening"><div class="eyebrow">FLOATING ISLANDS</div><h1>AEOLIA<i>浮島の街</i></h1><p>十字キーで飛ぶ。Spaceで上昇、Shiftで下降。<br>ドラッグで見渡し、Cで進行方向へ戻せます。</p><button id="enter">入る　↗</button></section></div>
 <div id="hud"><div class="brand"><small>FLOATING ISLANDS 01</small>浮島の街</div><div class="place"><small>NEARBY</small><span id="place">中央広場</span></div></div>
-<div id="mode"><i class="line"></i><span id="modeText">FLYING</span></div>
 <label id="pace">速さ <input id="paceInput" type="range" min="0.7" max="1.6" step="0.1" value="1" aria-label="移動速度の倍率"><output id="paceValue">1.0×</output></label>
 <div id="soundControls"><button id="soundToggle" type="button" aria-pressed="false">消音</button><label>音量<input id="soundVolume" type="range" min="0" max="100" value="50" aria-label="音量"></label><span id="soundNotice" role="status"></span></div>
 <span id="assetState" role="status">建物を読み込み中…</span>
@@ -500,7 +498,7 @@ renderer.domElement.addEventListener('contextmenu',e=>e.preventDefault());
 renderer.domElement.addEventListener('pointerdown',e=>{if(started&&(e.button===0||e.button===2)){dragging=true;renderer.domElement.style.cursor='grabbing';renderer.domElement.setPointerCapture(e.pointerId)}});
 addEventListener('pointerup',()=>{dragging=false;renderer.domElement.style.cursor='grab'});renderer.domElement.addEventListener('pointercancel',()=>{dragging=false;renderer.domElement.style.cursor='grab'});
 addEventListener('pointermove',e=>{if(dragging&&e.buttons){recenterYaw=null;yaw-=e.movementX*.003;pitch=THREE.MathUtils.clamp(pitch+e.movementY*.002,-.55,1.15)}});
-document.querySelector('#enter').onclick=()=>{if(started)return;started=true;startSound();motionEffects.flightBurst(player.position,true);focusWorld();document.querySelector('#veil').style.opacity=0;document.querySelector('#veil').style.pointerEvents='none';document.querySelector('#modeText').textContent='飛行中';setTimeout(()=>document.querySelector('#veil').remove(),1000)};
+document.querySelector('#enter').onclick=()=>{if(started)return;started=true;startSound();motionEffects.flightBurst(player.position,true);focusWorld();document.querySelector('#veil').style.opacity=0;document.querySelector('#veil').style.pointerEvents='none';setTimeout(()=>document.querySelector('#veil').remove(),1000)};
 addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});
 
 function update(dt,t){
@@ -664,5 +662,5 @@ camera.position.set(-25,9,14);camera.lookAt(player.position.clone().add(new THRE
 console.assert(groundAt(0,40)===3&&groundAt(500,500)===-Infinity,'walkable-world bounds');
 </script>
 <script>setTimeout(()=>{if(!document.querySelector('canvas'))document.querySelector('#error').style.display='block'},5000)</script>
-<script type="module" src="mobile-controls.js?v=80"></script>
+<script type="module" src="mobile-controls.js?v=81"></script>
 </body></html>
