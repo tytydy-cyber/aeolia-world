@@ -18,4 +18,15 @@ for(const stage of ['parallax','somnia']){
     assert.ok(run('player.position.z')>=wall.z+wall.d,`${stage}: boosted flight stops at a wall at ${hz} Hz`);
   }
 }
-console.log('PASS: facility and suburb travel is frame-rate independent at 30/60/120 Hz and boosted flight cannot tunnel through walls.');
+// Vertical movement respects solid tops and undersides, so the traveler never ends up inside a pillar or ceiling.
+{
+  const suburb=loadStage('somnia');
+  suburb.reset(0,46,-170);suburb.run('keys.ShiftLeft=true');suburb.frames(120);suburb.run('keys.ShiftLeft=false');
+  assert.ok(Math.abs(suburb.run('player.position.y')-40)<.01,`descending onto the solar collector pillar lands on its top (${suburb.run('player.position.y')})`);
+  suburb.run('keys.ArrowDown=true');suburb.frames(30);suburb.run('keys.ArrowDown=false');
+  assert.ok(suburb.run('player.position.z')>-168,'the traveler can leave the pillar top sideways');
+  const facility=loadStage('parallax');
+  facility.reset(-30,6,35);facility.run('keys.Space=true');facility.frames(120);facility.run('keys.Space=false');
+  assert.ok(Math.abs(facility.run('player.position.y+3.6')-13.45)<.01,`rising under the banquet ceiling stops below it (${facility.run('player.position.y')})`);
+}
+console.log('PASS: facility and suburb travel is frame-rate independent at 30/60/120 Hz and boosted flight cannot tunnel through walls; vertical flight stops on solid tops and under ceilings.');
