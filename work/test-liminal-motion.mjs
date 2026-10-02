@@ -29,4 +29,18 @@ for(const stage of ['parallax','somnia']){
   facility.reset(-30,6,35);facility.run('keys.Space=true');facility.frames(120);facility.run('keys.Space=false');
   assert.ok(Math.abs(facility.run('player.position.y+3.6')-13.45)<.01,`rising under the banquet ceiling stops below it (${facility.run('player.position.y')})`);
 }
-console.log('PASS: facility and suburb travel is frame-rate independent at 30/60/120 Hz and boosted flight cannot tunnel through walls; vertical flight stops on solid tops and under ceilings.');
+// Notifications: only discoveries carry the 発見 heading; a drag cancels the camera's turn toward a discovery.
+{
+  const game=loadStage('parallax'),heading=()=>game.elements.get('#event').querySelector('small');
+  const [x,,z]=game.run("cfg.notes.find(n=>n[3]==='宴会場')");
+  game.reset(x+3,1,z);game.frames(70);
+  assert.equal(heading().textContent,'発見');assert.equal(heading().hidden,false,'discoveries show the 発見 heading');
+  game.run('recenterYaw=yaw+2');
+  const canvas=game.run('renderer.domElement');for(const fn of canvas.events.get('pointerdown'))fn({button:0,pointerId:1});
+  game.dispatch('pointermove',{buttons:1,movementX:40,movementY:0});
+  assert.equal(game.run('recenterYaw'),null,'dragging cancels the pending camera turn');
+  const gate=game.run('routeGates[0].o.position.toArray()');game.reset(gate[0],gate[1],gate[2]+6);game.run('yaw=0;keys.ArrowUp=true');game.frames(30);game.run('keys.ArrowUp=false');
+  assert.ok(game.elements.get('#event').querySelector('div').textContent.startsWith('気流'),'passing a wind gate shows its own message');
+  assert.equal(heading().hidden,true,'wind gate messages hide the 発見 heading');
+}
+console.log('PASS: facility and suburb travel is frame-rate independent at 30/60/120 Hz and boosted flight cannot tunnel through walls; vertical flight stops on solid tops and under ceilings; notification headings; drag cancels camera recentering.');
