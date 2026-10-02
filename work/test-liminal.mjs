@@ -31,6 +31,7 @@ for(const page of [html,aeolia]){
 assert.ok(js.includes('SOLARPUNK SUBURB 03')&&js.includes('const panels=new THREE.InstancedMesh')&&js.includes('const planters=new THREE.InstancedMesh'),'suburb has instanced solarpunk landmarks');
 for(const name of ['育苗室','配水庭','修理工房','調整池','集光塔'])assert.ok(stages.somnia.notes.some(n=>n[3]===name),`${name} is a concrete suburb discovery`);
 assert.ok(js.includes('const utilityLine=')&&js.includes('const utilityPoles=')&&js.includes('const greenhouse=')&&js.includes('const greenhouseRibs=')&&js.includes('const cisternWater=')&&js.includes('const workshopRoof=')&&js.includes('const reeds='),'water, supported power lines and all four district anchors are visible geometry');
+for(const batch of ['cisternPipes','workshopDetails','schoolWindows','terraces','doorFrames'])assert.ok(js.includes(`const ${batch}=new THREE.InstancedMesh`),`${batch} keeps detailed suburb geometry in one draw batch`);
 assert.ok(js.includes('const lifeParts={crate:[],cloth:[],work:[],deck:[]}')&&js.includes('const lifeMaterials={crate:mats.wood'),'four districts contain batched, concentrated traces of daily work');
 assert.ok(js.includes('function updateEnvironment()')&&js.includes('sound.setEnvironment(zone,THREE.MathUtils.smoothstep(y,8,40))'),'suburb sound changes by district and altitude');
 assert.ok(js.includes('function roundedBlock')&&js.includes('new THREE.TubeGeometry')&&js.includes('Aerial commons'),'both new worlds use layered non-rectangular structures');
@@ -60,7 +61,8 @@ assert.ok(js.includes('depthWrite:false,polygonOffset:true')&&js.includes('box(4
 assert.ok(js.includes('corner:Math.min(r,w/2,d/2)')&&js.includes('Math.hypot(qx,qz)<c.corner+margin'),'rounded buildings use rounded collision bounds');
 const contains=(c,x,z,margin=.55)=>{const dx=Math.abs(x-c.x),dz=Math.abs(z-c.z),qx=Math.max(dx-(c.w-c.corner),0),qz=Math.max(dz-(c.d-c.corner),0);return dx<c.w+margin&&dz<c.d+margin&&Math.hypot(qx,qz)<c.corner+margin};
 const rounded={x:0,z:0,w:10,d:8,corner:4};assert.equal(contains(rounded,10,8),false,'empty rounded corner stays passable');assert.equal(contains(rounded,10,0),true,'visible rounded side still blocks');
-assert.ok(js.includes('const slide=box(-34,2.2,-45,10,.4,3,mats.pink,false)'),'rotated slide no longer leaves an unrotated invisible wall');
+assert.ok(js.includes('playgroundPart(-34,2.2,-45,10,.4,3,-.28)'),'rotated slide stays decorative and leaves no invisible wall');
+for(const batch of ['meadowBatch','outerRoadBatch','playgroundBatch','pondRim','commonsRings','commonsCores'])assert.ok(js.includes(`${batch}=new THREE.InstancedMesh`),`${batch} keeps repeated scenery in one draw batch`);
 const edgeScale=(a,phase)=>.91+.075*Math.sin(a*3+phase)+.045*Math.sin(a*5-phase*.7)+.025*Math.sin(a*9+phase*.3),specs={parallax:[178,148,.4],somnia:[250,210,2.1]};
 for(const [key,stage] of Object.entries(stages)){const [rx,rz,phase]=specs[key];for(const [x,,z,name] of [[...stage.spawn,'spawn'],...stage.notes]){const a=Math.atan2(z/rz,x/rx);assert.ok(Math.hypot(x/rx,z/rz)<edgeScale(a,phase)-.012,`${key} ${name} stays inside the irregular visible ground`)}}
 for(const [key,[x,z]] of Object.entries({parallax:[-95,-105],somnia:[0,-170]})){const [rx,rz,phase]=specs[key],a=Math.atan2(z/rz,x/rx);assert.ok(Math.hypot(x/rx,z/rz)<edgeScale(a,phase)-.012,`${key} landmark stays inside playable ground`)}
