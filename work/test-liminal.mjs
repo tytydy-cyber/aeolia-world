@@ -65,7 +65,9 @@ assert.ok(js.includes('irregularGround()')&&js.includes('roughCylinder(')&&js.in
 assert.ok(js.includes('new THREE.ShapeGeometry(shape)')&&js.includes('o.rotation.x=-Math.PI/2'),'irregular ground renders its textured front face upward');
 assert.ok(js.includes('new THREE.CylinderGeometry(245*scale')&&js.includes("opacity:stageKey==='parallax'?.09")&&js.includes("material=stageKey==='parallax'?mats.frame")&&js.includes('new THREE.CylinderGeometry(.72,1,1,7)')&&js.includes('new THREE.TorusGeometry(1,.09,5,12,Math.PI)'),'faint horizon art sits behind a textured low-cost radial 3D skyline');
 assert.ok(!js.includes('box(0,-.35,0,350')&&!js.includes('box(0,-.4,0,400'),'world floors are no longer giant rectangles');
-assert.ok(js.includes('depthWrite:false,polygonOffset:true')&&js.includes('box(48,.045,-48,34,.035,22,mats.water)')&&js.includes('box(x,.055,z,w,.035,d,mats.water,false)'),'suburb water avoids coplanar depth artifacts');
+assert.ok(js.includes('box(48,.24,-48,34,.03,22,mats.water)')&&js.includes('box(x,.24,z,w,.03,d,mats.water,false)')&&js.includes('new THREE.Vector3(-145,.27,92)'),'suburb water is physically separated from ground and roads');
+assert.ok(js.includes("box(0,.16,-12,18,.06,390,road,false)")&&js.includes('dummy.position.set(x,.105,z)')&&js.includes('dummy.position.set(x,.16,z)'),'suburb ground, meadow and road surfaces use distinct depth tiers');
+assert.ok(js.includes("box(4,.16,22,42,.08,118,mats.dark,false)")&&js.includes('zoneDummy.position.set(26+i*8,.22,-40)'),'facility floor overlays use distinct depth tiers');
 assert.ok(js.includes('corner:Math.min(r,w/2,d/2)')&&js.includes('Math.hypot(qx,qz)<c.corner+margin'),'rounded buildings use rounded collision bounds');
 const contains=(c,x,z,margin=.55)=>{const dx=Math.abs(x-c.x),dz=Math.abs(z-c.z),qx=Math.max(dx-(c.w-c.corner),0),qz=Math.max(dz-(c.d-c.corner),0);return dx<c.w+margin&&dz<c.d+margin&&Math.hypot(qx,qz)<c.corner+margin};
 const rounded={x:0,z:0,w:10,d:8,corner:4};assert.equal(contains(rounded,10,8),false,'empty rounded corner stays passable');assert.equal(contains(rounded,10,0),true,'visible rounded side still blocks');
