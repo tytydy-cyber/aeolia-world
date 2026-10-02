@@ -37,9 +37,11 @@ for(const batch of ['cisternPipes','workshopDetails','schoolWindows','terraces',
 assert.ok(js.includes('const lifeParts={crate:[],cloth:[],work:[],deck:[]}')&&js.includes('const lifeMaterials={crate:mats.wood'),'four districts contain batched, concentrated traces of daily work');
 assert.ok(js.includes('function updateEnvironment()')&&js.includes('sound.setEnvironment(zone,THREE.MathUtils.smoothstep(y,8,40))'),'suburb sound changes by district and altitude');
 assert.ok(js.includes("stageKey==='somnia'?")&&js.includes('y>22?4'),'closed facility sound changes across five uses and the ceiling layer');
-for(const feature of ['const zoneMaterials=','const repeatDoors=','zoneLights=new THREE.InstancedMesh','const facilityLine='])assert.ok(js.includes(feature),`${feature} distinguishes the five facility uses`);
+for(const feature of ['zoneMaterials=','const repeatDoors=','zoneLights=new THREE.InstancedMesh','const facilityLine='])assert.ok(js.includes(feature),`${feature} distinguishes the five facility uses`);
 for(const feature of ['const serviceDecks=','deckBatch=new THREE.InstancedMesh','railBatch=new THREE.InstancedMesh','ductBatch=new THREE.InstancedMesh','const loadingStripes='])assert.ok(js.includes(feature),`${feature} builds the middle and ceiling routes in bounded batches`);
-assert.ok(js.includes('o.userData.trigger?o.userData.trigger()')&&js.includes('repeatDoors.userData.trigger'),'facility anomalies can alter one repeated door without hiding the whole batch');
+assert.ok(js.includes('o.userData.trigger?o.userData.trigger()')&&js.includes('repeatDoors.userData={anomaly:true'),'facility anomalies can alter one repeated door without hiding the whole batch');
+for(const text of ['廊下の照明が順番に消えた。','受付の呼び鈴が一度だけ鳴った。','空の浴槽に反射だけが現れた。','搬入口の扉が一枚だけ消えた。'])assert.ok(js.includes(text),`facility event is concrete: ${text}`);
+assert.ok(js.includes('const zoneColors=')&&js.includes('zoneMaps=[frameMap,surfaceMap,frameMap,structuralMap,structuralMap]'),'facility uses reuse distinct floor textures without new downloads');
 assert.ok(js.includes('function roundedBlock')&&js.includes('new THREE.TubeGeometry')&&js.includes('Aerial commons'),'both new worlds use layered non-rectangular structures');
 assert.ok(js.includes('recognizable threshold')&&js.includes('Overlapping meadow islands'),'playtest fixes preserve a readable entrance and varied near ground');
 assert.ok(js.includes('nextAnomaly=Infinity')&&js.includes('started=true;nextAnomaly=Date.now()+60000+Math.random()*60000')&&js.includes('function anomaly(){const now=Date.now()'),'events are scheduled from entry, first within about two minutes, and cannot fire on entry');
