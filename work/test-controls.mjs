@@ -143,6 +143,7 @@ run('keys.ArrowDown=true');frames(60);run('keys.ArrowDown=false');assert.ok(run(
 sweep('125,77,-60',[0,-1],false,60);run('keys.Space=true');frames(60);run('keys.Space=false');assert.ok(run('player.position.y')>77+5,'player can climb along the blade disc without sticking');
 // Distant islands: unreachable scenery in two draws, hazier once the player flies out.
 assert.equal(run('distantIslands.length'),2,'twelve distant islands draw as two merged meshes');
+assert.ok(run('distantIslands.reduce((sum,m)=>sum+m.geometry.index.count/3,0)')<=2400,'merged distant islands stay low-poly because they are no longer culled per island');
 assert.ok(run('distantIslands.every(m=>!cameraBlockers.includes(m))&&!solidColliders.some(c=>Math.hypot(c.x,c.z)>200)&&groundAt(330,0)===-Infinity'),'distant islands stay without ground, collision or camera blocking');
 assert.ok(run('!distantMaterials[1].map&&!distantMaterials[1].color.equals(MAT.grass.color)'),'distant island tops do not reuse the reachable grass surface');
 reset();run('player.position.set(0,20,0)');frames(1);const nearHaze=run('distantMaterials.map(m=>m.opacity)');
