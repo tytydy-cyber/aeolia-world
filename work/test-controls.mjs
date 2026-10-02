@@ -57,7 +57,9 @@ assert.ok(run("new THREE.Raycaster(new THREE.Vector3(28,30,-18),new THREE.Vector
 assert.ok(run("districtBatches.find(b=>b.material.name==='Island life atlas').material.map===islandLifeAtlas"),'district atlas parts show the island life atlas');
 assert.equal(run('islandLifeAtlas.flipY'),false,'the atlas is read unflipped to match glTF UVs, so each part shows its own cell');
 assert.ok(run("districtBatches.filter(b=>surfaceKind(b.material.name)).every(b=>b.material.map&&b.material.userData.textureKind)"),'district stone and wood use the shared surface textures');
-assert.equal(run('discoveries.length'),7,'the circuit covers the central island, three outer islands and cloud layer');
+assert.equal(run('discoveries.length'),9,'the circuit covers the central island, three outer islands and three cloud-under sites');
+assert.deepEqual(Array.from(run('underCloudBatches.map(batch=>batch.count)')),[6,18,3],'three cloud-under sites share three bounded draw batches');
+assert.ok(run('underCloudSites.every(([x,y,z,sx,sz])=>solidColliders.some(c=>c.x===x&&c.z===z&&c.bottom===y-.35&&c.top===y+.35&&c.radius===Math.max(sx,sz)))'),'cloud-under platforms have matching landing collision');
 assert.ok(run('districtPlacements.every(([,x,y,z])=>y-groundAt(x,z)>=.08-1e-9)'),'district modules sit above their ground instead of sharing a coplanar layer');
 assert.ok(run('districtPlacements.filter(p=>p[4]).every(([,x,,z,c])=>!propColliders.some(p=>Math.abs(x-p.x)<c.w+p.w&&Math.abs(z-p.z)<c.d+p.d))'),'district modules do not overlap existing street furniture');
 assert.ok(run('districtModules.every(object=>{const box=new THREE.Box3().setFromObject(object);return box.min.y-groundAt(object.position.x,object.position.z)>=.079})'),'district geometry stays physically above the terrain layer');

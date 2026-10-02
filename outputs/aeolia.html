@@ -320,6 +320,18 @@ for(const [kind,parts] of Object.entries(propParts)){
   batch.receiveShadow=true;batch.castShadow=false;batch.computeBoundingSphere();scene.add(batch);propBatches.push(batch);
 }
 dummy.scale.setScalar(1);
+// Three small service sites turn the cloud underside into a route without adding many draws.
+const underCloudSites=[[-105,-24,-128,6,4],[-42,-27,55,6,4],[45,-31,-35,5,5]],underCloudBatches=[];
+const underDecks=new THREE.InstancedMesh(new THREE.CylinderGeometry(1,1.08,.7,9),MAT.stone,underCloudSites.length*2),underFrames=new THREE.InstancedMesh(new THREE.BoxGeometry(1,1,1),MAT.wood,underCloudSites.length*6),underLights=new THREE.InstancedMesh(new THREE.SphereGeometry(.42,8,6),MAT.gold,underCloudSites.length);let underPart=0;
+for(const [i,[x,y,z,sx,sz]] of underCloudSites.entries()){
+  dummy.position.set(x,y,z);dummy.rotation.set(0,i*.47,0);dummy.scale.set(sx,1,sz);dummy.updateMatrix();underDecks.setMatrixAt(i*2,dummy.matrix);
+  dummy.position.set(x+sx*.58,y+.12,z-sz*.22);dummy.rotation.y=i*.47+.65;dummy.scale.set(sx*.42,1,sz*.55);dummy.updateMatrix();underDecks.setMatrixAt(i*2+1,dummy.matrix);
+  for(const side of [-1,1]){dummy.position.set(x+side*sx*.62,y+1.5,z);dummy.rotation.set(0,0,0);dummy.scale.set(.16,3,.16);dummy.updateMatrix();underFrames.setMatrixAt(underPart++,dummy.matrix)}
+  for(const side of [-1,1]){const top=3;dummy.position.set(x+side*sx*.42,(y+top)/2,z+sz*.34);dummy.scale.set(.09,top-y,.09);dummy.updateMatrix();underFrames.setMatrixAt(underPart++,dummy.matrix)}
+  for(const side of [-1,1]){dummy.position.set(x,y+1.1,z+side*sz*.72);dummy.scale.set(sx*1.3,.12,.12);dummy.updateMatrix();underFrames.setMatrixAt(underPart++,dummy.matrix)}
+  dummy.position.set(x,y+2.5,z);dummy.scale.set(1,1,1);dummy.updateMatrix();underLights.setMatrixAt(i,dummy.matrix);colliders.push({x,z,radius:Math.max(sx,sz),bottom:y-.35,top:y+.35});
+}
+for(const batch of [underDecks,underFrames,underLights]){batch.castShadow=false;batch.receiveShadow=true;batch.computeBoundingSphere();scene.add(batch);underCloudBatches.push(batch)}dummy.scale.setScalar(1);
 const solidColliders=colliders.concat(propColliders);
 const PLAYER_RADIUS=.58,PLAYER_HEIGHT=3.85;
 
@@ -445,7 +457,9 @@ const discoveries=[
   {name:'鐘楼',text:'鐘は風だけで鳴るように吊られている。',p:new THREE.Vector3(-105,33,-105)},
   {name:'風車工房',text:'風車の修理道具と乾燥布が置かれている。',p:new THREE.Vector3(112,53,-92)},
   {name:'離宮',text:'水盤に空が映っている。',p:new THREE.Vector3(78,6,100)},
-  {name:'雲下の滝口',text:'島から落ちる水が雲の中へ消えていく。',p:new THREE.Vector3(-105,-24,-128)}
+  {name:'雲下の滝口',text:'島から落ちる水を集める設備がある。',p:new THREE.Vector3(-105,-23,-128)},
+  {name:'雲下点検台',text:'島の下面と支柱を確認するための足場。',p:new THREE.Vector3(-42,-26,55)},
+  {name:'雲量観測所',text:'雲の高さと流れる方向を記録している。',p:new THREE.Vector3(45,-30,-35)}
 ];
 const DISCOVERY_RADIUS=13;
 function readNotes(){try{return JSON.parse(stored('aeolia-notes')||'[]')}catch{return []}}
