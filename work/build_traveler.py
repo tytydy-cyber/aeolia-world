@@ -103,9 +103,20 @@ idle=action('Idle',[(1,{'spine':(0,0,-.018),'head':(0,0,-.018),'arm.L':(.025,0,0
 walk=action('Walk',[(1,{'arm.L':(.55,0,0),'arm.R':(-.55,0,0),'leg.L':(-.62,0,0),'leg.R':(.62,0,0),'scarf.1':(.11,0,.08),'scarf.2':(-.1,0,.08)}),(16,{'arm.L':(-.55,0,0),'arm.R':(.55,0,0),'leg.L':(.62,0,0),'leg.R':(-.62,0,0),'scarf.1':(-.06,0,-.08),'scarf.2':(.1,0,-.1)}),(31,{'arm.L':(.55,0,0),'arm.R':(-.55,0,0),'leg.L':(-.62,0,0),'leg.R':(.62,0,0),'scarf.1':(.11,0,.08),'scarf.2':(-.1,0,.08)})])
 fly=action('Fly',[(1,{'spine':(.24,0,-.025),'head':(-.04,0,.025),'arm.L':(-.08,.05,-.82),'arm.R':(-.22,-.04,.7),'leg.L':(.28,0,.08),'leg.R':(.1,0,-.06),'scarf.1':(.58,0,.08),'scarf.2':(.42,0,-.08)}),(16,{'spine':(.18,0,.035),'head':(.035,0,-.04),'arm.L':(-.26,-.04,-.64),'arm.R':(-.1,.05,.83),'leg.L':(.12,0,-.06),'leg.R':(.3,0,.08),'scarf.1':(.38,0,-.08),'scarf.2':(.58,0,.1)}),(32,{'spine':(.23,0,.02),'head':(0,0,.045),'arm.L':(-.14,.04,-.74),'arm.R':(-.25,-.03,.67),'leg.L':(.32,0,.04),'leg.R':(.14,0,-.05),'scarf.1':(.5,0,.06),'scarf.2':(.34,0,-.1)}),(48,{'spine':(.24,0,-.025),'head':(-.04,0,.025),'arm.L':(-.08,.05,-.82),'arm.R':(-.22,-.04,.7),'leg.L':(.28,0,.08),'leg.R':(.1,0,-.06),'scarf.1':(.58,0,.08),'scarf.2':(.42,0,-.08)})])
 
+# Emotes play once over the flight loop. Every bone is keyed, starting and ending in the Fly pose,
+# so bones an emote leaves alone keep the flight posture instead of snapping to the rest pose.
+FLY_POSE={'root':(0,0,0),'spine':(.24,0,-.025),'head':(-.04,0,.025),'arm.L':(-.08,.05,-.82),'arm.R':(-.22,-.04,.7),'leg.L':(.28,0,.08),'leg.R':(.1,0,-.06),'scarf.1':(.58,0,.08),'scarf.2':(.42,0,-.08)}
+def emote(name,frames):
+    return action(name,[(frame,{**FLY_POSE,**pose}) for frame,pose in frames])
+upright={'spine':(.08,0,0),'head':(0,0,0)}
+wave=emote('Wave',[(1,{}),(8,{**upright,'arm.R':(0,0,2.2)}),(13,{**upright,'arm.R':(0,0,2.42),'head':(0,0,-.08)}),(19,{**upright,'arm.R':(0,0,2.1)}),(25,{**upright,'arm.R':(0,0,2.42),'head':(0,0,-.08)}),(31,{**upright,'arm.R':(0,0,2.1)}),(37,{**upright,'arm.R':(0,0,2.4)}),(44,{'arm.R':(-.1,0,1.2)}),(48,{})])
+bow=emote('Bow',[(1,{}),(14,{'spine':(.72,0,0),'head':(.22,0,0),'arm.L':(.1,0,-.22),'arm.R':(.1,0,.22),'scarf.1':(.2,0,0),'scarf.2':(.15,0,0)}),(28,{'spine':(.72,0,0),'head':(.22,0,0),'arm.L':(.1,0,-.22),'arm.R':(.1,0,.22),'scarf.1':(.2,0,0),'scarf.2':(.15,0,0)}),(48,{})])
+spread={'spine':(.06,0,0),'arm.L':(0,0,-1.45),'arm.R':(0,0,1.45),'leg.L':(.05,0,0),'leg.R':(.05,0,0)}
+spin=emote('Spin',[(1,{}),(6,{**spread}),(18,{**spread,'root':(0,math.pi,0)}),(30,{**spread,'root':(0,math.tau,0)}),(36,{'root':(0,math.tau,0)})])
+
 # Preserve all actions in the GLB as animation tracks.
 rig.animation_data.action=None
-for a in (idle,walk,fly):
+for a in (idle,walk,fly,wave,bow,spin):
     track=rig.animation_data.nla_tracks.new();track.name=a.name;strip=track.strips.new(a.name,int(a.frame_range[0]),a);strip.action_frame_start=a.frame_range[0];strip.action_frame_end=a.frame_range[1];track.mute=True
 
 for o in bpy.context.scene.objects:o.select_set(False)
