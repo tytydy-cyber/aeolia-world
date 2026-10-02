@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import vm from 'node:vm';
 import * as Core from './three.core.mjs';
-import {loadHouse} from './asset-loader.mjs';
+import {loadHouse,mergeGeometries} from './asset-loader.mjs';
 import {WorldAudio} from '../outputs/audio.js';
 import {MotionEffects} from '../outputs/effects.js';
 import {applyTravelerDesign} from '../outputs/character-designs.js';
@@ -11,7 +11,8 @@ import {applyTravelerDesign} from '../outputs/character-designs.js';
 const listeners=new Map(),elements=new Map();
 const on=(name,fn)=>{if(!listeners.has(name))listeners.set(name,[]);listeners.get(name).push(fn)};
 function element(tagName='DIV'){return {tagName,events:new Map(),style:{},classList:{add(){},remove(){}},addEventListener(type,fn){if(!this.events.has(type))this.events.set(type,[]);this.events.get(type).push(fn)},setAttribute(){},focus(){document.activeElement=this;dispatch('focusin',{target:this})},setPointerCapture(){},remove(){},querySelector(){return element()},getContext(){return {createRadialGradient(){return {addColorStop(){}}},createLinearGradient(){return {addColorStop(){}}},fillRect(){}}}}}
-const document={body:{tagName:'BODY',prepend(){}},hidden:false,addEventListener:on,createElement:element,querySelector(s){if(!elements.has(s))elements.set(s,element(['#paceInput','#soundVolume','#effectsToggle'].includes(s)?'INPUT':s==='#characterSelect'?'SELECT':['#enter','#soundToggle'].includes(s)?'BUTTON':'DIV'));return elements.get(s)}};
+const makeDocument=(store,listen)=>({body:{tagName:'BODY',prepend(){}},hidden:false,addEventListener:listen,createElement:element,querySelector(s){if(!store.has(s))store.set(s,element(['#paceInput','#soundVolume','#effectsToggle'].includes(s)?'INPUT':s==='#characterSelect'?'SELECT':['#enter','#soundToggle'].includes(s)?'BUTTON':'DIV'));return store.get(s)}});
+const document=makeDocument(elements,on);
 class Renderer{constructor(){this.domElement=element('CANVAS');this.shadowMap={}}setPixelRatio(){}setSize(){}render(){}}
 class TextureLoader{load(path){assert.ok(readFileSync(new URL('../outputs/'+path.split('?')[0],import.meta.url)).length>100,'texture file exists');return new Core.Texture()}}
 const houseAsset=await loadHouse();
@@ -19,15 +20,27 @@ let assetMeshes=0,assetTriangles=0;
 houseAsset.scene.traverse(o=>{if(o.isMesh){assetMeshes++;assetTriangles+=(o.geometry.index?.count??o.geometry.attributes.position.count)/3}});
 assert.ok(assetMeshes<=15,'asset draw-call budget');assert.ok(assetTriangles<70000,'asset triangle budget');
 console.log(`Blender asset: ${assetMeshes} material batches, ${assetTriangles} triangles`);
-let assetCallback;
-class Loader{load(url,callback){assert.ok(['assets/aeolia-house.glb','assets/aeolia-traveler.glb'].includes(url));if(url.endsWith('house.glb'))assetCallback=callback}}
+const lodAsset=await loadHouse('aeolia-house-lod.glb');
+let lodMeshes=0,lodTriangles=0;
+lodAsset.scene.traverse(o=>{if(o.isMesh){lodMeshes++;lodTriangles+=o.geometry.index.count/3}});
+assert.ok(lodMeshes<=4&&lodTriangles<=5000,`LOD house budget (${lodMeshes} batches, ${lodTriangles} triangles)`);
+const assetCallbacks={};
+class Loader{load(url,callback){assert.ok(['assets/aeolia-house.glb','assets/aeolia-house-lod.glb','assets/aeolia-traveler.glb'].includes(url));assetCallbacks[url]=callback}}
 const localStorage={data:new Map(),getItem(k){return this.data.get(k)||null},setItem(k,v){this.data.set(k,String(v))}};
-const context=vm.createContext({THREE:{...Core,WebGLRenderer:Renderer,TextureLoader},GLTFLoader:Loader,WorldAudio,MotionEffects,applyTravelerDesign,document,localStorage,innerWidth:1280,innerHeight:800,devicePixelRatio:1,matchMedia(){return {matches:false}},addEventListener:on,requestAnimationFrame(){},setTimeout(){},console:{...console,assert(condition,message){assert.ok(condition,message)}},performance});
+const gameContext=(overrides={})=>vm.createContext({THREE:{...Core,WebGLRenderer:Renderer,TextureLoader},GLTFLoader:Loader,mergeGeometries,houseAsset,lodAsset,WorldAudio,MotionEffects,applyTravelerDesign,document,localStorage,innerWidth:1280,innerHeight:800,devicePixelRatio:1,matchMedia(){return {matches:false}},addEventListener:on,requestAnimationFrame(){},setTimeout(){},console:{...console,assert(condition,message){assert.ok(condition,message)}},performance,...overrides});
+const context=gameContext();
 const html=readFileSync(new URL('../outputs/aeolia.html',import.meta.url),'utf8');
 const script=html.match(/<script type="module">([\s\S]*?)<\/script>/)[1].replace(/^import .*$/gm,'');
 vm.runInContext(script,context);
-assetCallback(houseAsset);
+assetCallbacks['assets/aeolia-house.glb'](houseAsset);assetCallbacks['assets/aeolia-house-lod.glb'](lodAsset);await new Promise(resolve=>setImmediate(resolve));
 const run=s=>vm.runInContext(s,context);
+// A failed house download keeps the procedural fallback houses and tells the player.
+{
+  const failedElements=new Map(),failed=gameContext({document:makeDocument(failedElements,()=>{}),addEventListener(){},GLTFLoader:class{load(url,callback,progress,onError){if(url.includes('house'))onError(new Error('offline'))}},console:{...console,error(){},assert(condition,message){assert.ok(condition,message)}}});
+  vm.runInContext(script,failed);await new Promise(resolve=>setImmediate(resolve));
+  assert.ok(vm.runInContext('houseBatches.length===0&&houses.every(h=>h.fallback.length&&h.fallback.every(o=>o.visible))',failed),'fallback houses stay visible when assets fail');
+  assert.ok(failedElements.get('#assetState').textContent.includes('読み込めませんでした'),'asset failure is reported');
+}
 assert.equal(run('perfEnabled'),false,'performance meter stays inactive without debug query');
 function dispatch(type,values={}){const e={target:type.startsWith('pointer')?run('renderer.domElement'):document.activeElement||document.body,preventDefault(){this.prevented=true},...values};for(const fn of e.target.events?.get(type)||[])fn(e);for(const fn of listeners.get(type)||[])fn(e);return e}
 function inputPace(value){const target=document.querySelector('#paceInput');target.value=value;dispatch('input',{target})}
@@ -39,10 +52,17 @@ assert.equal(run('scenicLayers.length'),2,'two parallax ruin layers');
 assert.equal(run("sky.material.map.image===null"),true,'generated panorama is loaded through the texture pipeline');
 assert.deepEqual(Array.from(run('player.position')), [-25,3,5], 'spawn starts in the open central plaza');
 assert.deepEqual(Array.from(run('camera.position')), [-25,9,14], 'camera starts behind the new spawn');
-assert.equal(run('houseBatches.length'),assetMeshes,'one draw batch per imported material');
+const houseTriangles=()=>run('houseBatches.reduce((sum,b)=>sum+b.geometry.index.count/3,0)');
+assert.ok(run('houseBatches.length')<=8,`desktop house batches (${run('houseBatches.length')})`);
+const desktopHouseTriangles=houseTriangles();assert.ok(desktopHouseTriangles<=115000,`desktop house triangles (${desktopHouseTriangles})`);
+assert.ok(desktopHouseTriangles>2*assetTriangles,'two houses keep full detail on desktop');
 assert.equal(run('houses.every(h=>h.fallback.every(o=>!o.visible))'),true,'batched Blender models replace all fallback houses');
-let textured=0;for(const batch of run('houseBatches'))if(batch.material.userData.textureKind){textured++;assert.ok(batch.material.map&&batch.material.bumpMap);assert.ok(batch.geometry.attributes.uv)}assert.ok(textured>=8,'textures reach imported Blender materials');
-assert.ok(run('houseBatches.every(batch=>batch.count===houses.length)'),'each material batch contains every house');
+let textured=0;for(const batch of run('houseBatches'))if(batch.material.userData.textureKind){textured++;assert.ok(batch.material.map&&batch.material.bumpMap);assert.ok(batch.geometry.attributes.uv)}assert.equal(textured,4,'plaster, stone, slate and wood each reach one textured batch');
+assert.ok(run('houseBatches.every(b=>b.material.vertexColors&&b.geometry.attributes.color)'),'merged batches carry roof tint and LOD shading as vertex color');
+run('houseBatches.forEach(b=>scene.remove(b));houseBatches.length=0;placeHouses(null,houseParts(lodAsset))');
+const phoneHouseTriangles=houseTriangles();assert.ok(run('houseBatches.length')<=4&&phoneHouseTriangles<=45000,`phone uses LOD only (${run('houseBatches.length')} batches, ${phoneHouseTriangles} triangles)`);
+run('houseBatches.forEach(b=>scene.remove(b));houseBatches.length=0;placeHouses(houseParts(houseAsset),houseParts(lodAsset))');
+console.log(`House rendering: desktop ${desktopHouseTriangles} triangles, phone ${phoneHouseTriangles} triangles`);
 assert.ok(run('houseBatches.every(batch=>!batch.castShadow&&batch.receiveShadow)'),'houses receive nearby shadows without a second full geometry pass');
 assert.equal(run('cloudBatch.count'),160,'all distant clouds share one draw batch');
 

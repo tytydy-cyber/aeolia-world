@@ -8,7 +8,8 @@ const utils=dataURL(read('./BufferGeometryUtils.js'));
 const skeleton=dataURL(read('./SkeletonUtils.js'));
 const source=read('./GLTFLoader.js').replace("'../utils/BufferGeometryUtils.js'",JSON.stringify(utils)).replace("'../utils/SkeletonUtils.js'",JSON.stringify(skeleton));
 const {GLTFLoader}=await import(dataURL(source));
-export async function loadHouse(){
-  const bytes=readFileSync(new URL('../outputs/assets/aeolia-house.glb',import.meta.url));
+export const {mergeGeometries}=await import(utils);
+export async function loadHouse(file='aeolia-house.glb'){
+  const bytes=readFileSync(new URL('../outputs/assets/'+file,import.meta.url));
   return new GLTFLoader().parseAsync(bytes.buffer.slice(bytes.byteOffset,bytes.byteOffset+bytes.byteLength),'');
 }

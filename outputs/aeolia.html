@@ -42,6 +42,7 @@
 <script type="module">
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.186.0/build/three.module.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { WorldAudio } from './audio.js?v=51';
 import { MotionEffects } from './effects.js?v=51';
 import { applyTravelerDesign } from './character-designs.js?v=45';
@@ -533,21 +534,49 @@ function update(dt,t){
   dreamObjects.forEach((item,i)=>{item.object.position.y=item.baseY+Math.sin(t*.00045+item.phase)*(.35+i%3*.12);item.object.rotation.z=Math.sin(t*.00018+item.phase)*.018});
   if(t>=nextDiscovery){discover();nextDiscovery=t+500}
 }
-// Batch each material across all houses; retain the existing collision proxies.
-const houseBatches=[];
-new GLTFLoader().load('assets/aeolia-house.glb',gltf=>{
-  gltf.scene.updateMatrixWorld(true);
+// Desktop keeps full detail on the two houses in front of the spawn; other houses and every phone house use the LOD asset.
+// Parts sharing a surface are merged across houses into one draw; the existing collision proxies stay.
+const houseBatches=[],FULL_DETAIL_HOUSES=2;
+function houseParts(gltf){
+  const parts=[];gltf.scene.updateMatrixWorld(true);
   gltf.scene.traverse(o=>{
     if(!o.isMesh)return;
     const name=o.material.name;
     const kind=name.includes('plaster')?'plaster':name.includes('limestone')||name.includes('mouldings')?'stone':name.startsWith('Slate')?'slate':name.includes('chestnut')||name.includes('shutters')?'wood':null;
     if(kind){surfaceUV(o.geometry,kind==='slate'?1.6:kind==='wood'?2:3);textureMaterial(o.material,kind)}
+    parts.push({key:kind||name,kind,mesh:o});
   });
-  const position=new THREE.Vector3(),rotation=new THREE.Quaternion(),scale=new THREE.Vector3(),houseMatrix=new THREE.Matrix4(),matrix=new THREE.Matrix4(),white=new THREE.Color(0xffffff),redRoof=new THREE.Color(0x835649);
-  gltf.scene.traverse(o=>{if(!o.isMesh)return;const batch=new THREE.InstancedMesh(o.geometry,o.material,houses.length);for(const [i,h] of houses.entries()){position.set(h.px,h.y,h.pz);scale.set(h.w/12,h.h/11,h.d/10);houseMatrix.compose(position,rotation,scale);matrix.multiplyMatrices(houseMatrix,o.matrixWorld);batch.setMatrixAt(i,matrix);if(o.material.name.startsWith('Slate'))batch.setColorAt(i,h.roof===MAT.roof2?redRoof:white)}batch.castShadow=false;batch.receiveShadow=true;batch.computeBoundingSphere();scene.add(batch);houseBatches.push(batch)});
+  return parts;
+}
+function housePart(mesh,matrix,tint){
+  const g=mesh.geometry.clone().applyMatrix4(matrix),source=g.attributes.color,n=g.attributes.position.count,colors=new Float32Array(n*3);
+  for(let i=0;i<n;i++){colors[i*3]=(source?source.getX(i):1)*tint.r;colors[i*3+1]=(source?source.getY(i):1)*tint.g;colors[i*3+2]=(source?source.getZ(i):1)*tint.b}
+  for(const name of Object.keys(g.attributes))if(!['position','normal','uv'].includes(name))g.deleteAttribute(name);
+  if(!g.attributes.uv)g.setAttribute('uv',new THREE.BufferAttribute(new Float32Array(n*2),2));
+  g.setAttribute('color',new THREE.BufferAttribute(colors,3));
+  return g;
+}
+function placeHouses(full,lod){
+  const fullDetail=new Set(full?houses.map((h,i)=>({i,d:Math.hypot(h.px+25,h.pz-5),ahead:h.pz<5})).filter(e=>e.ahead).sort((a,b)=>a.d-b.d).slice(0,FULL_DETAIL_HOUSES).map(e=>e.i):[]);
+  const groups=new Map(),white=new THREE.Color(0xffffff),redRoof=new THREE.Color(0x835649),houseMatrix=new THREE.Matrix4(),matrix=new THREE.Matrix4(),scale=new THREE.Vector3();
+  for(const [i,h] of houses.entries()){
+    houseMatrix.compose(new THREE.Vector3(h.px,h.y,h.pz),new THREE.Quaternion(),scale.set(h.w/12,h.h/11,h.d/10));
+    for(const p of fullDetail.has(i)?full:lod){
+      if(!groups.has(p.key))groups.set(p.key,{material:p.mesh.material,geometries:[]});
+      groups.get(p.key).geometries.push(housePart(p.mesh,matrix.multiplyMatrices(houseMatrix,p.mesh.matrixWorld),p.kind==='slate'&&h.roof===MAT.roof2?redRoof:white));
+    }
+  }
+  for(const {material,geometries} of groups.values()){
+    material.vertexColors=true;material.needsUpdate=true;
+    const batch=new THREE.Mesh(mergeGeometries(geometries),material);batch.castShadow=false;batch.receiveShadow=true;scene.add(batch);houseBatches.push(batch);
+  }
   for(const h of houses)h.fallback.forEach(o=>o.visible=false);
+}
+const houseLoader=new GLTFLoader(),loadHouseAsset=url=>new Promise((resolve,reject)=>houseLoader.load(url,resolve,undefined,reject));
+Promise.all([reducedGPU?null:loadHouseAsset('assets/aeolia-house.glb'),loadHouseAsset('assets/aeolia-house-lod.glb')]).then(([full,lod])=>{
+  placeHouses(full&&houseParts(full),houseParts(lod));
   document.querySelector('#assetState').textContent='';
-},undefined,error=>{console.error('House asset could not load',error);document.querySelector('#assetState').textContent='建物の詳細を読み込めませんでした。再読み込みで再試行できます。'});
+}).catch(error=>{console.error('House asset could not load',error);document.querySelector('#assetState').textContent='建物の詳細を読み込めませんでした。再読み込みで再試行できます。'});
 let previousFrame=null;
 const perfOutput=document.querySelector('#perf'),perfEnabled=Boolean(document.location?.search.includes('debug=1')),perfFrames=[];let perfStart=0;
 if(perfEnabled)perfOutput.hidden=false;
