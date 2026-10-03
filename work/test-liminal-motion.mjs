@@ -20,6 +20,15 @@ for(const stage of ['parallax','somnia']){
     assert.ok(run('player.position.z')>=wall.z+wall.d,`${stage}: boosted flight stops at a wall at ${hz} Hz`);
   }
 }
+// New outer discoveries turn existing background districts into reachable destinations without placing the target inside solid geometry.
+for(const [stage,names] of Object.entries({parallax:['給水塔','北側宿泊棟','東側倉庫'],somnia:['共同学舎','空中菜園','外周住宅区']})){
+  const game=loadStage(stage);
+  for(const name of names){
+    const note=game.run(`cfg.notes.find(n=>n[3]===${JSON.stringify(name)})`);
+    assert.ok(note,`${stage}: ${name} exists`);
+    assert.equal(game.run(`colliders.some(c=>contains(c,${note[0]},${note[2]}))`),false,`${stage}: ${name} is reachable outside solid geometry`);
+  }
+}
 // Wide floors use a footprint-rounding geometry: their corner radius can never fold through their thickness.
 {
   const facility=loadStage('parallax'),surfaces=facility.run('flatSurfaces.map(o=>({position:o.position.toArray(),spec:o.userData.flatSurface,box:new THREE.Box3().setFromObject(o).getSize(new THREE.Vector3()).toArray()}))');

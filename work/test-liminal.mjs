@@ -14,8 +14,8 @@ assert.ok(source,'stage configuration is readable');
 const stages=vm.runInNewContext(`(${source})`);
 assert.deepEqual(Object.keys(stages),['parallax','somnia']);
 for(const [key,stage] of Object.entries(stages)){
-  assert.equal(stage.notes.length,5,`${key} has five main discoveries`);
-  assert.equal(new Set(stage.notes.map(n=>n[3])).size,5,`${key} discovery names are unique`);
+  assert.equal(stage.notes.length,8,`${key} has eight main discoveries`);
+  assert.equal(new Set(stage.notes.map(n=>n[3])).size,8,`${key} discovery names are unique`);
   assert.ok(stage.limitY>15,'flight remains available');
 }
 for(const code of ['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','KeyW','KeyA','KeyS','KeyD','KeyC','KeyQ','KeyE','ControlLeft'])assert.ok(js.includes(code),`${code} remains supported`);
@@ -31,7 +31,7 @@ for(const page of [html,aeolia]){
   for(const label of ['>↑ ↓ ← →</b> 飛行','>SPACE</b> 上昇','>SHIFT</b> 下降'])assert.ok(page.includes(label),`PC control label ${label} is explicit`);
 }
 assert.ok(js.includes('SOLARPUNK SUBURB 03')&&js.includes('const panels=new THREE.InstancedMesh')&&js.includes('const planters=new THREE.InstancedMesh'),'suburb has instanced solarpunk landmarks');
-for(const name of ['育苗室','配水庭','修理工房','調整池','集光塔'])assert.ok(stages.somnia.notes.some(n=>n[3]===name),`${name} is a concrete suburb discovery`);
+for(const name of ['育苗室','配水庭','修理工房','調整池','集光塔','共同学舎','空中菜園','外周住宅区'])assert.ok(stages.somnia.notes.some(n=>n[3]===name),`${name} is a concrete suburb discovery`);
 const collectorNote=stages.somnia.notes.find(n=>n[3]==='集光塔');assert.ok(Math.hypot(collectorNote[0],collectorNote[2]+170)>10,'collector discovery is beside the solid tower instead of inside it');
 assert.ok(js.includes('const utilityLine=')&&js.includes('const utilityPoles=')&&js.includes('const greenhouse=')&&js.includes('const greenhouseRibs=')&&js.includes('const cisternWater=')&&js.includes('const workshopRoof=')&&js.includes('const reeds='),'water, supported power lines and all four district anchors are visible geometry');
 for(const batch of ['cisternPipes','workshopDetails','schoolWindows','terraces','doorFrames'])assert.ok(js.includes(`const ${batch}=new THREE.InstancedMesh`),`${batch} keeps detailed suburb geometry in one draw batch`);
@@ -89,4 +89,4 @@ const player=new THREE.Group(),model=new THREE.Group(),headBone=new THREE.Group(
 applyTravelerDesign(THREE,player,model,'mist');assert.equal(hat.visible,false);assert.equal(hair.visible,false);assert.equal(player.userData.designVariants.mist.visible,true);assert.equal(player.userData.designVariants.mistHead.parent,headBone,'mist hood follows the animated head');assert.equal(player.userData.designVariants.lilac.visible,false);
 applyTravelerDesign(THREE,player,model,'lilac');assert.equal(player.userData.designVariants.mist.visible,false);assert.equal(player.userData.designVariants.lilac.visible,true);assert.ok(player.userData.designVariants.lilac.children.length>=4,'lilac changes silhouette');
 assert.equal(player.userData.designVariants.lilacHead.visible,true,'lilac headwear remains visible');assert.equal(player.userData.designVariants.lilacHead.parent,headBone,'lilac headwear follows the animated head');assert.equal(player.userData.designVariants.lilac.children.filter(o=>o.geometry?.type==='PlaneGeometry').length,2,'lilac veil uses cloth strips instead of one backing board');
-console.log('PASS: two independent worlds, 10 discoveries, station routes, shared movement/audio/effects controls.');
+console.log('PASS: two independent worlds, 16 discoveries, station routes, shared movement/audio/effects controls.');
