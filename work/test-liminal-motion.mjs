@@ -39,6 +39,11 @@ for(const stage of ['parallax','somnia']){
   facility.reset(-30,6,35);facility.run('keys.Space=true');facility.frames(120);facility.run('keys.Space=false');
   assert.ok(Math.abs(facility.run('player.position.y+3.6')-13.45)<.01,`rising under the banquet ceiling stops below it (${facility.run('player.position.y')})`);
 }
+// A column immediately behind the traveler pulls the camera in front of it instead of leaving the column across the view.
+{
+  const facility=loadStage('parallax');facility.reset(1.3,1,70);facility.run('yaw=-Math.PI/2');facility.frames(120);
+  assert.ok(facility.run('camera.position.x')>.85,`camera stays on the traveler side of a nearby column (${facility.run('camera.position.x')})`);
+}
 // Notifications: only discoveries carry the 発見 heading; a drag cancels the camera's turn toward a discovery.
 {
   const game=loadStage('parallax'),heading=()=>game.elements.get('#event').querySelector('small');
