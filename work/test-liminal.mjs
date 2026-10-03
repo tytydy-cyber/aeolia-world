@@ -56,12 +56,13 @@ assert.ok(js.includes('function routeGate')&&js.includes('function updateRouteGa
 assert.ok(js.includes('A water tower anchors the horizon')&&js.includes('The solar collector closes the long view'),'both worlds have reachable navigation landmarks');
 assert.ok(js.includes('function mesh(g,m,x,y,z,shadow=false)'),'static architecture skips redundant shadow passes by default');
 assert.ok(js.includes('const accentBatch=new THREE.InstancedMesh')&&js.includes('renderer.shadowMap.enabled=false'),'repeated solar accents are batched and generated-material worlds skip dynamic shadow passes');
+assert.ok(js.includes('function mergeStaticWorld()')&&js.includes('mergeGeometries(objects.map'),'compatible static architecture is merged by material after each stage is built');
 assert.ok(js.includes('mergeGeometries')&&js.includes('groundCreatureBatch=new THREE.InstancedMesh')&&js.includes('birdBatch=new THREE.InstancedMesh'),'animated creatures keep their silhouettes in two draw batches');
 assert.ok(js.includes('complex-surface-v2.jpg')&&js.includes('solarpunk-surface-v2.jpg')&&js.includes("structuralMap.repeat.set(stageKey==='parallax'?6:3")&&js.includes('frame:new THREE.MeshStandardMaterial'),'world-specific material atlases repeat across broad surfaces while frames keep stable UVs');
 assert.ok(js.includes("[65,0,38,'受付'")&&js.includes('const bell=mesh(new THREE.SphereGeometry'),'the reception discovery points at a visible bell');
 assert.ok(js.includes('Broken ceiling plates enclose the complex')&&js.includes('limitY:38'),'the closed complex keeps the player below its broken ceiling');
 assert.ok(hub.includes(".parallax{--scene:url('assets/textures/complex-horizon-v1.png')}")&&hub.includes(".somnia{--scene:url('assets/textures/distant-ruins.png')}"),'world cards use their generated scenery instead of flat gradients');
-assert.ok(js.includes("全地点を巡った")&&js.includes("best<90")&&js.includes("count} / ${cfg.notes.length}"),'exploration provides proximity and completion feedback');
+assert.ok(js.includes("全地点を巡った")&&js.includes("remaining=cfg.notes.filter")&&js.includes("best<90")&&js.includes("count} / ${cfg.notes.length}"),'exploration guides toward the nearest unfinished discovery and provides completion feedback');
 assert.ok(js.includes("addHorizon('assets/textures/complex-horizon-v1.png'")&&js.includes("addHorizon('assets/textures/distant-ruins.png'"),'both worlds have layered distant scenery');
 assert.ok(js.includes('irregularGround()')&&js.includes('roughCylinder(')&&js.includes('c.radius!==undefined'),'natural ground, hills and their colliders share non-rectangular shapes');
 assert.ok(js.includes('function visibleBoundary()')&&js.includes("count=stageKey==='parallax'?64:72")&&js.includes('visibleWorldBoundary=true'),'both liminal stages render their irregular movement boundary as one visible batch');

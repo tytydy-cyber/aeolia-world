@@ -59,6 +59,7 @@ for(const [stage,names] of Object.entries({parallax:['給水塔','北側宿泊�
   const [x,,z]=game.run("cfg.notes.find(n=>n[3]==='宴会場')");
   game.reset(x+3,1,z);game.frames(70);
   assert.equal(heading().textContent,'発見');assert.equal(heading().hidden,false,'discoveries show the 発見 heading');
+  assert.ok(!game.elements.get('#place').textContent.startsWith('宴会場'),'the guide advances to an unfinished destination after a discovery');
   game.run('recenterYaw=yaw+2');
   const canvas=game.run('renderer.domElement');for(const fn of canvas.events.get('pointerdown'))fn({button:0,pointerId:1});
   game.dispatch('pointermove',{buttons:1,movementX:40,movementY:0});
