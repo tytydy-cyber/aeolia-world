@@ -6,6 +6,7 @@ import {loadHouse,mergeGeometries} from './asset-loader.mjs';
 import {WorldAudio} from '../outputs/audio.js';
 import {MotionEffects} from '../outputs/effects.js';
 import {applyTravelerDesign} from '../outputs/character-designs.js';
+import {Emotes,EMOTE_KEYS} from '../outputs/emotes.js';
 
 // Actual scene and movement code, actual Three.js geometry; only DOM/GPU are mocked.
 const listeners=new Map(),elements=new Map();
@@ -32,7 +33,7 @@ assert.deepEqual(districtAsset.scene.children.map(o=>o.name),['Market_module','B
 const assetCallbacks={};
 class Loader{load(url,callback){assert.ok(['assets/aeolia-house.glb','assets/aeolia-house-lod.glb','assets/aeolia-traveler.glb','assets/aeolia-island-modules.glb'].includes(url));assetCallbacks[url]=callback}}
 const localStorage={data:new Map(),getItem(k){return this.data.get(k)||null},setItem(k,v){this.data.set(k,String(v))}};
-const gameContext=(overrides={})=>vm.createContext({THREE:{...Core,WebGLRenderer:Renderer,TextureLoader},GLTFLoader:Loader,mergeGeometries,houseAsset,lodAsset,WorldAudio,MotionEffects,applyTravelerDesign,document,localStorage,innerWidth:1280,innerHeight:800,devicePixelRatio:1,matchMedia(){return {matches:false}},addEventListener:on,requestAnimationFrame(){},setTimeout(){},console:{...console,assert(condition,message){assert.ok(condition,message)}},performance,...overrides});
+const gameContext=(overrides={})=>vm.createContext({THREE:{...Core,WebGLRenderer:Renderer,TextureLoader},GLTFLoader:Loader,mergeGeometries,Emotes,EMOTE_KEYS,houseAsset,lodAsset,WorldAudio,MotionEffects,applyTravelerDesign,document,localStorage,innerWidth:1280,innerHeight:800,devicePixelRatio:1,matchMedia(){return {matches:false}},addEventListener:on,requestAnimationFrame(){},setTimeout(){},console:{...console,assert(condition,message){assert.ok(condition,message)}},performance,...overrides});
 const context=gameContext();
 const html=readFileSync(new URL('../outputs/aeolia.html',import.meta.url),'utf8');
 const script=html.match(/<script type="module">([\s\S]*?)<\/script>/)[1].replace(/^import .*$/gm,'');
