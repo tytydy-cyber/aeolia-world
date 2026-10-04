@@ -3,7 +3,7 @@ import {readFileSync} from 'node:fs';
 
 const read=name=>readFileSync(new URL('../outputs/'+name,import.meta.url),'utf8');
 const html=read('playroom.html'),js=read('playroom.js'),hub=read('index.html');
-assert.ok(html.includes('DREAMCORE PLAYROOM 04')&&html.includes('playroom.js?v=16'),'playroom has its own entry page and module');
+assert.ok(html.includes('DREAMCORE PLAYROOM 04')&&html.includes('playroom.js?v=17'),'playroom has its own entry page and module');
 assert.ok(hub.includes('class="gate playroom"')&&hub.includes('4つのエリア'),'world select exposes the fourth world');
 for(const asset of ['playroom-rainbow.glb','playroom-slide.glb','playroom-ball-pit.glb','playroom-playground-pack.glb','playroom-child-town-pack.glb','playroom-quiet-rooms-pack.glb','playroom-cloud-corridor-pack.glb'])assert.ok(js.includes(asset),`${asset} is placed in the world`);
 for(const texture of ['sky-wallpaper.jpg','clouds-12-atlas.png','carpet.jpg'])assert.ok(js.includes(texture),`${texture} is used by the hall`);
@@ -12,6 +12,10 @@ assert.equal((js.match(/'[^']+','[^']+'\]/g)||[]).filter(s=>['大きな虹','滑
 for(const safe of ["[10,5,-55,'遊具広場'","[52,3,-63,'子どもの街'","[-49,2,-99,'最後の布団'","[48,2,-106,'誕生日席'","[14,18,-139,'雲の回廊'"])assert.ok(js.includes(safe),`${safe} is outside its solid proxy`);
 assert.equal((js.match(/floorPatch\(\[/g)||[]).length,8,'eight asymmetric floor fields distinguish the entrance and added districts');
 assert.ok(js.includes('partitionZ(-38')&&js.includes('partitionZ(-84')&&js.includes('partitionZ(-126'),'the warehouse-sized floor is divided by three readable room thresholds');
+assert.ok(js.includes('partitionX(-25')&&js.includes('partitionX(25')&&js.includes('partitionX(0,-125.5'),'middle districts are separated into navigable rooms rather than one open warehouse');
+assert.equal((js.match(/archTrim\(/g)||[]).length-1,4,'four rounded thresholds mark the route without extra asset dependencies');
+assert.ok(js.includes("function roomOf(x,z)")&&js.includes("local=left.filter"),'discovery guidance prefers unseen landmarks in the current room instead of pointing through walls');
+assert.ok(!js.includes('o.visible=!o.visible')&&!js.includes('o.position.z+=')&&!js.includes('o.position.x+='),'anomalies do not leave stale invisible collision proxies');
 assert.ok(js.includes('Math.sin(yaw)*14')&&js.includes('Math.cos(yaw)*14'),'the closer camera keeps the traveler and nearby play equipment readable');
 assert.ok(js.includes('new THREE.InstancedMesh(new THREE.BoxGeometry(.22,1.45,.18)')&&js.includes('fenceColors'),'a single colored fence batch gives the first room human scale');
 assert.ok(js.includes('const anomalies=[')&&js.includes('anomalyIndex++%anomalies.length'),'entry-local anomalies advance without overwriting the persistent journal');
