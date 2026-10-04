@@ -4,7 +4,7 @@ import {loadHouse} from './asset-loader.mjs';
 const expected={
   'playroom/playroom-rainbow.glb':{root:'Rainbow_arch',triangles:1500,meshes:8},
   'playroom/playroom-slide.glb':{root:'Slide_tower',triangles:1800,meshes:20},
-  'playroom/playroom-ball-pit.glb':{root:'Ball_pit',triangles:2200,meshes:10},
+  'playroom/playroom-ball-pit.glb':{root:'Ball_pit',triangles:5600,meshes:10},
 };
 for(const [file,budget] of Object.entries(expected)){
   const asset=await loadHouse(file);let meshes=0,triangles=0;

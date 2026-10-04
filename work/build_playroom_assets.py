@@ -207,9 +207,11 @@ random.seed(8)
 balls = [[] for _ in BALL_MATS]
 for i in range(56):
     x, y = random.uniform(-3.15, 3.15), random.uniform(-2.1, 2.1)
-    bpy.ops.mesh.primitive_ico_sphere_add(subdivisions=1, radius=.22, location=(x, y, .27 + random.uniform(0, .13)))
+    bpy.ops.mesh.primitive_ico_sphere_add(subdivisions=2, radius=.22, location=(x, y, .27 + random.uniform(0, .13)))
     o = bpy.context.object
     o.name = f'Ball {i:02d}'
+    for polygon in o.data.polygons:
+        polygon.use_smooth = True
     o.data.materials.append(BALL_MATS[i % 4])
     balls[i % 4].append(o)
 for index, group in enumerate(balls):

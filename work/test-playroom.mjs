@@ -3,7 +3,7 @@ import {readFileSync} from 'node:fs';
 
 const read=name=>readFileSync(new URL('../outputs/'+name,import.meta.url),'utf8');
 const html=read('playroom.html'),js=read('playroom.js'),hub=read('index.html');
-assert.ok(html.includes('DREAMCORE PLAYROOM 04')&&html.includes('playroom.js?v=7'),'playroom has its own entry page and module');
+assert.ok(html.includes('DREAMCORE PLAYROOM 04')&&html.includes('playroom.js?v=9'),'playroom has its own entry page and module');
 assert.ok(hub.includes('class="gate playroom"')&&hub.includes('4つのエリア'),'world select exposes the fourth world');
 for(const asset of ['playroom-rainbow.glb','playroom-slide.glb','playroom-ball-pit.glb','playroom-playground-pack.glb','playroom-child-town-pack.glb','playroom-quiet-rooms-pack.glb','playroom-cloud-corridor-pack.glb'])assert.ok(js.includes(asset),`${asset} is placed in the world`);
 for(const texture of ['sky-wallpaper.jpg','clouds-12-atlas.png','carpet.jpg'])assert.ok(js.includes(texture),`${texture} is used by the hall`);
