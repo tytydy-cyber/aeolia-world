@@ -5,8 +5,9 @@ const root=document.createElement('div');root.id='mobileControls';root.innerHTML
 const held=new Map();
 for(const el of root.querySelectorAll('[data-key]')){
   const down=e=>{e.preventDefault();const code=el.dataset.key;if(held.has(e.pointerId))return;held.set(e.pointerId,code);el.setPointerCapture(e.pointerId);emit(code,'keydown');el.classList.add('held')};
-  const up=e=>{const code=held.get(e.pointerId);if(!code)return;held.delete(e.pointerId);emit(code,'keyup');el.classList.remove('held')};
-  el.addEventListener('pointerdown',down);el.addEventListener('pointerup',up);el.addEventListener('pointercancel',up);
+  const up=e=>{e.stopPropagation();const code=held.get(e.pointerId);if(!code)return;held.delete(e.pointerId);emit(code,'keyup');el.classList.remove('held')};
+  // A finger on a button must not turn the camera or end another finger's camera drag: the stages listen on window.
+  el.addEventListener('pointerdown',down);el.addEventListener('pointerup',up);el.addEventListener('pointercancel',up);el.addEventListener('pointermove',e=>e.stopPropagation());
 }
 addEventListener('blur',()=>{for(const code of held.values())emit(code,'keyup');held.clear()});
 

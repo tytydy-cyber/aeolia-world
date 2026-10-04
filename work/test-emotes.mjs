@@ -10,6 +10,8 @@ const clipNames=json.animations.map(a=>a.name).sort();
 assert.deepEqual(clipNames,['Bow','Fly','Idle','Spin','Walk','Wave'],'traveler GLB has locomotion and emote clips');
 const mobile=readFileSync(new URL('../outputs/mobile-controls.js',import.meta.url),'utf8');
 for(const code of ['Digit1','Digit2','Digit3'])assert.ok(mobile.includes(`button('${code}'`),`phone controls expose ${code}`);
+// Stages listen for camera drags on window, so a finger on a phone button must not reach them.
+assert.ok(mobile.includes("addEventListener('pointermove',e=>e.stopPropagation())")&&mobile.includes('const up=e=>{e.stopPropagation()'),'a held phone button neither turns the camera nor ends another finger\'s drag');
 
 // Floating islands: give the test traveler clips with the real durations.
 const durations=Object.fromEntries(json.animations.map(a=>[a.name,Math.max(...a.samplers.map(s=>json.accessors[s.input].max[0]))]));
