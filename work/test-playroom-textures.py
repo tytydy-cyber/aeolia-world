@@ -31,6 +31,10 @@ sky_mean = ImageStat.Stat(Image.open(ASSETS / "sky-wallpaper.jpg")).mean
 carpet_mean = ImageStat.Stat(Image.open(ASSETS / "carpet.jpg")).mean
 assert sky_mean[2] > sky_mean[1] > sky_mean[0], sky_mean
 assert carpet_mean[2] > carpet_mean[1] > carpet_mean[0], carpet_mean
+carpet = Image.open(ASSETS / "carpet.jpg").convert("L")
+low_frequency = carpet.resize((16, 16), Image.Resampling.BOX)
+assert ImageStat.Stat(low_frequency).stddev[0] < 2.2, ImageStat.Stat(low_frequency).stddev[0]
+assert ImageStat.Stat(carpet).stddev[0] > 3, ImageStat.Stat(carpet).stddev[0]
 
 plastic = Image.open(ASSETS / "worn-plastic-atlas.png")
 means = []

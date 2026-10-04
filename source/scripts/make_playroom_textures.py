@@ -46,18 +46,21 @@ def wallpaper():
 
 
 def carpet():
-    coarse = periodic_noise(N, 16, 210)
+    fine = periodic_noise(N, 96, 210)
     image = Image.new("RGB", (N, N), (47, 103, 119))
-    cp, out = coarse.load(), image.load()
+    fp, out = fine.load(), image.load()
     for y in range(N):
         for x in range(N):
-            shade = (cp[x, y] - 128) * .07
+            shade = (fp[x, y] - 128) * .018
+            # Barely compressed tile edges, visible nearby without reading as a wave at distance.
+            pressure = -2.2 * max(0, 1 - min(x % 128, 128 - x % 128, y % 128, 128 - y % 128) / 2)
+            shade += pressure
             out[x, y] = (max(0, int(47 + shade)), max(0, int(103 + shade)), max(0, int(119 + shade)))
     draw, rng = ImageDraw.Draw(image), random.Random(211)
     flecks = [(220, 178, 72), (183, 70, 70), (83, 151, 103), (190, 201, 184)]
-    for _ in range(5600):
-        x, y, length = rng.randrange(N), rng.randrange(N), rng.randrange(1, 5)
-        color = rng.choice(flecks) if rng.random() < .1 else rng.choice([(58, 118, 131), (35, 83, 101), (72, 126, 132)])
+    for _ in range(8200):
+        x, y, length = rng.randrange(N), rng.randrange(N), rng.randrange(1, 4)
+        color = rng.choice(flecks) if rng.random() < .065 else rng.choice([(58, 118, 131), (35, 83, 101), (72, 126, 132)])
         for dx in (-N, 0, N):
             for dy in (-N, 0, N):
                 draw.line((x + dx, y + dy, x + dx + length, y + dy + rng.choice((-1, 0, 1))), fill=color)
