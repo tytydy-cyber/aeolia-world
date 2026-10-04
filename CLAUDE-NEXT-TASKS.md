@@ -343,4 +343,41 @@ Codexは同時に `outputs/playroom.js`、`outputs/playroom.html`、`work/test-p
 | `WaveSoffit` | 2,672 | 12.00×1.60×2.85 | 塗装、金属、発光 |
 | `PaddedColumn` | 2,728 | 1.99×6.00×1.47 | 布、樹脂、金属 |
 
+---
+
+## Task K：遊戯室の床・虹接続モジュール（未着手）
+
+Codexは `outputs/playroom.js`、`outputs/playroom.html`、`work/test-playroom.mjs` を編集する。これらへ触れず、新規素材だけを制作する。
+
+**対象ファイル**
+
+- 新規 `source/scripts/build_playroom_floor_modules.py`
+- 新規 `source/blender/playroom-floor-modules.blend`
+- 新規 `outputs/assets/playroom/playroom-floor-modules.glb`
+- 新規 `source/previews/playroom-floor-modules-preview.png`
+- 新規 `work/test-playroom-floor-modules.mjs`
+- 完了記録として本ファイル末尾と `PLAYTEST-REVIEW.md` へ追記
+
+**制作物**
+
+1. `RainbowWallJoin`：既存虹の外縁へ沿う左右の軟質壁接続。虹を置物ではなく壁から生えた構造に見せる。中央開口は塞がない。
+2. `CloudCarpet`：厚さ8〜16cm、左右非対称な雲形カーペット。完全な平面にせず縁を丸める。
+3. `SoftMeadowBerm`：高さ25〜65cmの低い草原色の起伏。飛行・歩行の視界を塞がず、中央の空床を分割する。
+4. `PaddedFenceIsland`：曲線状の低い保護柵と座面。直線の柵を増やさない。
+
+**受け入れ条件**
+
+- 4モジュールを名前付きルートノードとして1 GLBへ収録。
+- 合計24k triangles以下、材質6以下、GLB 2MB以下。
+- 壁画3種と同じ退色した青、草色、クリーム、褪せた珊瑚色を使う。
+- 同一平面重なり、縮退面、完全重複三角形0。
+- 床へ置く面は最下部を1cm沈められる形とし、ちらつきを避ける。
+- Blenderヘッドレス再生成、専用Nodeテスト、既存全テストを通す。
+- 対象ファイルだけを1コミットにまとめ、SHAと実測値を記録する。
+
+**連携状態**
+
+- この記載だけではClaude Codeへ自動通知・実行されない。
+- Claude Code側で「`CLAUDE-NEXT-TASKS.md` のTask Kを実行」と伝えた時点で着手する。
+
 配置条件とゲーム側の分類は `PLAYTEST-REVIEW.md` の「2026-10-04 遊戯室の建築モジュール（Claude）」に記録した。
