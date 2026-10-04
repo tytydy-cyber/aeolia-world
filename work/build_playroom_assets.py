@@ -110,12 +110,12 @@ def arch_mesh(name, inner, outer, depth, segments=24):
 # Rainbow arch: five separate paint bands and padded bases. It is a gateway, not a flat decal.
 rainbow = empty('Rainbow arch', -11)
 for i, mat in enumerate((RED, ORANGE, YELLOW, GREEN, BLUE)):
-    inner = 3.7 + i * .48
-    o = bpy.data.objects.new(f'Rainbow band {i + 1}', arch_mesh(f'Rainbow band {i + 1}', inner, inner + .52, 1.0))
+    inner = 3.7 + i * .54
+    o = bpy.data.objects.new(f'Rainbow band {i + 1}', arch_mesh(f'Rainbow band {i + 1}', inner, inner + .52, 1.9, 32))
     bpy.context.collection.objects.link(o)
     add_to(rainbow, o, mat)
-for x in (-5.95, 5.95):
-    cube(rainbow, 'Padded arch base', (x, 0, .65), (1.35, 1.35, 1.3), CREAM, .14)
+for x in (-6.35, 6.35):
+    cube(rainbow, 'Padded arch base', (x, 0, .75), (1.45, 2.05, 1.5), CREAM, .18)
 
 
 # Slide tower: modular boxes/cylinders and one genuinely curved, modestly tessellated slide.

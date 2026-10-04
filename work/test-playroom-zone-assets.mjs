@@ -16,6 +16,7 @@ for(const file of assets){
   const gltf=await loadHouse(file);gltf.scene.updateMatrixWorld(true);
   const box=new THREE.Box3().setFromObject(gltf.scene),size=box.getSize(new THREE.Vector3());
   assert.ok(size.x>.5&&size.y>.5&&size.z>.5&&Math.max(size.x,size.y,size.z)<40,`${file} has useful finite bounds`);
+  if(file.includes('child-town'))assert.ok(size.z>6.5,`child-town shops are enclosed buildings rather than thin facades (${size.z.toFixed(2)}m deep)`);
   let triangles=0;const materials=new Set(),faces=new Set();
   gltf.scene.traverse(mesh=>{
     if(!mesh.isMesh)return;

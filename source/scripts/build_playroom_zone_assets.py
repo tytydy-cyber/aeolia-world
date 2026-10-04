@@ -273,27 +273,27 @@ arch(playground, "Cloud entry arch", (-1.0, 0, 0), 1.55, 2.05, .45, CREAM)
 
 
 # Child town: three shops told apart by roofline, opening and awning, not by colour alone.
-# Facades keep the collision widths 4.8 / 5.8 / 5.2 m and 0.7 m depth; the front faces -Y.
+# Buildings keep the collision widths 4.8 / 5.8 / 5.2 m; their front faces -Y and their bodies extend behind the storefronts.
 town = root("Child town pack", -8)
 
 
 def facade(x, width, height, wall):
-    box(town, "Low facade", (x, 0, height / 2), (width, .7, height), wall, .12)
-    box(town, "Facade plinth", (x, 0, .19), (width + .24, .9, .42), STEEL, .08)
+    box(town, "Enclosed shop body", (x, 1.25, height / 2), (width, 3.2, height), wall, .12)
+    box(town, "Shop foundation", (x, 1.25, .19), (width + .24, 3.5, .42), STEEL, .08)
 
 
 # Bakery: steep gable with deep eaves and a chimney, arched door, striped scalloped awning.
 x, w, h = -7.2, 4.8, 4.4
 facade(x, w, h, CREAM)
-extruded_outline(town, "Gable end wall", [(x - w / 2, h - .02), (x + w / 2, h - .02), (x, 5.75)], .7, CREAM, bevel=0)
+extruded_outline(town, "Gable end wall", [(x - w / 2, h - .02), (x + w / 2, h - .02), (x, 5.75)], 3.2, CREAM, 1.25, bevel=0)
 span, ridge = w / 2 + .38, 5.95
 for side in (-1, 1):
     eave = (x + side * span, h - .25)
     mid = ((eave[0] + x) / 2, (eave[1] + ridge) / 2)
     run = math.hypot(span, ridge - eave[1])
-    box(town, "Deep eave roof", (mid[0], 0, mid[1]), (run + .12, 1.4, .22), RED, .06, (0, side * math.atan2(ridge - eave[1], span), 0))
-box(town, "Brick chimney", (x + 1.05, .15, 5.55), (.52, .52, 1.2), RED, .06)
-box(town, "Chimney cap", (x + 1.05, .15, 6.17), (.7, .7, .1), STEEL, .03)
+    box(town, "Deep eave roof", (mid[0], 1.25, mid[1]), (run + .12, 3.8, .22), RED, .06, (0, side * math.atan2(ridge - eave[1], span), 0))
+box(town, "Brick chimney", (x + 1.05, 1.65, 5.55), (.52, .52, 1.2), RED, .06)
+box(town, "Chimney cap", (x + 1.05, 1.65, 6.17), (.7, .7, .1), STEEL, .03)
 extruded_outline(town, "Arched door opening", rounded_top(x, 1.3, .42, 1.95, .62), .12, DARK, -.37, bevel=0)
 arch(town, "Door arch trim", (x, -.43, 1.95), .66, .86, .14, RED, 12)
 for side in (-1, 1):
@@ -310,8 +310,8 @@ for i in range(6):
 x, w, h = -1.0, 5.8, 5.2
 facade(x, w, h, SKY)
 crown = [(x + math.cos(math.pi - i * math.pi / 18) * 2.3, h - .02 + math.sin(math.pi - i * math.pi / 18) * 2.3) for i in range(19)]
-extruded_outline(town, "Half sun crown", crown, .72, YELLOW, bevel=0)
-arch(town, "Ringed crown rim", (x, 0, h - .02), 2.3, 2.58, .84, RED, 18)
+extruded_outline(town, "Half sun crown", crown, 3.2, YELLOW, 1.25, bevel=0)
+arch(town, "Ringed crown rim", (x, 1.25, h - .02), 2.3, 2.58, 3.25, RED, 18)
 box(town, "Shop sign band", (x, -.42, h - .62), (w * .78, .16, .56), BLUE, .05)
 box(town, "Wide shopfront", (x, -.37, 1.7), (3.4, .12, 2.6), DARK, .03)
 box(town, "Shopfront lintel", (x, -.47, 3.12), (4.2, .34, .3), CREAM, .06)
@@ -322,11 +322,11 @@ shell(town, "Barrel canopy", (x, -.36, 2.72), 4.5, .92, .08, 0, math.pi / 2, YEL
 # Kiosk: wooden body, a lookout tower on one side, crenellated parapet, off-centre door and a serving hatch.
 x, w, h = 6.0, 5.2, 4.0
 facade(x, w, h, WOOD)
-box(town, "Lookout tower", (x - 1.7, 0, h + .84), (1.7, .8, 1.72), WOOD, .08)
-box(town, "Tower cap", (x - 1.7, 0, h + 1.79), (2.0, 1.05, .22), GREEN, .06)
+box(town, "Lookout tower", (x - 1.7, 1.25, h + .84), (1.7, 3.0, 1.72), WOOD, .08)
+box(town, "Tower cap", (x - 1.7, 1.25, h + 1.79), (2.0, 3.25, .22), GREEN, .06)
 cylinder(town, "Tower round window", (x - 1.7, -.42, h + .9), .34, .06, BLUE, 16, (math.pi / 2, 0, 0))
 for i in range(4):
-    box(town, "Parapet merlon", (x - .35 + i * .82, 0, h + .2), (.52, .76, .44), GREEN, .05)
+    box(town, "Parapet merlon", (x - .35 + i * .82, 1.25, h + .2), (.52, 3.0, .44), GREEN, .05)
 box(town, "Narrow side door", (x - 1.65, -.37, 1.42), (.95, .12, 2.4), DARK, .03)
 box(town, "Serving hatch", (x + 1.0, -.37, 1.95), (2.2, .12, 1.15), DARK, .03)
 box(town, "Hatch counter", (x + 1.0, -.62, 1.32), (2.5, .58, .12), GREEN, .04)
