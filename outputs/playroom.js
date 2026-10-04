@@ -6,12 +6,19 @@ import {MotionEffects} from './effects.js?v=51';
 import {applyTravelerDesign} from './character-designs.js?v=47';
 import {Emotes,EMOTE_KEYS} from './emotes.js?v=1';
 
-const cfg={name:'遊戯室',code:'DREAMCORE PLAYROOM 04',spawn:[0,0,25],limitY:28,notes:[
+const cfg={name:'遊戯室',code:'DREAMCORE PLAYROOM 04',spawn:[0,0,25],limitY:32,notes:[
   [0,2,6,'大きな虹','塗られた虹が壁ではなく、部屋そのものを支えている。'],
   [24,5,14,'滑り台の上','滑り台の先は床へ降りるのに、階段は途中から始まっている。'],
   [-24,1,13,'ボールプール','表面の一個だけが、誰も触れていないのに場所を変えた。'],
   [0,1,-41,'小さな扉','大人には小さすぎる扉の向こうにも同じ照明が続いている。'],
-  [-47,16,2,'上の通路','壁紙の雲は、この高さから見ると途中で切れている。']
+  [-47,16,2,'上の通路','壁紙の雲は、この高さから見ると途中で切れている。'],
+  [0,5,-55,'遊具広場','網の向こうにも同じ遊具が、少し違う高さで続いている。'],
+  [-48,1,-61,'奥のボールプール','底が見えるほど浅いのに、球が沈む音だけがする。'],
+  [52,3,-69,'子どもの街','小さな店は三軒とも、入口の大きさが違っている。'],
+  [-49,2,-105,'最後の布団','整列した寝床から、一枚だけ遠く離れている。'],
+  [48,2,-112,'誕生日席','椅子は揃っているのに、名前の札だけがない。'],
+  [0,18,-139,'雲の回廊','壁紙の表と裏が、同じ通路に面している。'],
+  [0,29,-149,'天井裏','照明の上にも、明るい部屋が続いている。']
 ]};
 document.title='遊戯室 — AEOLIA';for(const id of ['title','worldName'])document.querySelector('#'+id).textContent=cfg.name;for(const id of ['code','worldCode'])document.querySelector('#'+id).textContent=cfg.code;
 
@@ -27,14 +34,14 @@ const world=new THREE.Group(),colliders=[],dynamic=new Set();scene.add(world);
 function mesh(g,m,x,y,z){const o=new THREE.Mesh(g,m);o.position.set(x,y,z);o.receiveShadow=true;world.add(o);return o}
 function box(x,y,z,w,h,d,m=mats.wall,solid=false){const o=mesh(new THREE.BoxGeometry(w,h,d),m,x,y,z);if(solid)colliders.push({x,z,w:w/2,d:d/2,bottom:y-h/2,top:y+h/2});return o}
 function contains(c,x,z,margin=.55){return Math.abs(x-c.x)<c.w+margin&&Math.abs(z-c.z)<c.d+margin}
-function validGround(x,z){return Math.abs(x)<62&&Math.abs(z)<43}
+function validGround(x,z){return Math.abs(x)<92&&z<62&&z>-152}
 
 // A full room, not a panorama: padded floor, wallpapered walls, suspended ceiling and a high gallery.
-box(0,-.08,0,130,.16,90,mats.floor);box(-65,16,0,1.2,32,90,mats.wall,true);box(65,16,0,1.2,32,90,mats.wall,true);box(0,16,-45,130,32,1.2,mats.wall,true);box(0,16,45,130,32,1.2,mats.wall,true);box(0,32.2,0,130,.4,90,mats.ceiling,true);
+box(0,-.08,-45,190,.16,220,mats.floor);box(-95,18,-45,1.2,36,220,mats.wall,true);box(95,18,-45,1.2,36,220,mats.wall,true);box(0,18,-155,190,36,1.2,mats.wall,true);box(0,18,65,190,36,1.2,mats.wall,true);box(0,36.2,-45,190,.4,220,mats.ceiling,true);
 for(const [x,z,w,d] of [[-50,2,20,72],[50,2,20,72],[-32,-35,44,14],[32,-35,44,14]]){box(x,15.7,z,w,.5,d,mats.trim,true);box(x,17,z,w,.18,d,mats.dark)}
 const railParts=[];for(const x of [-59,-41,41,59])for(let z=-31;z<=34;z+=7)railParts.push([x,17.4,z,.12,2.8,.12]);for(const [x,y,z,w,h,d] of railParts)box(x,y,z,w,h,d,mats.dark);
 
-const lights=new THREE.InstancedMesh(new THREE.BoxGeometry(1,1,1),mats.glow,35),dummy=new THREE.Object3D();let li=0;for(let z=-36;z<=36;z+=12)for(let x=-48;x<=48;x+=24){dummy.position.set(x,31.86,z);dummy.scale.set(7,.08,2.2);dummy.updateMatrix();lights.setMatrixAt(li++,dummy.matrix)}lights.count=li;world.add(lights);
+const lights=new THREE.InstancedMesh(new THREE.BoxGeometry(1,1,1),mats.glow,96),dummy=new THREE.Object3D();let li=0;for(let z=-140;z<=54;z+=18)for(let x=-72;x<=72;x+=24){dummy.position.set(x,35.86,z);dummy.scale.set(7,.08,2.2);dummy.updateMatrix();lights.setMatrixAt(li++,dummy.matrix)}lights.count=li;world.add(lights);
 function cloudPlane(cell,matrix,scale=1){const g=new THREE.PlaneGeometry(5.2*scale,2.8*scale),uv=g.attributes.uv,col=cell%4,row=Math.floor(cell/4);for(let i=0;i<uv.count;i++)uv.setXY(i,(col+uv.getX(i))/4,(2-row+uv.getY(i))/3);return g.applyMatrix4(matrix)}
 const cloudParts=[];for(const side of [-1,1])for(let i=0;i<16;i++){dummy.position.set(side*64.32,5+(i%5)*4.5,-37+i*4.9);dummy.rotation.set(0,side<0?Math.PI/2:-Math.PI/2,0);dummy.scale.set(1,1,1);dummy.updateMatrix();cloudParts.push(cloudPlane(i%12,dummy.matrix,.78+(i%3)*.12))}for(let i=0;i<16;i++){dummy.position.set(-52+i*6.8,5+(i%4)*5,-44.32);dummy.rotation.set(0,0,0);dummy.scale.set(1,1,1);dummy.updateMatrix();cloudParts.push(cloudPlane((i*5)%12,dummy.matrix,.82+(i%2)*.14))}const clouds=new THREE.Mesh(mergeGeometries(cloudParts,false),new THREE.MeshBasicMaterial({map:cloudMap,transparent:true,depthWrite:false,side:THREE.DoubleSide,toneMapped:false}));world.add(clouds);
 
@@ -44,7 +51,13 @@ const smallDoor=box(0,1.45,-44.15,2.2,2.9,.32,mats.door,true);box(0,3.15,-44.3,3
 function compactAsset(source){source.updateMatrixWorld(true);const groups=new Map();source.traverse(o=>{if(!o.isMesh)return;const key=o.material.uuid;if(!groups.has(key))groups.set(key,{material:o.material,geometries:[]});groups.get(key).geometries.push(o.geometry.clone().applyMatrix4(o.matrixWorld))});const root=new THREE.Group();root.name=source.children[0]?.name||'Playroom asset';for(const {material,geometries} of groups.values())root.add(new THREE.Mesh(mergeGeometries(geometries,false),material));return root}
 const assetRoots=[];function loadAsset(file,position,scale=1,rotation=0,onload){new GLTFLoader().load(`assets/playroom/${file}`,g=>{const o=compactAsset(g.scene);o.position.set(...position);o.scale.setScalar(scale);o.rotation.y=rotation;world.add(o);assetRoots.push(o);onload?.(o)},undefined,e=>console.warn(`Playroom asset unavailable: ${file}`,e))}
 loadAsset('playroom-rainbow.glb',[0,0,7],2.05,0,o=>{o.userData.landmark='rainbow'});loadAsset('playroom-rainbow.glb',[0,0,-32],1.38,0);loadAsset('playroom-slide.glb',[24,0,14],1.35,-Math.PI/2,o=>{o.userData.anomaly=()=>{let red;o.traverse(x=>{if(x.material?.name==='Faded red plastic')red=x.material});if(red){red.color.offsetHSL(.52,0,0);red.needsUpdate=true}}});loadAsset('playroom-ball-pit.glb',[-24,0,13],1.7,0,o=>{o.userData.anomaly=()=>o.rotation.y+=.12});
-colliders.push({x:24,z:14,w:5,d:6,bottom:0,top:7.8},{x:-24,z:13,w:6.5,d:4.8,bottom:0,top:1.5});
+loadAsset('playroom-playground-pack.glb',[0,0,-56],2.15,0,o=>anomalies.push(()=>{o.rotation.y=o.rotation.y?.08:0}));
+loadAsset('playroom-ball-pit.glb',[-49,0,-61],2.7,.18,o=>anomalies.push(()=>{o.position.x+=o.position.x<-48?2:-2}));
+loadAsset('playroom-child-town-pack.glb',[52,0,-69],2,0,o=>anomalies.push(()=>{o.visible=!o.visible}));
+loadAsset('playroom-quiet-rooms-pack.glb',[-49,0,-105],1.8,0,o=>anomalies.push(()=>{o.rotation.y=o.rotation.y?.04:0}));
+loadAsset('playroom-quiet-rooms-pack.glb',[48,0,-112],1.7,Math.PI,o=>anomalies.push(()=>{o.position.z+=o.position.z<-111?2:-2}));
+loadAsset('playroom-cloud-corridor-pack.glb',[0,11,-139],2.35,0,o=>anomalies.push(()=>{o.position.y=o.position.y>10?8:11}));
+colliders.push({x:24,z:14,w:5,d:6,bottom:0,top:7.8},{x:-24,z:13,w:6.5,d:4.8,bottom:0,top:1.5},{x:0,z:-56,w:7.5,d:3.5,bottom:0,top:13.5},{x:-49,z:-61,w:10.5,d:8,bottom:0,top:2.4},{x:52,z:-69,w:21,d:2.2,bottom:0,top:12},{x:-61,z:-105,w:5,d:3,bottom:0,top:5.8},{x:-49,z:-105,w:5,d:3,bottom:0,top:5.8},{x:-37,z:-105,w:5,d:3,bottom:0,top:5.8},{x:48,z:-112,w:8,d:2.5,bottom:0,top:5.5},{x:0,z:-139,w:11,d:1.2,bottom:8,top:29});
 
 function mergeStatic(){const groups=new Map();world.updateMatrixWorld(true);for(const o of [...world.children]){if(!o.isMesh||o.isInstancedMesh||o.material.transparent||dynamic.has(o)||Object.keys(o.userData).length)continue;const key=`${o.material.uuid}:${o.geometry.index?'i':'n'}:${Object.keys(o.geometry.attributes).sort()}`;(groups.get(key)||groups.set(key,{m:o.material,o:[]}).get(key)).o.push(o)}for(const {m,o} of groups.values()){if(o.length<2)continue;const g=mergeGeometries(o.map(x=>x.geometry.clone().applyMatrix4(x.matrix)),false);if(!g)continue;world.add(new THREE.Mesh(g,m));for(const x of o)world.remove(x)}}mergeStatic();
 
@@ -53,7 +66,7 @@ let avatarMixer=null,avatarActions={},avatarState='',avatarModel=null;const emot
 const memoryStore=new Map(),stored=(key,value)=>{try{if(value===undefined)return localStorage.getItem(key);localStorage.setItem(key,value)}catch{if(value===undefined)return memoryStore.get(key)??null;memoryStore.set(key,value)}};const select=document.querySelector('#characterSelect');select.value=stored('aeolia-character')||'mist';style(select.value);select.onchange=e=>{stored('aeolia-character',e.target.value);style(e.target.value);renderer.domElement.focus()};
 new GLTFLoader().load('assets/aeolia-traveler.glb',g=>{avatarModel=g.scene;avatarModel.traverse(o=>{if(o.isMesh)o.castShadow=true});player.add(avatarModel);style(select.value);robe.visible=head.visible=false;avatarMixer=new THREE.AnimationMixer(avatarModel);for(const clip of g.animations)avatarActions[clip.name]=avatarMixer.clipAction(clip);emotes.attach(avatarMixer,avatarActions);setAvatarAction('Idle')},undefined,e=>console.warn('Traveler fallback in use',e));
 
-const sound=new WorldAudio(undefined,'playroom'),effects=new MotionEffects(THREE,scene,camera),keys={},velocity=new THREE.Vector3(),lastSafe=player.position.clone(),targetCam=new THREE.Vector3(),probe=new THREE.Vector3(),focus=new THREE.Vector3(),focusTarget=new THREE.Vector3();let yaw=0,pitch=.24,started=false,dragging=false,previous=null,travelYaw=0,recenterYaw=null,bob=0,nextDiscover=0,nextAnomaly=Infinity,anomalyIndex=0;const anomalies=[()=>smallDoor.userData.anomaly(),()=>{clouds.visible=!clouds.visible},()=>{scene.fog.far=scene.fog.far===185?125:185},()=>{lights.material.emissiveIntensity=lights.material.emissiveIntensity>1?.55:1.15}];
+const sound=new WorldAudio(undefined,'playroom'),effects=new MotionEffects(THREE,scene,camera),keys={},velocity=new THREE.Vector3(),lastSafe=player.position.clone(),targetCam=new THREE.Vector3(),probe=new THREE.Vector3(),focus=new THREE.Vector3(),focusTarget=new THREE.Vector3();let yaw=0,pitch=.24,started=false,dragging=false,previous=null,travelYaw=0,recenterYaw=null,bob=0,nextDiscover=0,nextAnomaly=Infinity,anomalyIndex=0;const anomalies=[()=>smallDoor.userData.anomaly(),()=>{clouds.visible=!clouds.visible},()=>{scene.fog.far=scene.fog.far===185?125:185},()=>{lights.material.emissiveIntensity=lights.material.emissiveIntensity>1?.55:1.15},()=>{wallMap.offset.x=wallMap.offset.x?.08:0},()=>{floorMap.offset.y=floorMap.offset.y?.04:0}];
 function resetKeys(){for(const k in keys)delete keys[k];velocity.set(0,0,0);dragging=false}
 function readNotes(){try{return JSON.parse(stored('aeolia-notes')||'[]')}catch{return []}}function saveNote(n){const notes=readNotes(),id='playroom:'+n[3];if(notes.some(x=>x.id===id))return 0;notes.push({id,world:cfg.name,name:n[3],text:n[4]});stored('aeolia-notes',JSON.stringify(notes));return notes.filter(x=>x.id.startsWith('playroom:')).length}
 function showEvent(text,label='発見'){const e=document.querySelector('#event'),h=e.querySelector('small');h.textContent=label;h.hidden=!label;e.querySelector('div').textContent=text;e.classList.add('on');clearTimeout(showEvent.timer);showEvent.timer=setTimeout(()=>e.classList.remove('on'),2800)}
