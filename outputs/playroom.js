@@ -12,12 +12,12 @@ const cfg={name:'遊戯室',code:'DREAMCORE PLAYROOM 04',spawn:[0,0,25],limitY:3
   [-24,1,13,'ボールプール','表面の一個だけが、誰も触れていないのに場所を変えた。'],
   [0,1,-41,'小さな扉','大人には小さすぎる扉の向こうにも同じ照明が続いている。'],
   [-47,16,2,'上の通路','壁紙の雲は、この高さから見ると途中で切れている。'],
-  [0,5,-55,'遊具広場','網の向こうにも同じ遊具が、少し違う高さで続いている。'],
+  [10,5,-55,'遊具広場','網の向こうにも同じ遊具が、少し違う高さで続いている。'],
   [-48,1,-61,'奥のボールプール','底が見えるほど浅いのに、球が沈む音だけがする。'],
-  [52,3,-69,'子どもの街','小さな店は三軒とも、入口の大きさが違っている。'],
-  [-49,2,-105,'最後の布団','整列した寝床から、一枚だけ遠く離れている。'],
-  [48,2,-112,'誕生日席','椅子は揃っているのに、名前の札だけがない。'],
-  [0,18,-139,'雲の回廊','壁紙の表と裏が、同じ通路に面している。'],
+  [52,3,-63,'子どもの街','小さな店は三軒とも、入口の大きさが違っている。'],
+  [-49,2,-99,'最後の布団','整列した寝床から、一枚だけ遠く離れている。'],
+  [48,2,-106,'誕生日席','椅子は揃っているのに、名前の札だけがない。'],
+  [14,18,-139,'雲の回廊','壁紙の表と裏が、同じ通路に面している。'],
   [0,29,-149,'天井裏','照明の上にも、明るい部屋が続いている。']
 ]};
 document.title='遊戯室 — AEOLIA';for(const id of ['title','worldName'])document.querySelector('#'+id).textContent=cfg.name;for(const id of ['code','worldCode'])document.querySelector('#'+id).textContent=cfg.code;
@@ -38,6 +38,8 @@ function validGround(x,z){return Math.abs(x)<92&&z<62&&z>-152}
 
 // A full room, not a panorama: padded floor, wallpapered walls, suspended ceiling and a high gallery.
 box(0,-.08,-45,190,.16,220,mats.floor);box(-95,18,-45,1.2,36,220,mats.wall,true);box(95,18,-45,1.2,36,220,mats.wall,true);box(0,18,-155,190,36,1.2,mats.wall,true);box(0,18,65,190,36,1.2,mats.wall,true);box(0,36.2,-45,190,.4,220,mats.ceiling,true);
+function floorPatch(points,color){const shape=new THREE.Shape();points.forEach(([x,z],i)=>i?shape.lineTo(x,z):shape.moveTo(x,z));shape.closePath();const material=new THREE.MeshStandardMaterial({map:floorMap.clone(),color,roughness:1});material.map.wrapS=material.map.wrapT=THREE.RepeatWrapping;material.map.repeat.set(3,3);material.map.colorSpace=THREE.SRGBColorSpace;const patch=new THREE.Mesh(new THREE.ShapeGeometry(shape),material);patch.rotation.x=-Math.PI/2;patch.position.y=.025;patch.receiveShadow=true;world.add(patch)}
+floorPatch([[-23,-41],[19,-39],[29,-52],[21,-69],[-5,-74],[-27,-63]],0xe8cb8b);floorPatch([[-72,-46],[-39,-44],[-29,-62],[-38,-78],[-70,-75],[-80,-61]],0xb8d1c7);floorPatch([[30,-48],[78,-46],[84,-69],[70,-84],[35,-80],[25,-65]],0xc9d5a4);floorPatch([[-78,-88],[-37,-85],[-29,-108],[-39,-126],[-74,-124],[-84,-106]],0xb9c9d9);floorPatch([[29,-91],[75,-89],[84,-110],[73,-128],[39,-127],[23,-111]],0xe0b8b3);floorPatch([[-22,-126],[21,-124],[30,-139],[18,-151],[-18,-151],[-29,-140]],0xc9d8df);
 for(const [x,z,w,d] of [[-50,2,20,72],[50,2,20,72],[-32,-35,44,14],[32,-35,44,14]]){box(x,15.7,z,w,.5,d,mats.trim,true);box(x,17,z,w,.18,d,mats.dark)}
 const railParts=[];for(const x of [-59,-41,41,59])for(let z=-31;z<=34;z+=7)railParts.push([x,17.4,z,.12,2.8,.12]);for(const [x,y,z,w,h,d] of railParts)box(x,y,z,w,h,d,mats.dark);
 
@@ -48,7 +50,8 @@ const cloudParts=[];for(const side of [-1,1])for(let i=0;i<16;i++){dummy.positio
 // A deliberately child-sized exit, visible through the second rainbow.
 const smallDoor=box(0,1.45,-44.15,2.2,2.9,.32,mats.door,true);box(0,3.15,-44.3,3.2,.35,.5,mats.trim);dynamic.add(smallDoor);let doorOpen=false;smallDoor.userData.anomaly=()=>{doorOpen=!doorOpen;smallDoor.rotation.y=doorOpen?-.7:0};
 
-function compactAsset(source){source.updateMatrixWorld(true);const groups=new Map();source.traverse(o=>{if(!o.isMesh)return;const key=o.material.uuid;if(!groups.has(key))groups.set(key,{material:o.material,geometries:[]});groups.get(key).geometries.push(o.geometry.clone().applyMatrix4(o.matrixWorld))});const root=new THREE.Group();root.name=source.children[0]?.name||'Playroom asset';for(const {material,geometries} of groups.values())root.add(new THREE.Mesh(mergeGeometries(geometries,false),material));return root}
+const assetMaterial=new THREE.MeshStandardMaterial({vertexColors:true,roughness:.72,metalness:0});
+function compactAsset(source){source.updateMatrixWorld(true);const geometries=[];source.traverse(o=>{if(!o.isMesh)return;let g=o.geometry.index?o.geometry.toNonIndexed():o.geometry.clone();g.applyMatrix4(o.matrixWorld);for(const name of Object.keys(g.attributes))if(!['position','normal'].includes(name))g.deleteAttribute(name);const color=o.material?.color||new THREE.Color(1,1,1),colors=new Float32Array(g.attributes.position.count*3);for(let i=0;i<g.attributes.position.count;i++)color.toArray(colors,i*3);g.setAttribute('color',new THREE.BufferAttribute(colors,3));geometries.push(g)});const root=new THREE.Group();root.name=source.children[0]?.name||'Playroom asset';const merged=mergeGeometries(geometries,false);if(merged)root.add(new THREE.Mesh(merged,assetMaterial));return root}
 const assetRoots=[];function loadAsset(file,position,scale=1,rotation=0,onload){new GLTFLoader().load(`assets/playroom/${file}`,g=>{const o=compactAsset(g.scene);o.position.set(...position);o.scale.setScalar(scale);o.rotation.y=rotation;world.add(o);assetRoots.push(o);onload?.(o)},undefined,e=>console.warn(`Playroom asset unavailable: ${file}`,e))}
 loadAsset('playroom-rainbow.glb',[0,0,7],2.05,0,o=>{o.userData.landmark='rainbow'});loadAsset('playroom-rainbow.glb',[0,0,-32],1.38,0);loadAsset('playroom-slide.glb',[24,0,14],1.35,-Math.PI/2,o=>{o.userData.anomaly=()=>{let red;o.traverse(x=>{if(x.material?.name==='Faded red plastic')red=x.material});if(red){red.color.offsetHSL(.52,0,0);red.needsUpdate=true}}});loadAsset('playroom-ball-pit.glb',[-24,0,13],1.7,0,o=>{o.userData.anomaly=()=>o.rotation.y+=.12});
 loadAsset('playroom-playground-pack.glb',[0,0,-56],2.15,0,o=>anomalies.push(()=>{o.rotation.y=o.rotation.y?.08:0}));
