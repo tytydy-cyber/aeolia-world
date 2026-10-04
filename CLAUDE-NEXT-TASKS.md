@@ -237,3 +237,49 @@ Task E/F完了後。修正実装はせず、検査と報告だけ行う。
 # Claude作業結果（2026-10-02）
 
 A〜Hは全て完了した（A `1371147`、B `efb561a`、C `5cf5c28`、D `b20b207`、E `8271ad8`、F `e3312ac`、G `8a874a2`、H `d63b3df`）。Codex停止中に、`THREE-WORLD-QA.md` の候補1・2・3・5・7・8・11・12と、地区モジュールの質感を修正した。各指摘の対応状況は `THREE-WORLD-QA.md` の追補に、引き継ぎ事項と未対応の項目は `PLAYTEST-REVIEW.md` の「2026-10-02 Claude作業記録と引き継ぎ」に記録した。いずれもpush前。
+
+---
+
+# Claude Code 次タスク（2026-10-04）
+
+## 現在地
+
+- 最新HEADは `7554fad`。開始前に `git status --short` と `git log -3 --oneline` で確認する。
+- 遊戯室の追加素材は `71097c9`、7区画へのゲーム統合は `7554fad` でコミット済み。
+- Codex内部サブエージェントが作った素材を、Claude Codeが独立レビューして改善する工程とする。
+- Codexは `outputs/playroom.js`、`outputs/playroom.html`、`work/test-playroom.mjs` を担当するため編集しない。
+
+## Task I：遊戯室GLBの質感・輪郭レビューと改善
+
+**対象ファイル**
+
+- `source/scripts/build_playroom_zone_assets.py`
+- `source/blender/playroom-zone-assets.blend`
+- `outputs/assets/playroom/playroom-*-pack.glb`
+- `source/previews/playroom-zone-assets-preview.png`
+- `work/test-playroom-zone-assets.mjs`
+- 必要なら `outputs/assets/playroom/textures/` 内の新規アトラス2枚まで
+- 完了記録として本ファイル末尾と `PLAYTEST-REVIEW.md` へ短く追記
+
+**実施内容**
+
+1. 4素材群を10〜30mのゲーム視点で確認し、単純な直方体や円筒の組み合わせに見える箇所を重要度順に特定する。
+2. 特に子どもの街の3店舗、昼寝室の寝具、誕生日席、雲の回廊について、面取り、輪郭差、布・樹脂・塗装面の差を強める。
+3. 既存のカーペット、擦れた樹脂、青空壁紙を再利用できる場合は再利用する。新規画像は最大1024px、合計2枚までとし、生成スクリプトから再生成可能にする。
+4. 同一平面を重ねない。透明板の多用、細かな実ジオメトリ、描画負荷を増やすだけの小物追加は避ける。
+5. 2×2プレビューを更新し、4素材群を同程度の画面占有率で比較できる状態にする。
+
+**受け入れ条件**
+
+- 各GLB 3MB未満、150k triangles未満。現在値からdraw batchを増やす場合は理由を記録する。
+- 実GLB parseでbounds、縮退面0、完全重複三角形0。
+- 3店舗を色だけでなく屋根線・開口・庇の輪郭で区別できる。
+- 寝具が板、雲の回廊が単なる四角い壁に見えない。
+- `node work/test-playroom-zone-assets.mjs` と全 `work/test-*.mjs` が通る。
+- 対象ファイルだけを1コミットにまとめ、SHA、容量、triangles、materials、変更前後の判断を報告する。
+
+## 連携方法
+
+- Claude Codeへの自動通知はない。ユーザーがClaude Code側で「`CLAUDE-NEXT-TASKS.md` のTask Iを実行」と依頼した時点で着手する。
+- 作業中は上記対象外のファイルを編集しない。Codex側の未コミット変更があれば上書きしない。
+- 完了後、Codexはコミットと記録を読み、ゲーム内配置、コリジョン、描画回数、実ブラウザ表示を検査する。
