@@ -21,7 +21,7 @@ export class WorldAudio {
         this.filter=c.createBiquadFilter();this.filter.type='lowpass';this.filter.frequency.value=450;
         this.windGain=c.createGain();this.windGain.gain.value=.11;
         this.wind.connect(this.filter);this.filter.connect(this.windGain);this.windGain.connect(this.master);this.wind.start();
-        const tone={sky:[.11,1100],complex:[.1,720],suburb:[.105,940]}[this.mood]||[.1,900];this.musicGain=c.createGain();this.musicGain.gain.value=tone[0];this.musicFilter=c.createBiquadFilter();this.musicFilter.type='lowpass';this.musicFilter.frequency.value=tone[1];
+        const tone={sky:[.11,1100],complex:[.1,720],suburb:[.105,940],playroom:[.085,680]}[this.mood]||[.1,900];this.musicGain=c.createGain();this.musicGain.gain.value=tone[0];this.musicFilter=c.createBiquadFilter();this.musicFilter.type='lowpass';this.musicFilter.frequency.value=tone[1];
         this.musicGain.connect(this.musicFilter);this.musicFilter.connect(this.master);this.pads=[0,7,14].map((step,i)=>{const osc=c.createOscillator(),gain=c.createGain();osc.type=i===2?'sine':'triangle';osc.frequency.value=174.61*Math.pow(2,step/12);gain.gain.value=[.22,.13,.07][i];osc.connect(gain);gain.connect(this.musicGain);osc.start();return osc});
         if(this.mood==='complex')this.hums=[55,60].map((frequency,i)=>{const osc=c.createOscillator(),gain=c.createGain();osc.type=i?'sawtooth':'sine';osc.frequency.value=frequency;gain.gain.value=i?.012:.045;osc.connect(gain);gain.connect(this.musicGain);osc.start();return osc});
       }
@@ -70,18 +70,18 @@ export class WorldAudio {
   }
   distantPhrase(){
     if(!this.audible)return;
-    const c=this.ctx,start=c.currentTime+.08,notes=[220,261.63,293.66,329.63,392,440,523.25,587.33];
+    const c=this.ctx,start=c.currentTime+.08,melody=[220,261.63,293.66,329.63,392,440,523.25,587.33],fragment=this.environment%4,notes=this.mood==='playroom'?melody.slice(fragment,fragment+3):melody;
     for(const [i,note] of notes.entries()){
       const t=start+i*.54,osc=c.createOscillator(),filter=c.createBiquadFilter(),gain=c.createGain(),delay=c.createDelay(2),echo=c.createGain();
       osc.type=i%3?'triangle':'sine';osc.frequency.value=note;filter.type='lowpass';filter.frequency.value=720;
-      const level=this.mood==='complex'?.038:.032;delay.delayTime.value=.42;echo.gain.value=.24;gain.gain.setValueAtTime(.0001,t);gain.gain.linearRampToValueAtTime(level,t+.12);gain.gain.exponentialRampToValueAtTime(.0001,t+2.4);
+      const level=this.mood==='complex'?.038:this.mood==='playroom'?.027:.032;delay.delayTime.value=.42;echo.gain.value=.24;gain.gain.setValueAtTime(.0001,t);gain.gain.linearRampToValueAtTime(level,t+.12);gain.gain.exponentialRampToValueAtTime(.0001,t+2.4);
       osc.connect(filter);filter.connect(gain);gain.connect(this.master);gain.connect(delay);delay.connect(echo);echo.connect(this.master);
       if(this.voice(osc,[filter,gain,delay,echo])){osc.start(t);osc.stop(t+2.5)}
     }
   }
   environmentDetail(){
-    if(!this.audible||!['complex','suburb'].includes(this.mood))return;
-    const c=this.ctx,t=c.currentTime,ranges=this.mood==='complex'?[[560,720],[1500,1850],[280,420],[90,150],[2200,2700]]:[[620,880],[310,470],[150,230],[760,1040],[220,330]],range=ranges[this.environment],osc=c.createOscillator(),gain=c.createGain();osc.type=this.environment===2?'triangle':'sine';osc.frequency.value=range[0]+Math.random()*(range[1]-range[0]);gain.gain.setValueAtTime(.0001,t);gain.gain.linearRampToValueAtTime(this.mood==='complex'?.024:.018,t+.008);gain.gain.exponentialRampToValueAtTime(.0001,t+1.8);osc.connect(gain);gain.connect(this.master);if(this.voice(osc,[gain])){osc.start(t);osc.stop(t+1.9)}
+    if(!this.audible||!['complex','suburb','playroom'].includes(this.mood))return;
+    const c=this.ctx,t=c.currentTime,ranges=this.mood==='complex'?[[560,720],[1500,1850],[280,420],[90,150],[2200,2700]]:this.mood==='playroom'?[[740,920],[370,520],[1040,1320],[260,390],[620,780]]:[[620,880],[310,470],[150,230],[760,1040],[220,330]],range=ranges[this.environment],osc=c.createOscillator(),gain=c.createGain();osc.type=this.environment===2?'triangle':'sine';osc.frequency.value=range[0]+Math.random()*(range[1]-range[0]);gain.gain.setValueAtTime(.0001,t);gain.gain.linearRampToValueAtTime(this.mood==='complex'?.024:this.mood==='playroom'?.014:.018,t+.008);gain.gain.exponentialRampToValueAtTime(.0001,t+1.8);osc.connect(gain);gain.connect(this.master);if(this.voice(osc,[gain])){osc.start(t);osc.stop(t+1.9)}
   }
   update(dt,speed,flying,grounded,onBridge){
     if(!this.audible){this.distance=0;return}
@@ -92,7 +92,7 @@ export class WorldAudio {
       this.filter.frequency.setTargetAtTime(350+(flying?1100*movement:150)+zoneShift+this.altitude*260,t,.3);this.nextMix=t+.05;
     }
     if(t>=this.nextChord){
-      const progressions={sky:[174.61,146.83,196,164.81],complex:[110,123.47,103.83,130.81],suburb:[146.83,174.61,196,220]},roots=progressions[this.mood]||progressions.sky,root=roots[Math.floor(t/8)%roots.length];
+      const progressions={sky:[174.61,146.83,196,164.81],complex:[110,123.47,103.83,130.81],suburb:[146.83,174.61,196,220],playroom:[130.81,164.81,146.83,196]},roots=progressions[this.mood]||progressions.sky,root=roots[Math.floor(t/8)%roots.length];
       this.pads.forEach((osc,i)=>osc.frequency.setTargetAtTime(root*Math.pow(2,[0,7,14][i]/12),t,1.8));this.nextChord=t+8;
     }
     if(t>=this.nextPhrase){this.distantPhrase();this.nextPhrase=t+14}

@@ -24,7 +24,7 @@ assert.ok(js.includes('flightBlend=THREE.MathUtils.damp')&&js.includes('cameraFo
 assert.equal((js.match(/new THREE\.PointLight/g)||[]).length,1,'facility lights are created by one bounded loop');
 assert.ok(js.includes('const lightPanels=[]')&&js.includes('mats.glow,lightPanels.length'),'facility ceiling panels render in one batch');
 assert.ok(js.includes('const wallParts=[]')&&js.includes('mats.wall,wallParts.length')&&js.includes('const banquetSeats=new THREE.InstancedMesh'),'facility walls and banquet seating render in two batches while keeping colliders');
-assert.ok(hub.includes('aeolia.html')&&hub.includes('stage=parallax')&&hub.includes('stage=somnia'),'station exposes all worlds');
+assert.ok(hub.includes('aeolia.html')&&hub.includes('stage=parallax')&&hub.includes('stage=somnia')&&hub.includes('playroom.html'),'station exposes all worlds');
 for(const page of [html,aeolia]){
   assert.ok(page.includes('世界選択へ')&&page.includes('id="characterSelect"'),'every world exposes world and character selection');
   assert.ok(page.includes('.return{position:fixed;z-index:12;left:28px;top:82px'),'world selector stays in the same desktop position');

@@ -21,6 +21,10 @@ function buildVariants(THREE,player){
   part(THREE,new THREE.BoxGeometry(.22,.065,.08),mistDark,0,3.1,.48,mistHead);
   const cape=part(THREE,new THREE.PlaneGeometry(1.35,2.25,4,10),mistCloth,0,1.9,-.55,mist);cape.material.side=THREE.DoubleSide;
   part(THREE,new THREE.BoxGeometry(.9,1.05,.38),mistDark,0,1.9,-.55,mist);
+  const shoulder=part(THREE,new THREE.SphereGeometry(.78,24,14,0,Math.PI*2,0,1.25),mistCloth,0,2.32,.02,mist);shoulder.scale.set(1,.48,.82);
+  const frontPanel=part(THREE,new THREE.BoxGeometry(.72,1.45,.07),mistDark,0,1.58,.5,mist);frontPanel.rotation.x=-.035;
+  for(const side of [-1,1]){const pocket=part(THREE,new THREE.BoxGeometry(.34,.3,.08),mistCloth,side*.28,1.34,.55,mist);pocket.rotation.z=-side*.06}
+  for(const y of [1.55,1.86,2.17])part(THREE,new THREE.SphereGeometry(.045,10,7),mistCloth,0,y,.58,mist);
   for(const side of [-1,1]){const tank=part(THREE,new THREE.CylinderGeometry(.12,.15,1.15,12),glass,side*.32,1.95,-.81,mist);tank.rotation.z=.05*side;const fin=part(THREE,new THREE.BoxGeometry(.15,.8,.05),mistCloth,side*.58,1.75,-.62,mist);fin.rotation.z=-side*.38}
 
   const lilacCloth=new THREE.MeshStandardMaterial({color:0x756183,roughness:.93}),lilacDark=new THREE.MeshStandardMaterial({color:0x433750,roughness:.92}),light=new THREE.MeshStandardMaterial({color:0xf1cad8,emissive:0xc46d9d,emissiveIntensity:1.1,roughness:.3});
