@@ -294,3 +294,40 @@ A〜Hは全て完了した（A `1371147`、B `efb561a`、C `5cf5c28`、D `b20b20
 | child-town | 4,580 tri / 9 mat / 311KB | 6,460 tri / 9 mat / 243KB |
 | quiet-rooms | 6,036 tri / 9 mat / 413KB | 14,572 tri / 10 mat / 482KB |
 | cloud-corridor | 1,040 tri / 5 mat / 70KB | 5,136 tri / 5 mat / 161KB |
+
+---
+
+## Task J：遊戯室の建築モジュール制作（未着手）
+
+Codexは同時に `outputs/playroom.js`、`outputs/playroom.html`、`work/test-playroom.mjs` を編集する。これらには触れず、新規素材だけを制作する。
+
+**対象ファイル**
+
+- 新規 `source/scripts/build_playroom_architecture.py`
+- 新規 `source/blender/playroom-architecture.blend`
+- 新規 `outputs/assets/playroom/playroom-architecture.glb`
+- 新規 `source/previews/playroom-architecture-preview.png`
+- 新規 `work/test-playroom-architecture.mjs`
+- 完了記録として本ファイル末尾と `PLAYTEST-REVIEW.md` へ追記
+
+**制作物**
+
+1. 厚みのある丸角アーチ通路。開口幅8m、高さ6m程度。
+2. 雲の輪郭を持つ壁龕。平面板ではなく、奥行きと内側の陰影が読めるもの。
+3. 波形の天井下がりと間接照明溝。直線の箱だけに見えない輪郭にする。
+4. 柔らかい保護材で覆われた非対称な柱。完全な円柱・直方体を避ける。
+
+**受け入れ条件**
+
+- 4モジュールを1つのGLBへ収録し、ノード名で個別取得できる。
+- 合計30k triangles以下、材質6以下、GLB 2MB以下。
+- 布／軟質材、塗装面、樹脂、金属を見分けられる材質名とroughnessを持つ。
+- 同一平面の重なり、縮退面、完全重複三角形が0。
+- 10〜25mのゲーム視点で、単純な箱の組み合わせに見えない。
+- Blenderヘッドレス再生成と `node work/test-playroom-architecture.mjs` が成功する。
+- 対象ファイルだけを1コミットにまとめ、SHAと実測値を記録する。
+
+**連携状態**
+
+- この依頼はファイルへ記載しただけで、Claude Codeへの自動通知・実行はない。
+- Claude Code側で「`CLAUDE-NEXT-TASKS.md` のTask Jを実行」と伝えられた時点で着手する。
