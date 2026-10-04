@@ -35,7 +35,13 @@ for(const file of assets){
   });
   assert.ok(triangles<150_000,`${file} stays below triangle budget`);
   assert.ok(materials.size<=10,`${file} uses at most ten materials`);
+  // Surfaces read apart without textures: fabric has sheen, plastic a clear coat, everything else stays a standard material.
+  const glb=readFileSync(path),json=JSON.parse(glb.subarray(20,20+glb.readUInt32LE(12)).toString());
+  for(const {name,extensions={}} of json.materials){
+    assert.equal(!!extensions.KHR_materials_sheen,/fabric/.test(name),`${file} ${name} sheen only on fabric`);
+    assert.equal(!!extensions.KHR_materials_clearcoat,/plastic|vinyl/.test(name),`${file} ${name} clear coat only on plastic and vinyl`);
+  }
   console.log(`${file}: ${statSync(path).size} bytes, ${triangles} triangles, ${materials.size} materials, bounds ${size.toArray().map(n=>n.toFixed(2)).join('×')}`);
 }
 assert.ok(readFileSync(new URL('../source/previews/playroom-zone-assets-preview.png',import.meta.url)).length>10_000,'overview preview exists');
-console.log('PASS: four web GLBs parsed; size, triangles, materials, bounds, degenerate and duplicate faces checked.');
+console.log('PASS: four web GLBs parsed; size, triangles, materials, bounds, degenerate and duplicate faces, fabric sheen and plastic clear coat checked.');

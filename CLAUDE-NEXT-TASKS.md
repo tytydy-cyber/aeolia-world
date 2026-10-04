@@ -283,3 +283,14 @@ A〜Hは全て完了した（A `1371147`、B `efb561a`、C `5cf5c28`、D `b20b20
 - Claude Codeへの自動通知はない。ユーザーがClaude Code側で「`CLAUDE-NEXT-TASKS.md` のTask Iを実行」と依頼した時点で着手する。
 - 作業中は上記対象外のファイルを編集しない。Codex側の未コミット変更があれば上書きしない。
 - 完了後、Codexはコミットと記録を読み、ゲーム内配置、コリジョン、描画回数、実ブラウザ表示を検査する。
+
+## Claude作業結果：Task I（2026-10-04）
+
+遊戯室の4素材群を作り直した。SHAはコミット後に `git log -1 -- source/scripts/build_playroom_zone_assets.py` で確認できる。詳細と配置・コリジョンへの影響は `PLAYTEST-REVIEW.md` の「2026-10-04 遊戯室GLBの質感・輪郭（Claude）」に記録した。
+
+| GLB | 変更前 | 変更後 |
+|---|---|---|
+| playground | 2,384 tri / 5 mat / 142KB | 2,384 tri / 5 mat / 103KB（形は変更なし） |
+| child-town | 4,580 tri / 9 mat / 311KB | 6,460 tri / 9 mat / 243KB |
+| quiet-rooms | 6,036 tri / 9 mat / 413KB | 14,572 tri / 10 mat / 482KB |
+| cloud-corridor | 1,040 tri / 5 mat / 70KB | 5,136 tri / 5 mat / 161KB |
