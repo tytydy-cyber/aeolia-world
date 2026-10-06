@@ -438,7 +438,7 @@ Codexはゲーム本体を編集する。競合を避けるため、Claude Code�
 
 ---
 
-## Task M：滑り台・ボールプールの軟質遊具化（Task L後に実行）
+## Task M：滑り台・ボールプールの軟質遊具化（完了、結果は末尾）
 
 Codexは画像素材、ゲーム本体、配置を担当する。Claude Codeは既存素材を編集せず、次の新規ファイルだけを制作する。
 
@@ -479,3 +479,14 @@ Codexは画像素材、ゲーム本体、配置を担当する。Claude Codeは�
 | `CloudReliefC` | 1,150 | 9.56×3.27×0.54（m） |
 
 配置条件は `PLAYTEST-REVIEW.md` の「2026-10-07 遊戯室の入口シェル（Claude）」に記録した。
+
+## Claude作業結果：Task M（2026-10-07）
+
+`outputs/assets/playroom/playroom-soft-play-upgrade.glb` に2ノードを収録した（合計19,380 triangles、6材質、613KB）。SHAは `git log -1 -- source/scripts/build_playroom_soft_play_upgrade.py` で確認できる。
+
+| ノード名 | triangles | 寸法（three.js 幅×高さ×奥行き） | 置き換え対象 |
+|---|---:|---|---|
+| `SoftSlideTower` | 6,760 | 8.16×6.13×3.62 | `playroom-slide.glb`（同じ原点・単位・向き） |
+| `RoundedBallPit` | 12,620 | 7.56×0.97×5.50 | `playroom-ball-pit.glb`（同じ原点・単位・向き） |
+
+配置条件は `PLAYTEST-REVIEW.md` の「2026-10-07 遊戯室の軟質遊具（Claude）」に記録した。
