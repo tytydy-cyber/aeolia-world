@@ -394,3 +394,44 @@ Codexは `outputs/playroom.js`、`outputs/playroom.html`、`work/test-playroom.m
 | `PaddedFenceIsland` | 6,324 | 6.91×1.02×6.93 | 褪せた青、褪せた珊瑚色、クリーム樹脂 |
 
 配置条件は `PLAYTEST-REVIEW.md` の「2026-10-05 遊戯室の床・虹接続モジュール（Claude）」に記録した。
+
+---
+
+## Task L：虹を壁へ統合する入口シェル（未着手）
+
+Codexはゲーム本体を編集する。競合を避けるため、Claude Codeは次の新規ファイルだけを制作する。
+
+- `source/scripts/build_playroom_entry_shell.py`
+- `source/blender/playroom-entry-shell.blend`
+- `outputs/assets/playroom/playroom-entry-shell.glb`
+- `source/previews/playroom-entry-shell-preview.png`
+- `work/test-playroom-entry-shell.mjs`
+- 完了記録として本ファイル末尾と `PLAYTEST-REVIEW.md` へ追記
+
+**制作物**
+
+1. `RainbowPortalWall`：幅34〜40m、高さ12〜14m、奥行き1.2〜1.8m。既存虹を置物ではなく壁の開口として見せる、厚みのある非対称な入口シェル。
+2. `CloudReliefA`、`CloudReliefB`、`CloudReliefC`：輪郭の異なる壁付け雲。厚み0.25〜0.55m、閉じた裏面を持ち、平面板にしない。
+
+**寸法・品質条件**
+
+- 虹素材の内半径4.8、外半径7.48を基準とし、中央開口を狭めない。
+- ゲーム倍率1.48と1.38の両方で、幅6mの通過帯と高さ3.6mのプレイヤー／飛行経路を確保する。
+- 虹と同一平面を作らず、内側見込み面をクリーム色、壁面を退色した空色にする。
+- 単純な長方形の正面板を避け、上端と側端に緩い非対称曲線を持たせる。
+- 合計28k triangles以下、材質6以下、GLB 2MB以下。
+- 表裏とも表示でき、縮退面・完全重複三角形・正の面積を持つ同一平面重なりが0。
+- 専用テストでノード名、寸法、開口、法線、重複面を検査する。
+- 対象ファイルだけを1コミットにまとめ、SHAと実測値を記録する。
+
+**編集禁止**
+
+- `outputs/playroom.js`
+- `outputs/playroom.html`
+- `work/test-playroom.mjs`
+- Task K以前の既存素材と生成スクリプト
+
+**連携状態**
+
+- この記載だけではClaude Codeへ自動通知・実行されない。
+- Claude Code側で「`CLAUDE-NEXT-TASKS.md` のTask Lを実行」と伝えた時点で着手する。
