@@ -75,6 +75,16 @@ def bevel(obj, width, segments=4):
     return obj
 
 
+def triangulate_ngons(obj):
+    bm = bmesh.new()
+    bm.from_mesh(obj.data)
+    bmesh.ops.triangulate(bm, faces=[face for face in bm.faces if len(face.verts) > 4],
+                          quad_method="BEAUTY", ngon_method="BEAUTY")
+    bm.to_mesh(obj.data)
+    bm.free()
+    return obj
+
+
 def loft(parent, name, rings, mat):
     """Rings of equal length joined into a tube, closed by a cap at each end."""
     count = len(rings[0])
@@ -130,12 +140,12 @@ def ball(parent, name, loc, radius, mat):
     return obj
 
 
-# 1. RainbowWallJoin: soft padded wing walls hugging the rainbow's outer band (radius 6.38 in rainbow units)
+# 1. RainbowWallJoin: soft padded wing walls hugging the rainbow's outer band (radius 7.48 in rainbow units)
 # from the floor to 55°, then rolling down outward to a flat end at |x| = 11 where a room wall can butt on.
 # They overlap the outer band by 6 cm and stand 0.2 m proud of its faces, so the rainbow reads as growing
 # out of them; the opening inside radius 6.2 stays clear.
 join = module("RainbowWallJoin")
-INNER, TOP_ANGLE = 6.32, math.radians(55)
+INNER, TOP_ANGLE = 7.42, math.radians(55)
 for side in (-1, 1):
     arc = [(INNER * math.cos(TOP_ANGLE * (1 - i / 10)), INNER * math.sin(TOP_ANGLE * (1 - i / 10))) for i in range(10)]
     end = [(11.0, SINK), (11.0, 3.6), (10.8, 4.0)]
@@ -143,13 +153,13 @@ for side in (-1, 1):
     for i in range(1, 12):
         u = i / 12
         x = 10.8 - u * (10.8 - arc[0][0] - .25)
-        top.append((x, 4.0 + 1.3 * u ** 1.4 + .16 * math.sin(u * math.pi * 2)))
+        top.append((x, 4.0 + (arc[0][1] - 4.0) * u + .12 * math.sin(u * math.pi * 2)))
     outline = [arc[0]] + arc[1:] + [(INNER, SINK)] + end + top
     count = len(outline)
     verts = [(side * x, y, z) for y in (-1.15, 1.15) for x, z in outline]
     faces = [tuple(range(count)), tuple(range(count, count * 2))]
     faces += [(i, (i + 1) % count, count + (i + 1) % count, count + i) for i in range(count)]
-    bevel(mesh(join, "Padded wing wall", verts, faces, BLUE), .28)
+    triangulate_ngons(mesh(join, "Padded wing wall", verts, faces, BLUE))
     for y in (-1.17, 1.17):
         pipe(join, "Cream piping", [(side * INNER, y, .12)] + [(side * x, y, z) for x, z in arc[::-1]], .12, CREAM)
 

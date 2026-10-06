@@ -13,8 +13,8 @@ const vertices=node=>{const out=[];node.traverse(o=>{if(!o.isMesh)return;const p
 const [join,carpet,berm,island]=modules.map(vertices);
 for(const [i,v] of [join,carpet,berm,island].entries())assert.ok(Math.abs(Math.min(...v.map(p=>p.y))+.01)<1e-4,`${names[i]} bottom sits 1 cm below its origin`);
 
-// The joins hug the rainbow (outer band radius 6.38) without entering its opening, and stand on both sides.
-assert.ok(!join.some(p=>Math.hypot(p.x,p.y)<6.15),'wall joins leave the rainbow opening clear');
+// The joins hug the enlarged rainbow (outer band radius 7.48) without entering its opening, and stand on both sides.
+assert.ok(!join.some(p=>Math.hypot(p.x,p.y)<6.9),'wall joins leave at least 2.1 m around the enlarged rainbow opening');
 assert.ok(join.some(p=>p.x<-10.9)&&join.some(p=>p.x>10.9),'wall joins reach out to both sides');
 const top=v=>Math.max(...v.map(p=>p.y));
 assert.ok(top(carpet)>=.07&&top(carpet)<=.15,'cloud carpet is 8–16 cm thick');
