@@ -397,7 +397,7 @@ Codexは `outputs/playroom.js`、`outputs/playroom.html`、`work/test-playroom.m
 
 ---
 
-## Task L：虹を壁へ統合する入口シェル（未着手）
+## Task L：虹を壁へ統合する入口シェル（完了、結果は末尾）
 
 Codexはゲーム本体を編集する。競合を避けるため、Claude Codeは次の新規ファイルだけを制作する。
 
@@ -466,3 +466,16 @@ Codexは画像素材、ゲーム本体、配置を担当する。Claude Codeは�
 
 - Task Lと同様、この記載だけではClaude Codeへ自動通知・実行されない。
 - Claude Code側で「Task Lを完了後、Task Mを実行」と明示して着手する。
+
+## Claude作業結果：Task L（2026-10-07）
+
+`outputs/assets/playroom/playroom-entry-shell.glb` に4ノードを収録した（合計5,586 triangles、3材質、128KB）。SHAは `git log -1 -- source/scripts/build_playroom_entry_shell.py` で確認できる。
+
+| ノード名 | triangles | 寸法（three.js 幅×高さ×奥行き） |
+|---|---:|---|
+| `RainbowPortalWall` | 2,136 | 37.96×13.38×1.50（虹の単位） |
+| `CloudReliefA` | 1,150 | 6.82×3.03×0.45（m） |
+| `CloudReliefB` | 1,150 | 5.22×2.32×0.30（m） |
+| `CloudReliefC` | 1,150 | 9.56×3.27×0.54（m） |
+
+配置条件は `PLAYTEST-REVIEW.md` の「2026-10-07 遊戯室の入口シェル（Claude）」に記録した。
