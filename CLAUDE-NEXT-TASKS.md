@@ -435,3 +435,34 @@ Codexはゲーム本体を編集する。競合を避けるため、Claude Code�
 
 - この記載だけではClaude Codeへ自動通知・実行されない。
 - Claude Code側で「`CLAUDE-NEXT-TASKS.md` のTask Lを実行」と伝えた時点で着手する。
+
+---
+
+## Task M：滑り台・ボールプールの軟質遊具化（Task L後に実行）
+
+Codexは画像素材、ゲーム本体、配置を担当する。Claude Codeは既存素材を編集せず、次の新規ファイルだけを制作する。
+
+- `source/scripts/build_playroom_soft_play_upgrade.py`
+- `source/blender/playroom-soft-play-upgrade.blend`
+- `outputs/assets/playroom/playroom-soft-play-upgrade.glb`
+- `source/previews/playroom-soft-play-upgrade-preview.png`
+- `work/test-playroom-soft-play-upgrade.mjs`
+
+**制作物**
+
+1. `SoftSlideTower`：現状と同じ大きさの通過可能な塔だが、柱・屋根・滑走面を丸め、接合部へ厚い保護パッドを持たせる。滑走面は連続した曲率と厚みを持つ。
+2. `RoundedBallPit`：内寸14×9m程度。角を丸めた厚い軟質壁、沈み込みのある上縁、疎密差のある滑らかな球を持つ。球は少数メッシュの見た目でもよいが、四角い槽に見せない。
+
+**受け入れ条件**
+
+- 2ノード合計35k triangles以下、材質6以下、GLB 2MB以下。
+- 現在のコリジョン寸法内へ収まり、滑り台の幅2m以上の進入路と、ボールプール周囲1.2m以上の通路を確保する。
+- 褪せた珊瑚色、クリーム、鈍い青、草色を使用し、原色を避ける。
+- 表裏の法線、縮退面、完全重複面、正の面積を持つ同一平面重なりを検査する。
+- 既存 `playroom-slide.glb`、`playroom-ball-pit.glb`、ゲームJS／HTMLへ触れない。
+- 対象ファイルだけを1コミットにまとめ、SHA・三角形数・材質数・寸法を記録する。
+
+**連携状態**
+
+- Task Lと同様、この記載だけではClaude Codeへ自動通知・実行されない。
+- Claude Code側で「Task Lを完了後、Task Mを実行」と明示して着手する。

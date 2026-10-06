@@ -3,10 +3,11 @@ import {readFileSync} from 'node:fs';
 
 const read=name=>readFileSync(new URL('../outputs/'+name,import.meta.url),'utf8');
 const html=read('playroom.html'),js=read('playroom.js'),hub=read('index.html');
-assert.ok(html.includes('DREAMCORE PLAYROOM 04')&&html.includes('playroom.js?v=31'),'playroom has its own entry page and module');
+assert.ok(html.includes('DREAMCORE PLAYROOM 04')&&html.includes('playroom.js?v=32'),'playroom has its own entry page and module');
 assert.ok(hub.includes('class="gate playroom"')&&hub.includes('4つのエリア'),'world select exposes the fourth world');
 for(const asset of ['playroom-rainbow.glb','playroom-slide.glb','playroom-ball-pit.glb','playroom-playground-pack.glb','playroom-child-town-pack.glb','playroom-quiet-rooms-pack.glb','playroom-cloud-corridor-pack.glb'])assert.ok(js.includes(asset),`${asset} is placed in the world`);
-for(const texture of ['wall-clouds.jpg','wall-meadow.jpg','wall-hills.jpg','carpet.jpg'])assert.ok(js.includes(texture),`${texture} is used by the hall`);
+for(const texture of ['wall-clouds-v2.jpg','wall-meadow.jpg','wall-hills.jpg','carpet.jpg'])assert.ok(js.includes(texture),`${texture} is used by the hall`);
+assert.ok(js.includes('wallMap.repeat.set(3,1.35)'),'painted cloud plaster repeats as a material instead of one stretched background image');
 assert.ok(!js.includes('clouds-12-atlas.png')&&!js.includes('cloudPlane('),'flat sticker clouds are replaced by room-scale murals');
 assert.ok(js.includes('muralPanel(x,10,-37.54')&&js.includes('muralPanel(x,10,-38.46'),'entrance mural sits clear of both partition faces without stretching across thin edges');
 assert.ok(js.includes("spawn:[0,0,25]")&&js.includes("Math.abs(x)<92&&z<62&&z>-152")&&js.includes('limitY:32'),'seven districts share a bounded 190 by 220 metre playable volume');
