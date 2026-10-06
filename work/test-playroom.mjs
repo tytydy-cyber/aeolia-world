@@ -3,7 +3,7 @@ import {readFileSync} from 'node:fs';
 
 const read=name=>readFileSync(new URL('../outputs/'+name,import.meta.url),'utf8');
 const html=read('playroom.html'),js=read('playroom.js'),hub=read('index.html');
-assert.ok(html.includes('DREAMCORE PLAYROOM 04')&&html.includes('playroom.js?v=32'),'playroom has its own entry page and module');
+assert.ok(html.includes('DREAMCORE PLAYROOM 04')&&html.includes('playroom.js?v=33')&&html.includes('mobile-controls.js?v=83'),'playroom has its own entry page and current shared mobile controls');
 assert.ok(hub.includes('class="gate playroom"')&&hub.includes('4つのエリア'),'world select exposes the fourth world');
 for(const asset of ['playroom-rainbow.glb','playroom-slide.glb','playroom-ball-pit.glb','playroom-playground-pack.glb','playroom-child-town-pack.glb','playroom-quiet-rooms-pack.glb','playroom-cloud-corridor-pack.glb'])assert.ok(js.includes(asset),`${asset} is placed in the world`);
 for(const texture of ['wall-clouds-v2.jpg','wall-meadow.jpg','wall-hills.jpg','carpet.jpg'])assert.ok(js.includes(texture),`${texture} is used by the hall`);
@@ -19,13 +19,15 @@ assert.equal((js.match(/contactBlob\(/g)||[]).length,8,'seven landmarks receive 
 assert.ok(js.includes('partitionZ(-38')&&js.includes('partitionZ(-84')&&js.includes('partitionZ(-126'),'the warehouse-sized floor is divided by three readable room thresholds');
 assert.ok(js.includes('partitionX(-25')&&js.includes('partitionX(25')&&js.includes('partitionX(0,-125.5'),'middle districts are separated into navigable rooms rather than one open warehouse');
 assert.ok(js.includes('playroom-architecture.glb')&&js.includes("['ArchPassage'")&&js.includes("['CloudNiche'")&&js.includes("['WaveSoffit'")&&js.includes("['PaddedColumn'"),'authored architectural modules give thresholds, murals and ceilings real depth');
-assert.ok(js.includes('playroom-floor-modules.glb')&&js.includes("['RainbowWallJoin',[0,0,3],1.48,0]")&&js.includes("['CloudCarpet'")&&js.includes("['SoftMeadowBerm'")&&js.includes("['PaddedFenceIsland'")&&js.includes('new THREE.Fog(0xd6e7eb,42,155)'),'rainbows join the room and shaped floor modules break up the empty floor');
+assert.ok(js.includes('playroom-floor-modules.glb')&&!js.includes("['RainbowWallJoin'")&&js.includes("['CloudCarpet'")&&js.includes("['SoftMeadowBerm'")&&js.includes("['PaddedFenceIsland'")&&js.includes('new THREE.Fog(0xd6e7eb,42,155)'),'obsolete rainbow joins are removed while shaped floor modules break up the empty floor');
+assert.ok(js.includes('playroom-entry-shell.glb')&&js.includes("['RainbowPortalWall',[0,0,3],1.48,0]")&&js.includes("['RainbowPortalWall',[0,0,-33.8],1.38,0]")&&js.includes("['CloudReliefA'")&&js.includes("['CloudReliefB'")&&js.includes("['CloudReliefC'"),'both rainbows are wall openings with three dimensional cloud reliefs');
 const colliderSource=js.match(/colliders\.push\((\{x:16.*?\})\);/s)?.[1];assert.ok(colliderSource,'playroom collider list is inspectable');const colliders=Function(`return [${colliderSource}]`)(),contains=(c,x,z,margin=.55)=>Math.abs(x-c.x)<c.w+margin&&Math.abs(z-c.z)<c.d+margin,blocked=(x,y,z)=>colliders.some(c=>contains(c,x,z)&&y<c.top&&y+3.6>c.bottom);for(const y of [0,3])for(const x of [-3,-1.5,0,1.5,3])for(let z=8;z>=-38;z-=.25)assert.ok(!blocked(x,y,z),`rainbow passage remains traversable at x=${x}, y=${y}, z=${z}`);
 assert.ok(js.includes("playroom-quiet-rooms-pack.glb',[-49,0,-105],2.2")&&js.includes("playroom-quiet-rooms-pack.glb',[48,0,-112],2.1"),'quiet-room furniture is scaled against the 3.6 m player instead of real-world metres');
 assert.ok(js.includes("function roomOf(x,z)")&&js.includes("local=left.filter"),'discovery guidance prefers unseen landmarks in the current room instead of pointing through walls');
 assert.ok(js.includes("const destination=near[3]===room?room"),'room and destination labels do not repeat the same name');
 assert.ok(!js.includes('o.visible=!o.visible')&&!js.includes('o.position.z+=')&&!js.includes('o.position.x+='),'anomalies do not leave stale invisible collision proxies');
 assert.ok(js.includes("{x:0,z:3,w:11,d:1.5,bottom:6.8,top:12}")&&js.includes("{x:0,z:-33.8,w:10.3,d:1.35,bottom:6.6,top:11.2}"),'both thick rainbow arches keep the camera out while leaving the enlarged walk-through opening clear');
+assert.ok(js.includes("{x:-18.45,z:3,w:7.45,d:1.12,bottom:0,top:20}")&&js.includes("{x:20.65,z:3,w:9.65,d:1.12,bottom:0,top:20}")&&js.includes("{x:2.2,z:3,w:28.2,d:1.12,bottom:10.8,top:20}"),'entry-shell collision is split around the opening instead of blocking it');
 assert.ok(js.includes('Math.sin(yaw)*13')&&js.includes('Math.cos(yaw)*13')&&js.includes('player.position.y+5+Math.sin(pitch)*3'),'the lower closer camera keeps the traveler inside the play equipment rather than above it');
 assert.ok(js.includes('new THREE.InstancedMesh(new THREE.BoxGeometry(.22,1.45,.18)')&&js.includes('fenceColors'),'a single colored fence batch gives the first room human scale');
 assert.ok(js.includes('const anomalies=[')&&js.includes('anomalyIndex++%anomalies.length'),'entry-local anomalies advance without overwriting the persistent journal');
