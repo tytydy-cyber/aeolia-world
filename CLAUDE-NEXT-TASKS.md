@@ -618,7 +618,7 @@ Codexはゲーム本体、照明、既存素材の再配置を担当する。Cla
 
 ---
 
-## Task Q：子どもの街の前景キット（Task O・Pと並行可）
+## Task Q：子どもの街の前景キット（完了、結果は末尾）
 
 現在の店舗3棟は形状を読めるが、広い通路に一列だけ置かれ、正面展示に見える。店舗本体を作り直さず、前景・中景を作る少数素材を追加する。
 
@@ -676,3 +676,15 @@ Codexはゲーム本体、照明、既存素材の再配置を担当する。Cla
 | `BirthdayRoomSet` | 5,764 | 19.39×4.96×5.37 |
 
 配置条件は `PLAYTEST-REVIEW.md` の「2026-10-08 昼寝室と誕生日会場の分離（Claude）」に記録した。
+
+## Claude作業結果：Task Q（2026-10-08）
+
+`outputs/assets/playroom/playroom-town-foreground.glb`（合計5,176 triangles、4材質、163KB）。SHAは `git log -1 -- source/scripts/build_playroom_town_foreground.py` で確認できる。
+
+| ノード名 | triangles | 寸法（three.js 幅×高さ×奥行き、m） |
+|---|---:|---|
+| `TownBenchCluster` | 2,228 | 5.11×1.75×2.47 |
+| `TownSignCluster` | 1,220 | 3.12×3.81×0.91 |
+| `TownVehicleSilhouette` | 1,728 | 2.90×2.01×1.88 |
+
+配置条件は `PLAYTEST-REVIEW.md` の「2026-10-08 子どもの街の前景キット（Claude）」に記録した。
