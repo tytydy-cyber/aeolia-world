@@ -3,7 +3,7 @@ import {readFileSync} from 'node:fs';
 
 const read=name=>readFileSync(new URL('../outputs/'+name,import.meta.url),'utf8');
 const html=read('playroom.html'),js=read('playroom.js'),hub=read('index.html');
-assert.ok(html.includes('DREAMCORE PLAYROOM 04')&&html.includes('playroom.js?v=36')&&html.includes('mobile-controls.js?v=83'),'playroom has its own entry page and current shared mobile controls');
+assert.ok(html.includes('DREAMCORE PLAYROOM 04')&&html.includes('playroom.js?v=38')&&html.includes('mobile-controls.js?v=83'),'playroom has its own entry page and current shared mobile controls');
 assert.ok(hub.includes('class="gate playroom"')&&hub.includes('4つのエリア'),'world select exposes the fourth world');
 for(const asset of ['playroom-rainbow.glb','playroom-soft-play-upgrade.glb','playroom-playground-pack.glb','playroom-child-town-pack.glb','playroom-quiet-rooms-pack.glb','playroom-cloud-corridor-pack.glb'])assert.ok(js.includes(asset),`${asset} is placed in the world`);
 assert.ok(!js.includes("loadAsset('playroom-slide.glb'")&&!js.includes("loadAsset('playroom-ball-pit.glb'"),'obsolete thin slide and box ball-pit assets are not loaded');
@@ -26,6 +26,8 @@ for(const color of ['0xc48070','0xe2d4b6','0x92a076','0x708aa0'])assert.ok(js.in
 assert.ok(js.includes('partitionZ(-38')&&js.includes('partitionZ(-84')&&js.includes('partitionZ(-126'),'the warehouse-sized floor is divided by three readable room thresholds');
 assert.ok(js.includes('partitionX(-25')&&js.includes('partitionX(25')&&js.includes('partitionX(0,-125.5'),'middle districts are separated into navigable rooms rather than one open warehouse');
 assert.ok(js.includes('playroom-architecture.glb')&&js.includes("['ArchPassage'")&&js.includes("['CloudNiche'")&&js.includes("['WaveSoffit'")&&js.includes("['PaddedColumn'"),'authored architectural modules give thresholds, murals and ceilings real depth');
+assert.ok(js.includes('playroom-deep-room-kit.glb')&&js.includes("['CloudCeilingCove'")&&js.includes("['SoftWallAlcove'")&&js.includes("['HangingCloudCluster'"),'deep rooms use authored ceiling, wall and hanging silhouettes');
+assert.ok(js.includes("{x:-49,z:-124.15,w:6,d:1.4,bottom:0,top:8.4}")&&js.includes("{x:48,z:-124.15,w:6,d:1.4,bottom:0,top:8.4}"),'both deep wall alcoves have matching collision proxies');
 assert.ok(js.includes('playroom-floor-modules.glb')&&!js.includes("['RainbowWallJoin'")&&js.includes("['CloudCarpet'")&&js.includes("['SoftMeadowBerm'")&&js.includes("['PaddedFenceIsland'")&&js.includes('new THREE.Fog(0xd6e7eb,42,155)'),'obsolete rainbow joins are removed while shaped floor modules break up the empty floor');
 assert.ok(js.includes('playroom-entry-shell.glb')&&js.includes("['RainbowPortalWall',[0,0,3],1.48,0]")&&js.includes("['RainbowPortalWall',[0,0,-33.8],1.38,0]")&&js.includes("['CloudReliefA'")&&js.includes("['CloudReliefB'")&&js.includes("['CloudReliefC'"),'both rainbows are wall openings with three dimensional cloud reliefs');
 assert.ok(js.includes("['CloudReliefA',[-55,4.4,-83.55]")&&js.includes("['CloudReliefC',[-48,4.8,-125.55]")&&js.includes("['CloudReliefA',[48,7,-125.55]"),'authored cloud reliefs continue through the deep-room thresholds');
@@ -41,5 +43,6 @@ assert.ok(js.includes('new THREE.InstancedMesh(new THREE.BoxGeometry(.22,1.45,.1
 assert.ok(js.includes('const anomalies=[')&&js.includes('anomalyIndex++%anomalies.length'),'entry-local anomalies advance without overwriting the persistent journal');
 assert.ok(js.includes("id='playroom:'+n[3]")&&js.includes("stored('aeolia-notes',JSON.stringify(notes))"),'playroom discoveries share the cross-world journal under their own namespace');
 assert.ok(js.includes('mergeStatic()'),'static architecture is batched after room materials are assigned');
+assert.ok(js.includes('for(const o of assetRoots)o.visible=Math.abs(player.position.z-o.position.z)<82'),'distant room assets are culled by player depth without removing nearby landmarks');
 assert.ok(js.includes('function compactAsset(source)')&&js.includes('vertexColors:true')&&js.includes("toNonIndexed()"),'Blender assets bake their colors into one draw batch per placement');
 console.log('PASS: fourth-world entry, bounded layered hall, Blender landmarks, authored textures, discoveries, anomalies and shared journal.');
