@@ -3,9 +3,11 @@ import {readFileSync} from 'node:fs';
 
 const read=name=>readFileSync(new URL('../outputs/'+name,import.meta.url),'utf8');
 const html=read('playroom.html'),js=read('playroom.js'),hub=read('index.html');
-assert.ok(html.includes('DREAMCORE PLAYROOM 04')&&html.includes('playroom.js?v=33')&&html.includes('mobile-controls.js?v=83'),'playroom has its own entry page and current shared mobile controls');
+assert.ok(html.includes('DREAMCORE PLAYROOM 04')&&html.includes('playroom.js?v=34')&&html.includes('mobile-controls.js?v=83'),'playroom has its own entry page and current shared mobile controls');
 assert.ok(hub.includes('class="gate playroom"')&&hub.includes('4つのエリア'),'world select exposes the fourth world');
-for(const asset of ['playroom-rainbow.glb','playroom-slide.glb','playroom-ball-pit.glb','playroom-playground-pack.glb','playroom-child-town-pack.glb','playroom-quiet-rooms-pack.glb','playroom-cloud-corridor-pack.glb'])assert.ok(js.includes(asset),`${asset} is placed in the world`);
+for(const asset of ['playroom-rainbow.glb','playroom-soft-play-upgrade.glb','playroom-playground-pack.glb','playroom-child-town-pack.glb','playroom-quiet-rooms-pack.glb','playroom-cloud-corridor-pack.glb'])assert.ok(js.includes(asset),`${asset} is placed in the world`);
+assert.ok(!js.includes("loadAsset('playroom-slide.glb'")&&!js.includes("loadAsset('playroom-ball-pit.glb'"),'obsolete thin slide and box ball-pit assets are not loaded');
+assert.ok(js.includes("['SoftSlideTower',[16,0,11],1.5,-Math.PI/2,'slide']")&&js.includes("['RoundedBallPit',[-16,0,12],2.2,0,'pit']")&&js.includes("['RoundedBallPit',[-49,0,-61],2.7,.18,'rear']"),'all three soft-play placements preserve the tested positions and scales');
 for(const texture of ['wall-clouds-v2.jpg','wall-meadow.jpg','wall-hills.jpg','carpet.jpg'])assert.ok(js.includes(texture),`${texture} is used by the hall`);
 assert.ok(js.includes('wallMap.repeat.set(3,1.35)'),'painted cloud plaster repeats as a material instead of one stretched background image');
 assert.ok(!js.includes('clouds-12-atlas.png')&&!js.includes('cloudPlane('),'flat sticker clouds are replaced by room-scale murals');
