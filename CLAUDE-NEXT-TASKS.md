@@ -581,7 +581,7 @@ Codexはゲーム本体、照明、既存素材の再配置を担当する。Cla
 
 ---
 
-## Task P：昼寝室と誕生日会場を分離する（Task Oと並行可）
+## Task P：昼寝室と誕生日会場を分離する（完了、結果は末尾）
 
 現在の `playroom-quiet-rooms-pack.glb` は昼寝用と誕生日用の家具を一体で収録し、ゲーム側で同じ全セットを2室へ重複配置している。既存素材を壊さず、意味ごとに分離した置換素材を作る。
 
@@ -665,3 +665,14 @@ Codexはゲーム本体、照明、既存素材の再配置を担当する。Cla
 | `FloatingCloudIslands` | 3,840 | 子 `FloatingCloudIslandA/B/C`（各1,280） | 回廊の床中央、子は各群の中心 |
 
 配置条件は `PLAYTEST-REVIEW.md` の「2026-10-08 雲の回廊v2（Claude）」に記録した。
+
+## Claude作業結果：Task P（2026-10-08）
+
+`outputs/assets/playroom/playroom-quiet-split.glb`（合計10,762 triangles、6材質、338KB）。SHAは `git log -1 -- source/scripts/build_playroom_quiet_split.py` で確認できる。
+
+| ノード名 | triangles | 寸法（three.js 幅×高さ×奥行き、m） |
+|---|---:|---|
+| `NapRoomSet` | 4,998 | 21.27×1.75×6.46 |
+| `BirthdayRoomSet` | 5,764 | 19.39×4.96×5.37 |
+
+配置条件は `PLAYTEST-REVIEW.md` の「2026-10-08 昼寝室と誕生日会場の分離（Claude）」に記録した。
