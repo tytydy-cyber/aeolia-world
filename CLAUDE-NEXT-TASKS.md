@@ -493,7 +493,7 @@ Codexは画像素材、ゲーム本体、配置を担当する。Claude Codeは�
 
 ---
 
-## Task N：奥区画の天井・壁際シルエット（未着手）
+## Task N：奥区画の天井・壁際シルエット（完了、結果は末尾）
 
 Codexはゲーム本体、照明、既存素材の再配置を担当する。Claude Codeは競合を避け、次の新規ファイルだけを制作する。
 
@@ -521,3 +521,15 @@ Codexはゲーム本体、照明、既存素材の再配置を担当する。Cla
 
 - この記載だけではClaude Codeへ自動通知・実行されない。
 - Claude Code側で「`CLAUDE-NEXT-TASKS.md` のTask Nを実行」と伝えた時点で着手する。
+
+## Claude作業結果：Task N（2026-10-08）
+
+`outputs/assets/playroom/playroom-deep-room-kit.glb` に3ノードを収録した（合計14,802 triangles、5材質、390KB）。SHAは `git log -1 -- source/scripts/build_playroom_deep_room_kit.py` で確認できる。
+
+| ノード名 | triangles | 寸法（three.js 幅×高さ×奥行き、m） |
+|---|---:|---|
+| `CloudCeilingCove` | 4,822 | 16.00×1.26×2.01 |
+| `SoftWallAlcove` | 1,916 | 7.50×5.22×1.74 |
+| `HangingCloudCluster` | 8,064 | 6.59×5.97×3.55 |
+
+配置条件は `PLAYTEST-REVIEW.md` の「2026-10-08 遊戯室の奥区画キット（Claude）」に記録した。
