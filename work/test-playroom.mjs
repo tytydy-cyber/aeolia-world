@@ -3,7 +3,7 @@ import {readFileSync} from 'node:fs';
 
 const read=name=>readFileSync(new URL('../outputs/'+name,import.meta.url),'utf8');
 const html=read('playroom.html'),js=read('playroom.js'),hub=read('index.html');
-assert.ok(html.includes('DREAMCORE PLAYROOM 04')&&html.includes('playroom.js?v=34')&&html.includes('mobile-controls.js?v=83'),'playroom has its own entry page and current shared mobile controls');
+assert.ok(html.includes('DREAMCORE PLAYROOM 04')&&html.includes('playroom.js?v=35')&&html.includes('mobile-controls.js?v=83'),'playroom has its own entry page and current shared mobile controls');
 assert.ok(hub.includes('class="gate playroom"')&&hub.includes('4つのエリア'),'world select exposes the fourth world');
 for(const asset of ['playroom-rainbow.glb','playroom-soft-play-upgrade.glb','playroom-playground-pack.glb','playroom-child-town-pack.glb','playroom-quiet-rooms-pack.glb','playroom-cloud-corridor-pack.glb'])assert.ok(js.includes(asset),`${asset} is placed in the world`);
 assert.ok(!js.includes("loadAsset('playroom-slide.glb'")&&!js.includes("loadAsset('playroom-ball-pit.glb'"),'obsolete thin slide and box ball-pit assets are not loaded');
@@ -18,11 +18,15 @@ for(const safe of ["[10,5,-55,'遊具広場'","[52,3,-63,'子どもの街'","[-4
 assert.equal((js.match(/floorPatch\(\[/g)||[]).length,9,'nine asymmetric floor fields distinguish the entrance and added districts');
 assert.ok(js.includes('function contactBlob(')&&js.includes('shadow.position.set(x,.065,z)')&&js.includes('depthWrite:false')&&js.includes('polygonOffset:true'),'asymmetric fake contact shadows sit four centimetres above floor fields without coplanar flicker');
 assert.equal((js.match(/contactBlob\(/g)||[]).length,8,'seven landmarks receive low-cost contact shadows');
+assert.equal((js.match(/new THREE\.PointLight\(/g)||[]).length,1,'four restrained local lights are data-driven through one creation site');
+assert.ok(js.includes("[0,7,5,0xffe4bd,42,34]")&&js.includes("[0,8,-33.8,0xc8ddff,36,30]"),'local light pools ground the entrance and repeated portal without shadow maps');
+for(const color of ['0xc48070','0xe2d4b6','0x92a076','0x708aa0'])assert.ok(js.includes(color),`fence uses muted shared palette ${color}`);
 assert.ok(js.includes('partitionZ(-38')&&js.includes('partitionZ(-84')&&js.includes('partitionZ(-126'),'the warehouse-sized floor is divided by three readable room thresholds');
 assert.ok(js.includes('partitionX(-25')&&js.includes('partitionX(25')&&js.includes('partitionX(0,-125.5'),'middle districts are separated into navigable rooms rather than one open warehouse');
 assert.ok(js.includes('playroom-architecture.glb')&&js.includes("['ArchPassage'")&&js.includes("['CloudNiche'")&&js.includes("['WaveSoffit'")&&js.includes("['PaddedColumn'"),'authored architectural modules give thresholds, murals and ceilings real depth');
 assert.ok(js.includes('playroom-floor-modules.glb')&&!js.includes("['RainbowWallJoin'")&&js.includes("['CloudCarpet'")&&js.includes("['SoftMeadowBerm'")&&js.includes("['PaddedFenceIsland'")&&js.includes('new THREE.Fog(0xd6e7eb,42,155)'),'obsolete rainbow joins are removed while shaped floor modules break up the empty floor');
 assert.ok(js.includes('playroom-entry-shell.glb')&&js.includes("['RainbowPortalWall',[0,0,3],1.48,0]")&&js.includes("['RainbowPortalWall',[0,0,-33.8],1.38,0]")&&js.includes("['CloudReliefA'")&&js.includes("['CloudReliefB'")&&js.includes("['CloudReliefC'"),'both rainbows are wall openings with three dimensional cloud reliefs');
+assert.ok(js.includes("['CloudReliefA',[-55,4.4,-83.55]")&&js.includes("['CloudReliefC',[-48,4.8,-125.55]")&&js.includes("['CloudReliefA',[48,7,-125.55]"),'authored cloud reliefs continue through the deep-room thresholds');
 const colliderSource=js.match(/colliders\.push\((\{x:16.*?\})\);/s)?.[1];assert.ok(colliderSource,'playroom collider list is inspectable');const colliders=Function(`return [${colliderSource}]`)(),contains=(c,x,z,margin=.55)=>Math.abs(x-c.x)<c.w+margin&&Math.abs(z-c.z)<c.d+margin,blocked=(x,y,z)=>colliders.some(c=>contains(c,x,z)&&y<c.top&&y+3.6>c.bottom);for(const y of [0,3])for(const x of [-3,-1.5,0,1.5,3])for(let z=8;z>=-38;z-=.25)assert.ok(!blocked(x,y,z),`rainbow passage remains traversable at x=${x}, y=${y}, z=${z}`);
 assert.ok(js.includes("playroom-quiet-rooms-pack.glb',[-49,0,-105],2.2")&&js.includes("playroom-quiet-rooms-pack.glb',[48,0,-112],2.1"),'quiet-room furniture is scaled against the 3.6 m player instead of real-world metres');
 assert.ok(js.includes("function roomOf(x,z)")&&js.includes("local=left.filter"),'discovery guidance prefers unseen landmarks in the current room instead of pointing through walls');

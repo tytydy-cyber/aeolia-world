@@ -490,3 +490,34 @@ Codexは画像素材、ゲーム本体、配置を担当する。Claude Codeは�
 | `RoundedBallPit` | 12,620 | 7.56×0.97×5.50 | `playroom-ball-pit.glb`（同じ原点・単位・向き） |
 
 配置条件は `PLAYTEST-REVIEW.md` の「2026-10-07 遊戯室の軟質遊具（Claude）」に記録した。
+
+---
+
+## Task N：奥区画の天井・壁際シルエット（未着手）
+
+Codexはゲーム本体、照明、既存素材の再配置を担当する。Claude Codeは競合を避け、次の新規ファイルだけを制作する。
+
+- `source/scripts/build_playroom_deep_room_kit.py`
+- `source/blender/playroom-deep-room-kit.blend`
+- `outputs/assets/playroom/playroom-deep-room-kit.glb`
+- `source/previews/playroom-deep-room-kit-preview.png`
+- `work/test-playroom-deep-room-kit.mjs`
+
+**制作物**
+
+1. `CloudCeilingCove`：雲形の天井縁と間接照明溝。直線の梁に見えず、天井へ5cm埋めて配置できる。
+2. `SoftWallAlcove`：奥行き1.2〜1.8mの非対称な壁龕。人が通れる開口ではなく、寝具・椅子・小物の背景になる。
+3. `HangingCloudCluster`：高さ違いの立体雲3〜5個を一群にした吊り装飾。薄い板を禁止し、全方向から厚みが見える。
+
+**受け入れ条件**
+
+- 合計24k triangles以下、材質5以下、GLB 1.5MB以下。
+- 退色した空色、クリーム、鈍い青、褪せた珊瑚色のみを使う。
+- 同一平面重なり、縮退面、完全重複面0。床から高さ3.6mまでの通行域へ出さない。
+- 既存GLB、`outputs/playroom.js`、HTML、既存テストへ触れない。
+- 対象ファイルだけを1コミットにし、SHA、寸法、三角形数、材質数を記録する。
+
+**連携状態**
+
+- この記載だけではClaude Codeへ自動通知・実行されない。
+- Claude Code側で「`CLAUDE-NEXT-TASKS.md` のTask Nを実行」と伝えた時点で着手する。
