@@ -3,7 +3,7 @@ import {readFileSync} from 'node:fs';
 
 const read=name=>readFileSync(new URL('../outputs/'+name,import.meta.url),'utf8');
 const html=read('playroom.html'),js=read('playroom.js'),hub=read('index.html');
-assert.ok(html.includes('DREAMCORE PLAYROOM 04')&&html.includes('playroom.js?v=35')&&html.includes('mobile-controls.js?v=83'),'playroom has its own entry page and current shared mobile controls');
+assert.ok(html.includes('DREAMCORE PLAYROOM 04')&&html.includes('playroom.js?v=36')&&html.includes('mobile-controls.js?v=83'),'playroom has its own entry page and current shared mobile controls');
 assert.ok(hub.includes('class="gate playroom"')&&hub.includes('4つのエリア'),'world select exposes the fourth world');
 for(const asset of ['playroom-rainbow.glb','playroom-soft-play-upgrade.glb','playroom-playground-pack.glb','playroom-child-town-pack.glb','playroom-quiet-rooms-pack.glb','playroom-cloud-corridor-pack.glb'])assert.ok(js.includes(asset),`${asset} is placed in the world`);
 assert.ok(!js.includes("loadAsset('playroom-slide.glb'")&&!js.includes("loadAsset('playroom-ball-pit.glb'"),'obsolete thin slide and box ball-pit assets are not loaded');
@@ -13,6 +13,8 @@ assert.ok(js.includes('wallMap.repeat.set(3,1.35)'),'painted cloud plaster repea
 assert.ok(!js.includes('clouds-12-atlas.png')&&!js.includes('cloudPlane('),'flat sticker clouds are replaced by room-scale murals');
 assert.ok(js.includes('muralPanel(x,10,-37.54')&&js.includes('muralPanel(x,10,-38.46'),'entrance mural sits clear of both partition faces without stretching across thin edges');
 assert.ok(js.includes("spawn:[0,0,25]")&&js.includes("Math.abs(x)<92&&z<62&&z>-152")&&js.includes('limitY:32'),'seven districts share a bounded 190 by 220 metre playable volume');
+for(const view of ['playground:[0,3,-48]','town:[52,3,-55]','quiet:[-49,3,-92]','birthday:[48,3,-99]','cloud:[0,15,-130]'])assert.ok(js.includes(view),`${view} has a repeatable debug review position`);
+assert.ok(js.includes("location.search.includes('debug=1')")&&js.includes("new URLSearchParams(location.search).get('view')"),'fixed review positions are unavailable outside debug mode');
 assert.equal((js.match(/'[^']+','[^']+'\]/g)||[]).filter(s=>['大きな虹','滑り台の上','ボールプール','小さな扉','上の通路','遊具広場','奥のボールプール','子どもの街','最後の布団','誕生日席','雲の回廊','天井裏'].some(n=>s.includes(n))).length,12,'the expanded world has twelve discoveries');
 for(const safe of ["[10,5,-55,'遊具広場'","[52,3,-63,'子どもの街'","[-49,2,-99,'最後の布団'","[48,2,-106,'誕生日席'","[14,18,-139,'雲の回廊'"])assert.ok(js.includes(safe),`${safe} is outside its solid proxy`);
 assert.equal((js.match(/floorPatch\(\[/g)||[]).length,9,'nine asymmetric floor fields distinguish the entrance and added districts');
