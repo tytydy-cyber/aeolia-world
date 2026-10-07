@@ -533,3 +533,47 @@ Codexはゲーム本体、照明、既存素材の再配置を担当する。Cla
 | `HangingCloudCluster` | 8,064 | 6.59×5.97×3.55 |
 
 配置条件は `PLAYTEST-REVIEW.md` の「2026-10-08 遊戯室の奥区画キット（Claude）」に記録した。
+
+---
+
+## Task O：雲の回廊を立体空間へ作り直す（未着手）
+
+現在の固定視点 `playroom.html?debug=1&view=cloud` は、白い平面床、直線フレーム、壁紙が画面を占め、参照画像の「雲に包まれた遊戯空間」になっていない。既存 `playroom-cloud-corridor-pack.glb` の修正ではなく、置換用の新規キットを制作する。
+
+**Claude Codeの担当ファイル**
+
+- `source/scripts/build_playroom_cloud_corridor_v2.py`
+- `source/blender/playroom-cloud-corridor-v2.blend`
+- `outputs/assets/playroom/playroom-cloud-corridor-v2.glb`
+- `source/previews/playroom-cloud-corridor-v2-preview.png`
+- `work/test-playroom-cloud-corridor-v2.mjs`
+
+**制作物**
+
+1. `CloudCorridorShell`：幅24m以上、高さ13m以上、奥行き22m以上。左右と天井が連続した丸い室内殻で、正面板や直線の箱に見えない。中央に幅8m×高さ6m以上の飛行経路を残す。
+2. `CloudFloorBanks`：床の左右へ厚い雲堤を非対称に配置し、中央通路を幅7m以上残す。床全面を白く覆わない。
+3. `DistantCloudGate`：終端の遠景となる二重以上の雲形開口。薄い看板は禁止し、裏側と見込み面を持つ。
+4. `FloatingCloudIslands`：高さと奥行きが異なる3群以上。飛行経路の外へ置き、全方向から厚みが見える。
+
+**受け入れ条件**
+
+- `PLAYROOM-REFERENCE-SPEC.md` の雲回廊視点で、前景・中景・遠景の3層が素材単体プレビューでも判別できる。
+- 単純な長方形の大面積面、薄い平面、同じ形の等間隔反復を避ける。
+- 退色した空色、クリーム、薄い灰青、少量の褪せた珊瑚色。原色と純白の大面積使用は禁止。
+- 合計32k triangles以下、材質6以下、GLB 2MB以下。
+- 床から高さ3.6m、中央幅7mの通行域を侵さない。
+- 表裏の法線、縮退面、完全重複面、正の面積を持つ同一平面重なりが0。
+- 専用テストでノード名、寸法、開口、予算、法線、重複面を検査する。
+- 対象ファイルだけを1コミットにまとめ、SHAと実測値を末尾へ記録する。
+
+**編集禁止**
+
+- `outputs/playroom.js`
+- `outputs/playroom.html`
+- `work/test-playroom.mjs`
+- 既存GLBと既存生成スクリプト
+
+**連携状態**
+
+- この記載だけではClaude Codeへ自動通知・実行されない。
+- Claude Code側で「`CLAUDE-NEXT-TASKS.md` のTask Oを実行」と伝えた時点で着手する。
