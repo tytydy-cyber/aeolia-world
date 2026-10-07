@@ -578,3 +578,77 @@ Codexはゲーム本体、照明、既存素材の再配置を担当する。Cla
 
 - この記載だけではClaude Codeへ自動通知・実行されない。
 - Claude Code側で「`CLAUDE-NEXT-TASKS.md` のTask Oを実行」と伝えた時点で着手する。
+
+---
+
+## Task P：昼寝室と誕生日会場を分離する（Task Oと並行可）
+
+現在の `playroom-quiet-rooms-pack.glb` は昼寝用と誕生日用の家具を一体で収録し、ゲーム側で同じ全セットを2室へ重複配置している。既存素材を壊さず、意味ごとに分離した置換素材を作る。
+
+**Claude Codeの担当ファイル**
+
+- `source/scripts/build_playroom_quiet_split.py`
+- `source/blender/playroom-quiet-split.blend`
+- `outputs/assets/playroom/playroom-quiet-split.glb`
+- `source/previews/playroom-quiet-split-preview.png`
+- `work/test-playroom-quiet-split.mjs`
+
+**制作物**
+
+1. `NapRoomSet`：寝具、マット、低い間仕切り。最後の寝床だけを少し離し、発見対象として読める構図にする。
+2. `BirthdayRoomSet`：机、ケーキ、椅子、アーチ。椅子はケーキへ向け、人物サイズに対して自然な寸法を保つ。
+
+**受け入れ条件**
+
+- 既存素材を流用してよいが、2ノードを個別配置できること。
+- 2ノード合計14,600 triangles以下、材質6以下、GLB 1.5MB以下。
+- 各ノードの原点を床中央へ置き、幅22m×奥行き8m以内。
+- 単純な等間隔配置を避け、中央に幅3m以上の移動経路を残す。
+- 同一平面重なり、縮退面、完全重複面0。専用テストで検査する。
+- 対象ファイルだけを1コミットにまとめ、SHA、各ノード寸法、三角形数、材質数を末尾へ記録する。
+
+**編集禁止**
+
+- `outputs/playroom.js`、HTML、既存テスト、既存GLB、既存生成スクリプト
+
+**連携状態**
+
+- Task Oと別コミットで独立して実行できる。
+- この記載だけではClaude Codeへ自動通知・実行されない。
+
+---
+
+## Task Q：子どもの街の前景キット（Task O・Pと並行可）
+
+現在の店舗3棟は形状を読めるが、広い通路に一列だけ置かれ、正面展示に見える。店舗本体を作り直さず、前景・中景を作る少数素材を追加する。
+
+**Claude Codeの担当ファイル**
+
+- `source/scripts/build_playroom_town_foreground.py`
+- `source/blender/playroom-town-foreground.blend`
+- `outputs/assets/playroom/playroom-town-foreground.glb`
+- `source/previews/playroom-town-foreground-preview.png`
+- `work/test-playroom-town-foreground.mjs`
+
+**制作物**
+
+1. `TownBenchCluster`：丸みのあるベンチ1、低い植栽または布製遊具2〜3。薄い板は禁止。
+2. `TownSignCluster`：非対称な案内標識と低い街灯。文字は使わず、退色した図形で構成する。
+3. `TownVehicleSilhouette`：子ども用の小さな乗り物1台。人物より小さすぎず、全方向から厚みが見える。
+
+**受け入れ条件**
+
+- 合計8,000 triangles以下、材質5以下、GLB 1MB以下。
+- 店舗入口を塞がず、各群の周囲へ幅1.5m以上の経路を残せる寸法。
+- 退色した珊瑚色、草色、クリーム、鈍い青。原色と直方体だけの構成は禁止。
+- 同一平面重なり、縮退面、完全重複面0。専用テストで検査する。
+- 対象ファイルだけを1コミットにまとめ、SHA、各ノード寸法、三角形数、材質数を末尾へ記録する。
+
+**編集禁止**
+
+- `outputs/playroom.js`、HTML、既存テスト、既存GLB、既存生成スクリプト
+
+**連携状態**
+
+- Task O・Pと別コミットで独立して実行できる。
+- この記載だけではClaude Codeへ自動通知・実行されない。
