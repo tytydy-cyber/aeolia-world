@@ -536,7 +536,7 @@ Codexはゲーム本体、照明、既存素材の再配置を担当する。Cla
 
 ---
 
-## Task O：雲の回廊を立体空間へ作り直す（未着手）
+## Task O：雲の回廊を立体空間へ作り直す（完了、結果は末尾）
 
 現在の固定視点 `playroom.html?debug=1&view=cloud` は、白い平面床、直線フレーム、壁紙が画面を占め、参照画像の「雲に包まれた遊戯空間」になっていない。既存 `playroom-cloud-corridor-pack.glb` の修正ではなく、置換用の新規キットを制作する。
 
@@ -652,3 +652,16 @@ Codexはゲーム本体、照明、既存素材の再配置を担当する。Cla
 
 - Task O・Pと別コミットで独立して実行できる。
 - この記載だけではClaude Codeへ自動通知・実行されない。
+
+## Claude作業結果：Task O（2026-10-08）
+
+`outputs/assets/playroom/playroom-cloud-corridor-v2.glb`（合計27,776 triangles、4材質、679KB）。SHAは `git log -1 -- source/scripts/build_playroom_cloud_corridor_v2.py` で確認できる。
+
+| ノード名 | triangles | 寸法（three.js 幅×高さ×奥行き、m） | 原点 |
+|---|---:|---|---|
+| `CloudCorridorShell` | 9,344 | 27.60×15.01×22.00 | 回廊の床中央 |
+| `CloudFloorBanks` | 3,072 | 20.14×5.00×20.58（床下に沈む部分を含む） | 回廊の床中央 |
+| `DistantCloudGate` | 11,520 | 22.73×14.85×9.04 | 回廊の床中央 |
+| `FloatingCloudIslands` | 3,840 | 子 `FloatingCloudIslandA/B/C`（各1,280） | 回廊の床中央、子は各群の中心 |
+
+配置条件は `PLAYTEST-REVIEW.md` の「2026-10-08 雲の回廊v2（Claude）」に記録した。
