@@ -3,7 +3,7 @@ import {readFileSync} from 'node:fs';
 
 const read=name=>readFileSync(new URL('../outputs/'+name,import.meta.url),'utf8');
 const html=read('playroom.html'),js=read('playroom.js'),hub=read('index.html');
-assert.ok(html.includes('DREAMCORE PLAYROOM 04')&&html.includes('playroom.js?v=44')&&html.includes('mobile-controls.js?v=83'),'playroom has its own entry page and current shared mobile controls');
+assert.ok(html.includes('DREAMCORE PLAYROOM 04')&&html.includes('playroom.js?v=45')&&html.includes('mobile-controls.js?v=83'),'playroom has its own entry page and current shared mobile controls');
 assert.ok(hub.includes('class="gate playroom"')&&hub.includes('4つのエリア'),'world select exposes the fourth world');
 for(const asset of ['playroom-rainbow.glb','playroom-soft-play-upgrade.glb','playroom-playground-pack.glb','playroom-child-town-pack.glb','playroom-quiet-split.glb','playroom-town-foreground.glb','playroom-cloud-corridor-v2.glb'])assert.ok(js.includes(asset),`${asset} is placed in the world`);
 assert.ok(!js.includes("loadAsset('playroom-slide.glb'")&&!js.includes("loadAsset('playroom-ball-pit.glb'"),'obsolete thin slide and box ball-pit assets are not loaded');
@@ -46,7 +46,7 @@ assert.ok(js.includes("id='playroom:'+n[3]")&&js.includes("stored('aeolia-notes'
 assert.ok(js.includes('mergeStatic()'),'static architecture is batched after room materials are assigned');
 assert.ok(js.includes('o.visible=Math.abs(player.position.z-o.position.z)<55'),'distant room assets are culled by player depth without removing nearby landmarks');
 assert.ok(js.includes("o.userData.drift={x:o.position.x,y:o.position.y,phase:i*1.7}")&&js.includes("Math.sin(t*.00011+d.phase)*1.2")&&js.includes("Math.sin(t*.00017+d.phase)*.35"),'thick hanging cloud clusters drift slowly without entering the player route');
-assert.ok(js.includes('function compactAsset(source)')&&js.includes('vertexColors:true')&&js.includes("toNonIndexed()")&&js.includes('sheen:.45')&&js.includes('clearcoat:.28'),'Blender assets bake colors into fabric, plastic and metal physical material buckets');
+assert.ok(js.includes('function compactAsset(source)')&&js.includes('vertexColors:true')&&js.includes("toNonIndexed()")&&js.includes('map:fabricMap')&&js.includes('map:plasticMap')&&js.includes('sheen:.45')&&js.includes('clearcoat:.28'),'Blender assets bake colors into fabric, plastic and metal physical material buckets');
 console.log('PASS: fourth-world entry, bounded layered hall, Blender landmarks, authored textures, discoveries, anomalies and shared journal.');
 
 assert.ok(js.includes('function segmentBoxHit(a,b,c,margin=.35)')&&js.includes('const hit=segmentBoxHit(focusTarget,targetCam,c)')&&!js.includes('for(let i=1;i<=20;i++'),'camera uses continuous segment-box collision instead of samples that can skip thin walls');
@@ -58,3 +58,8 @@ assert.ok(js.includes("['CloudCorridorShell','CloudFloorBanks','DistantCloudGate
 assert.ok(js.includes('wallBase:new THREE.MeshStandardMaterial({map:wallMap')&&js.includes('0x879fb2')&&js.includes('0xc9928f'),'deep rooms use painted wall texture and distinct muted carpet fields');
 
 assert.ok(js.includes('new THREE.HemisphereLight(0xf2fbff,0x8c9a9b,1.55)')&&js.includes('new THREE.DirectionalLight(0xfff6de,.82)'),'restrained global light leaves room for local pools');
+
+for(const texture of ['fabric-weave.png','plastic-speckle.png'])assert.ok(js.includes(texture),`${texture} reaches the runtime material buckets`);assert.ok(js.includes("['position','normal','uv']")&&js.includes("/cloud|wall/.test(name)?3"),'asset compaction preserves UVs and keeps clouds out of the fabric bucket');
+
+assert.ok(!js.includes('RectAreaLight'),'the rejected overexposed area-light experiment is absent');
+assert.ok(js.includes('function gradeAsset(o,saturation=-.18,lightness=.025)')&&js.includes("loadAsset('playroom-rainbow.glb',[0,0,-33.8],1.38,0,gradeAsset)"),'both rainbow meshes receive the shared faded palette grade');
