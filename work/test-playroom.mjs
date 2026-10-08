@@ -3,7 +3,7 @@ import {readFileSync} from 'node:fs';
 
 const read=name=>readFileSync(new URL('../outputs/'+name,import.meta.url),'utf8');
 const html=read('playroom.html'),js=read('playroom.js'),hub=read('index.html');
-assert.ok(html.includes('DREAMCORE PLAYROOM 04')&&html.includes('playroom.js?v=45')&&html.includes('mobile-controls.js?v=83'),'playroom has its own entry page and current shared mobile controls');
+assert.ok(html.includes('DREAMCORE PLAYROOM 04')&&html.includes('playroom.js?v=46')&&html.includes('mobile-controls.js?v=83'),'playroom has its own entry page and current shared mobile controls');
 assert.ok(hub.includes('class="gate playroom"')&&hub.includes('4つのエリア'),'world select exposes the fourth world');
 for(const asset of ['playroom-rainbow.glb','playroom-soft-play-upgrade.glb','playroom-playground-pack.glb','playroom-child-town-pack.glb','playroom-quiet-split.glb','playroom-town-foreground.glb','playroom-cloud-corridor-v2.glb'])assert.ok(js.includes(asset),`${asset} is placed in the world`);
 assert.ok(!js.includes("loadAsset('playroom-slide.glb'")&&!js.includes("loadAsset('playroom-ball-pit.glb'"),'obsolete thin slide and box ball-pit assets are not loaded');
@@ -21,7 +21,7 @@ assert.equal((js.match(/floorPatch\(\[/g)||[]).length,9,'nine asymmetric floor f
 assert.ok(js.includes('function contactBlob(')&&js.includes('shadow.position.set(x,.065,z)')&&js.includes('depthWrite:false')&&js.includes('polygonOffset:true'),'asymmetric fake contact shadows sit four centimetres above floor fields without coplanar flicker');
 assert.equal((js.match(/contactBlob\(/g)||[]).length,12,'eleven landmarks and room groups receive low-cost contact shadows');
 assert.equal((js.match(/new THREE\.PointLight\(/g)||[]).length,1,'eight restrained local lights are data-driven through one creation site');
-assert.ok(js.includes("[0,7,5,0xffe4bd,42,34]")&&js.includes("[0,8,-33.8,0xc8ddff,36,30]")&&js.includes("[52,8,-63,0xffd9b8,58,30]")&&js.includes("[-49,7,-102,0xbfdcff,52,28]")&&js.includes("[48,7,-109,0xffcbb4,58,28]")&&js.includes("[0,8,-139,0xd7ecff,54,30]"),'local light pools ground the entrance and four deep rooms without shadow maps');
+assert.ok(!js.includes("[0,7,5,0xffe4bd,42,34]")&&!js.includes("[0,8,-33.8,0xc8ddff,36,30]")&&js.includes("[52,8,-63,0xffd9b8,58,30]")&&js.includes("[-49,7,-102,0xbfdcff,52,28]")&&js.includes("[48,7,-109,0xffcbb4,58,28]")&&js.includes("[0,8,-139,0xd7ecff,54,30]"),'local light pools ground the entrance and four deep rooms without shadow maps');
 for(const color of ['0xc48070','0xe2d4b6','0x92a076','0x708aa0'])assert.ok(js.includes(color),`fence uses muted shared palette ${color}`);
 assert.ok(js.includes('partitionZ(-38')&&js.includes('partitionZ(-84')&&js.includes('partitionZ(-126'),'the warehouse-sized floor is divided by three readable room thresholds');
 assert.ok(js.includes('partitionX(-25')&&js.includes('partitionX(25')&&js.includes('partitionX(0,-125.5'),'middle districts are separated into navigable rooms rather than one open warehouse');
@@ -33,7 +33,7 @@ assert.ok(js.includes('playroom-entry-shell.glb')&&js.includes("['RainbowPortalW
 assert.ok(js.includes("['CloudReliefA',[-55,4.4,-83.55]")&&js.includes("['CloudReliefC',[-48,4.8,-125.55]")&&js.includes("['CloudReliefA',[48,7,-125.55]"),'authored cloud reliefs continue through the deep-room thresholds');
 const colliderSource=js.match(/colliders\.push\((\{x:16.*?\})\);/s)?.[1];assert.ok(colliderSource,'playroom collider list is inspectable');const colliders=Function(`return [${colliderSource}]`)(),contains=(c,x,z,margin=.55)=>Math.abs(x-c.x)<c.w+margin&&Math.abs(z-c.z)<c.d+margin,blocked=(x,y,z)=>colliders.some(c=>contains(c,x,z)&&y<c.top&&y+3.6>c.bottom);for(const y of [0,3])for(const x of [-3,-1.5,0,1.5,3])for(let z=8;z>=-38;z-=.25)assert.ok(!blocked(x,y,z),`rainbow passage remains traversable at x=${x}, y=${y}, z=${z}`);
 for(let z=25;z>=-149;z-=.5)assert.ok(!blocked(0,21,z),`high flight spine remains clear at z=${z}`);for(const [x,y,z] of [[0,2,6],[16,9,11],[-16,2,12],[0,1,-41],[-47,16,2],[10,5,-55],[-48,3,-61],[52,3,-63],[-49,2,-99],[48,2,-106],[8,5,-139],[0,12,-149]]){assert.ok(!blocked(x,y,z),`discovery ${x},${y},${z} is outside solid proxies`);for(let bx=0;Math.abs(bx)<=Math.abs(x);bx+=Math.sign(x||1)*.5)assert.ok(!blocked(bx,21,z),`high branch to ${x},${y},${z} remains clear`)}
-assert.ok(js.includes("['NapRoomSet',[-49,0,-105],1.35")&&js.includes("['BirthdayRoomSet',[48,0,-112],1.35")&&!js.includes("playroom-quiet-rooms-pack.glb"),'nap and birthday rooms load separate sets without duplicating the old combined pack');
+assert.ok(js.includes("['NapRoomSet',[-49,0,-105],1.7")&&js.includes("['BirthdayRoomSet',[48,0,-112],1.7")&&!js.includes("playroom-quiet-rooms-pack.glb"),'nap and birthday rooms load separate sets without duplicating the old combined pack');
 assert.ok(js.includes("function roomOf(x,z)")&&js.includes("local=left.filter"),'discovery guidance prefers unseen landmarks in the current room instead of pointing through walls');
 assert.ok(js.includes("const destination=near[3]===room?room"),'room and destination labels do not repeat the same name');
 assert.ok(!js.includes('o.visible=!o.visible')&&!js.includes('o.position.z+=')&&!js.includes('o.position.x+='),'anomalies do not leave stale invisible collision proxies');
@@ -53,13 +53,15 @@ assert.ok(js.includes('function segmentBoxHit(a,b,c,margin=.35)')&&js.includes('
 const segmentBoxHit=Function(`${js.match(/function segmentBoxHit.*?(?=\nfunction validGround)/s)[0]};return segmentBoxHit`)(),thin={x:0,z:0,w:.05,d:2,bottom:0,top:5};assert.ok(segmentBoxHit({x:-4,y:2,z:0},{x:4,y:2,z:0},thin)!==null,'continuous camera collision catches a wall thinner than the old sample interval');assert.equal(segmentBoxHit({x:-4,y:7,z:0},{x:4,y:7,z:0},thin),null,'camera segment above the wall remains clear');
 
 assert.ok(js.includes("['TownBenchCluster',[42,0,-57]")&&js.includes("['TownSignCluster',[63,0,-58]")&&js.includes("['TownVehicleSilhouette',[54,0,-51]"),'child town uses three foreground layers without blocking shop doors');
-assert.ok(js.includes("['CloudCorridorShell','CloudFloorBanks','DistantCloudGate','FloatingCloudIslands']")&&!js.includes('playroom-cloud-corridor-pack.glb'),'cloud corridor v2 replaces the old flat pack');
+assert.ok(js.includes("['CloudCorridorShell','CloudFloorBanks','DistantCloudGate','FloatingCloudIslandA','FloatingCloudIslandB','FloatingCloudIslandC']")&&!js.includes('playroom-cloud-corridor-pack.glb'),'cloud corridor v2 replaces the old flat pack');
 
 assert.ok(js.includes('wallBase:new THREE.MeshStandardMaterial({map:wallMap')&&js.includes('0x879fb2')&&js.includes('0xc9928f'),'deep rooms use painted wall texture and distinct muted carpet fields');
 
 assert.ok(js.includes('new THREE.HemisphereLight(0xf2fbff,0x8c9a9b,1.55)')&&js.includes('new THREE.DirectionalLight(0xfff6de,.82)'),'restrained global light leaves room for local pools');
 
-for(const texture of ['fabric-weave.png','plastic-speckle.png'])assert.ok(js.includes(texture),`${texture} reaches the runtime material buckets`);assert.ok(js.includes("['position','normal','uv']")&&js.includes("/cloud|wall/.test(name)?3"),'asset compaction preserves UVs and keeps clouds out of the fabric bucket');
+for(const texture of ['fabric-weave.png','plastic-speckle.png'])assert.ok(js.includes(texture),`${texture} reaches the runtime material buckets`);assert.ok(js.includes("['position','normal','uv']")&&js.includes("/cloud|wall/.test(name)?3"),'asset compaction preserves UVs and keeps clouds out of the fabric bucket');assert.ok(js.includes('bumpMap:fabricMap,bumpScale:.06')&&js.includes('bumpMap:plasticMap,bumpScale:.035'),'fabric and plastic retain readable surface relief at the fixed review distance');
 
 assert.ok(!js.includes('RectAreaLight'),'the rejected overexposed area-light experiment is absent');
 assert.ok(js.includes('function gradeAsset(o,saturation=-.18,lightness=.025)')&&js.includes("loadAsset('playroom-rainbow.glb',[0,0,-33.8],1.38,0,gradeAsset)"),'both rainbow meshes receive the shared faded palette grade');
+
+assert.ok(js.includes('x.material.emissive.set(0xffd7b5)')&&js.includes('x.material.emissiveIntensity=.13'),'rainbows glow uniformly from their surfaces without point hotspots');assert.ok(js.includes("name.startsWith('FloatingCloudIsland')"),'three corridor cloud islands drift independently');
