@@ -3,7 +3,7 @@ import {readFileSync} from 'node:fs';
 
 const read=name=>readFileSync(new URL('../outputs/'+name,import.meta.url),'utf8');
 const html=read('playroom.html'),js=read('playroom.js'),hub=read('index.html');
-assert.ok(html.includes('DREAMCORE PLAYROOM 04')&&html.includes('playroom.js?v=47')&&html.includes('mobile-controls.js?v=83'),'playroom has its own entry page and current shared mobile controls');
+assert.ok(html.includes('DREAMCORE PLAYROOM 04')&&html.includes('playroom.js?v=48')&&html.includes('mobile-controls.js?v=83'),'playroom has its own entry page and current shared mobile controls');
 assert.ok(hub.includes('class="gate playroom"')&&hub.includes('4つのエリア'),'world select exposes the fourth world');
 for(const asset of ['playroom-rainbow.glb','playroom-soft-play-upgrade.glb','playroom-playground-pack.glb','playroom-child-town-pack.glb','playroom-quiet-split.glb','playroom-town-foreground.glb','playroom-cloud-corridor-v2.glb'])assert.ok(js.includes(asset),`${asset} is placed in the world`);
 assert.ok(js.includes("loadAsset('playroom-playground-pack.glb',[0,0,-56],1.8")&&js.includes('{x:0,z:-56,w:6.3,d:3,bottom:0,top:11.4}'),'playground landmark and collision proxy keep the less obstructive matched scale');
@@ -44,7 +44,7 @@ assert.ok(js.includes("{x:0,z:3,w:11,d:1.5,bottom:6.8,top:12}")&&js.includes("{x
 assert.ok(js.includes("{x:-18.45,z:3,w:7.45,d:1.12,bottom:0,top:20}")&&js.includes("{x:20.65,z:3,w:9.65,d:1.12,bottom:0,top:20}")&&js.includes("{x:2.2,z:3,w:28.2,d:1.12,bottom:10.8,top:20}"),'entry-shell collision is split around the opening instead of blocking it');
 assert.ok(js.includes('Math.sin(yaw)*13')&&js.includes('Math.cos(yaw)*13')&&js.includes('player.position.y+5+Math.sin(pitch)*3'),'the lower closer camera keeps the traveler inside the play equipment rather than above it');
 assert.ok(js.includes('new THREE.InstancedMesh(new THREE.BoxGeometry(.22,1.45,.18)')&&js.includes('fenceColors'),'a single colored fence batch gives the first room human scale');
-assert.ok(js.includes('const anomalies=[')&&js.includes('anomalyIndex++%anomalies.length'),'entry-local anomalies advance without overwriting the persistent journal');
+for(const room of ['虹のホール','球の部屋','遊具広場','子どもの街','昼寝室','誕生日会場','雲の回廊'])assert.ok(js.includes(`addAnomaly('${room}'`),`${room} has a local non-blocking anomaly`);assert.ok(js.includes('const room=roomOf(player.position.x,player.position.z),changes=zoneAnomalies.get(room)')&&js.includes('anomalyTurns.set(room,turn+1)'),'anomalies advance independently in the room the traveler is visiting');
 assert.ok(js.includes("id='playroom:'+n[3]")&&js.includes("stored('aeolia-notes',JSON.stringify(notes))"),'playroom discoveries share the cross-world journal under their own namespace');
 assert.ok(js.includes('mergeStatic()'),'static architecture is batched after room materials are assigned');
 assert.ok(js.includes('o.visible=Math.abs(player.position.z-o.position.z)<55'),'distant room assets are culled by player depth without removing nearby landmarks');
@@ -68,3 +68,5 @@ assert.ok(!js.includes('RectAreaLight'),'the rejected overexposed area-light exp
 assert.ok(js.includes('function gradeAsset(o,saturation=-.18,lightness=.025)')&&js.includes("loadAsset('playroom-rainbow.glb',[0,0,-33.8],1.38,0,gradeAsset)"),'both rainbow meshes receive the shared faded palette grade');
 
 assert.ok(js.includes('x.material.emissive.set(0xffd7b5)')&&js.includes('x.material.emissiveIntensity=.13'),'rainbows glow uniformly from their surfaces without point hotspots');assert.ok(js.includes("name.startsWith('FloatingCloudIsland')"),'three corridor cloud islands drift independently');
+
+assert.ok(js.includes("setAvatarAction(hs>1||Math.abs(velocity.y)>1?'Fly':'Idle')")&&js.includes('avatarModel.position.y=Math.sin(t*.0023)*.07'),'traveler transitions between hover and flight with a subtle breathing drift');assert.ok(js.includes("e.code==='Space'||e.code==='ShiftLeft'||e.code==='ShiftRight'")&&js.includes('sound.flightCue'),'vertical flight controls produce a visible burst and matching cue once per press');assert.ok(js.includes("'虹のホール':0,'球の部屋':1,'遊具広場':2,'子どもの街':3,'昼寝室':4,'誕生日会場':1,'雲の回廊':2"),'each room selects a deliberate restrained audio environment');

@@ -95,7 +95,7 @@ export class WorldAudio {
       const progressions={sky:[174.61,146.83,196,164.81],complex:[110,123.47,103.83,130.81],suburb:[146.83,174.61,196,220],playroom:[130.81,164.81,146.83,196]},roots=progressions[this.mood]||progressions.sky,root=roots[Math.floor(t/8)%roots.length];
       this.pads.forEach((osc,i)=>osc.frequency.setTargetAtTime(root*Math.pow(2,[0,7,14][i]/12),t,1.8));this.nextChord=t+8;
     }
-    if(t>=this.nextPhrase){this.distantPhrase();this.nextPhrase=t+14}
+    if(t>=this.nextPhrase){this.distantPhrase();this.nextPhrase=t+(this.mood==='playroom'?9:14)}
     if(t>=this.nextDetail){this.environmentDetail();this.nextDetail=t+7+Math.random()*6}
     if(!flying&&grounded&&speed>.6){
       this.distance+=Math.min(dt,.05)*speed;
