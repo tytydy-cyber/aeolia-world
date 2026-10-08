@@ -29,9 +29,9 @@ for(const scale of [1.48,1.38]){
   for(const t of [...sets[0],...rainbow])assert.ok(!corridor.intersectsTriangle(new THREE.Triangle(...t)),`6 m × 3.6 m passage is clear at scale ${scale}`);
 }
 
-// Clouds: different outlines, 0.25–0.55 deep, closed backs sunk 1 cm behind z=0.
+// Clouds: different outlines, 0.8–1.8 deep fused volumes (0.25–0.55 read as flat cut-outs), closed backs sunk 1 cm behind z=0.
 const clouds=sets.slice(1).map(box);
-for(const [i,b] of clouds.entries()){const s=size(b);assert.ok(s.z>=.25&&s.z<=.55&&Math.abs(b.min.z+.01)<1e-4,`${names[i+1]} is ${s.z.toFixed(2)} deep with its back at -0.01`)}
+for(const [i,b] of clouds.entries()){const s=size(b);assert.ok(s.z>=.8&&s.z<=1.8&&Math.abs(b.min.z+.01)<1e-4,`${names[i+1]} is ${s.z.toFixed(2)} deep with its back at -0.01`)}
 assert.equal(new Set(clouds.map(b=>size(b).x.toFixed(1))).size,3,'three cloud outlines differ');
 
 // Colours and faces: sky-blue wall, cream reveal; double-sided; at most six materials.

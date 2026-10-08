@@ -12,6 +12,9 @@ export class WorldAudio {
         this.master=c.createGain();this.master.gain.value=0;
         this.limiter=c.createDynamicsCompressor();this.limiter.threshold.value=-6;this.limiter.knee.value=3;this.limiter.ratio.value=12;this.limiter.attack.value=.003;this.limiter.release.value=.25;
         this.master.connect(this.limiter);this.limiter.connect(c.destination);
+        // Indoor worlds get a short room tail, so wind and music sound enclosed rather than open sky.
+        this.indoor=['complex','playroom'].includes(this.mood);
+        if(this.indoor&&c.createConvolver){this.room=c.createConvolver();this.room.buffer=roomImpulse(c);this.roomGain=c.createGain();this.roomGain.gain.value=.2;this.master.connect(this.room);this.room.connect(this.roomGain);this.roomGain.connect(this.limiter)}
         this.noise=c.createBuffer(2,c.sampleRate*3,c.sampleRate);
         for(let channel=0;channel<2;channel++){
           const data=this.noise.getChannelData(channel);let smooth=0;
@@ -88,8 +91,10 @@ export class WorldAudio {
     const t=this.ctx.currentTime;
     if(t>=this.nextMix){
       const movement=Math.min(1,speed/35),breeze=.1+Math.sin(t*.31)*.025,zoneShift=(this.mood==='suburb'?[80,20,-90,140,-40]:this.mood==='complex'?[0,-80,-140,-210,120]:[0])[this.environment]||0;
-      this.windGain.gain.setTargetAtTime(breeze+(flying?.2*movement:.015*movement),t,.3);
-      this.filter.frequency.setTargetAtTime(350+(flying?1100*movement:150)+zoneShift+this.altitude*260,t,.3);this.nextMix=t+.05;
+      // Outdoors flight is an open gust that brightens with height; indoors it is a quieter, darker air movement.
+      const [still,gust,base,open,lift]=this.indoor?[.6,.09,260,520,0]:[1,.2,350,1100,260];
+      this.windGain.gain.setTargetAtTime(breeze*still+(flying?gust*movement:.015*movement),t,.3);
+      this.filter.frequency.setTargetAtTime(base+(flying?open*movement:150)+zoneShift+this.altitude*lift,t,.3);this.nextMix=t+.05;
     }
     if(t>=this.nextChord){
       const progressions={sky:[174.61,146.83,196,164.81],complex:[110,123.47,103.83,130.81],suburb:[146.83,174.61,196,220],playroom:[130.81,164.81,146.83,196]},roots=progressions[this.mood]||progressions.sky,root=roots[Math.floor(t/8)%roots.length];
@@ -104,4 +109,14 @@ export class WorldAudio {
       if(this.distance>=stride){this.distance%=stride;this.step(onBridge)}
     }else this.distance=0;
   }
+}
+
+// A soft 1.6 s room tail: decaying, slightly smoothed stereo noise with a short pre-delay.
+function roomImpulse(c){
+  const length=Math.floor(c.sampleRate*1.6),buffer=c.createBuffer(2,length,c.sampleRate);
+  for(let channel=0;channel<2;channel++){
+    const data=buffer.getChannelData(channel);let smooth=0;
+    for(let i=0;i<length;i++){const t=i/c.sampleRate;smooth=smooth*.55+(Math.random()*2-1)*.45;data[i]=t<.012?0:smooth*Math.exp(-t*3.4)}
+  }
+  return buffer;
 }

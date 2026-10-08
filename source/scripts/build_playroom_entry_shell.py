@@ -4,7 +4,7 @@ Run: Blender --background --python source/scripts/build_playroom_entry_shell.py
 Root nodes (getObjectByName): RainbowPortalWall, CloudReliefA, CloudReliefB, CloudReliefC. Front is +Z in three.js.
 RainbowPortalWall is in the rainbow's own units (inner radius 4.8, outer 7.48, 1.9 deep): give it the same position,
 scale and rotation as playroom-rainbow.glb. Its bottom is at y=-0.01 so it sinks 1 cm into the floor.
-The clouds are in metres with their closed back at z=-0.01: placed on a wall plane they sink 1 cm into it.
+The clouds are in metres, about 1 m deep, with their closed flat back at z=-0.01: placed on a wall plane they sink\n1 cm into it. They carry a COLOR_0 shade (lit top, cool belly) that multiplies the material colour.
 """
 from pathlib import Path
 from mathutils import Vector
@@ -120,31 +120,23 @@ bpy.context.view_layer.objects.active = wall
 bpy.ops.object.modifier_apply(modifier=bevel.name)
 
 
-# 2. Cloud reliefs: puffy domes over different cloud outlines, a rounded 6 cm rim, and a closed flat back.
-def cloud(name, width, height, depth, lobes, phase, lean):
+# 2. Cloud reliefs: fused cumulus volumes (see cloud_volume.py) cut flat at the back, about 1 m deep, with a lit top
+# and a cool shadowed belly baked into vertex colour. Different lobe layouts give three outlines.
+import sys
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from cloud_volume import cloud as cumulus
+
+RELIEFS = {
+    "CloudReliefA": ((-2.3, -.15, .9), (-1.1, .25, 1.15), (.3, .5, 1.3), (1.6, .2, 1.05), (2.6, -.2, .75), (-.4, -.45, .95), (1.0, -.5, .85)),
+    "CloudReliefB": ((-1.7, -.1, .8), (-.5, .3, 1.0), (.8, .1, .95), (1.8, -.25, .7), (.1, -.45, .8)),
+    "CloudReliefC": ((-3.6, -.3, .8), (-2.4, .2, 1.1), (-.9, .55, 1.3), (.7, .45, 1.25), (2.2, .1, 1.05), (3.5, -.35, .75), (-1.6, -.6, .9), (1.4, -.6, .95)),
+}
+reliefs = []
+for index, (name, lobes) in enumerate(RELIEFS.items()):
     root = module(name)
-    N = 72
-    shape = lambda t: 1 + .2 * abs(math.sin(lobes / 2 * t + phase)) + lean * math.cos(t)
-    rings = []
-    for f, y in ((1, .01), (1, -.04), (.97, -.075)):
-        rings.append([(width / 2 * shape(t) * f * math.cos(t), y, height / 2 * shape(t) * f * math.sin(t) * (1.15 if math.sin(t) > 0 else .8))
-                      for t in (k / N * math.tau for k in range(N))])
-    # Inner rings fade the lobe cusps out, so the dome swells smoothly instead of creasing towards the centre.
-    inner = lambda t, f: 1 + (shape(t) - 1) * f ** 2
-    for f in (.9, .78, .62, .44, .24):
-        rings.append([(width / 2 * inner(t, f) * f * math.cos(t), -(.075 + (depth - .085) * math.sqrt(1 - f * f)),
-                       height / 2 * inner(t, f) * f * math.sin(t) * (1.15 if math.sin(t) > 0 else .8) + .1 * height * (1 - f)) for t in (k / N * math.tau for k in range(N))])
-    verts = [p for r in rings for p in r] + [(0, -(depth - .01), .1 * height)]
-    faces = [tuple(range(N))]
-    faces += [(i * N + k, i * N + (k + 1) % N, (i + 1) * N + (k + 1) % N, (i + 1) * N + k) for i in range(len(rings) - 1) for k in range(N)]
-    last, centre = (len(rings) - 1) * N, len(verts) - 1
-    faces += [(last + k, last + (k + 1) % N, centre) for k in range(N)]
-    mesh(root, f"{name} relief", verts, faces, [CLOUD])
-    return root
-
-
-reliefs = [cloud("CloudReliefA", 6.0, 2.6, .45, 6, .3, .06), cloud("CloudReliefB", 4.4, 2.0, .30, 4, 1.1, -.08),
-           cloud("CloudReliefC", 8.0, 2.8, .54, 8, 2.0, .1)]
+    cumulus(root, f"{name}Relief", [((x, -.3, z), r) for x, z, r in lobes], CLOUD, resolution=.24, faces=2400,
+            cut=(1, .01, False), seed=7 + index)
+    reliefs.append(root)
 MODULES = [portal] + reliefs
 
 for parent in MODULES:
@@ -159,9 +151,11 @@ for obj in bpy.data.objects:
 assert triangles <= 28_000 and len(bpy.data.materials) <= 6, (triangles, len(bpy.data.materials))
 bpy.ops.object.select_all(action="SELECT")
 bpy.ops.export_scene.gltf(filepath=str(GLB), export_format="GLB", use_selection=True, export_apply=True,
-                          export_yup=True, export_materials="EXPORT")
+                          export_yup=True, export_materials="EXPORT", export_vertex_color="ACTIVE")
 print(f"ASSET_CHECK: {GLB.name}: {triangles} triangles, {len(bpy.data.materials)} materials")
 bpy.ops.wm.save_as_mainfile(filepath=str(BLEND))
+from cloud_volume import preview_tint
+preview_tint(CLOUD)
 
 
 # Preview: the portal with the real rainbow seen front and back, and the three clouds on a wall strip.

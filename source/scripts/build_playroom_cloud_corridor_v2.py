@@ -124,35 +124,40 @@ banks = node("CloudFloorBanks")
 LEFT = ((-6.2, -8.5, 1.9, 1.3, 1.6), (-7.6, -5.6, 2.3, 1.6, 2.2), (-5.6, -2.4, 1.6, 1.2, 1.3), (-7.9, .4, 2.0, 1.8, 2.5),
         (-6.0, 3.4, 1.8, 1.3, 1.5), (-8.2, 6.0, 2.1, 1.5, 2.0), (-5.9, 8.8, 1.5, 1.2, 1.1))
 RIGHT = ((6.4, -7.4, 1.6, 1.4, 1.2), (8.0, -4.9, 1.9, 1.3, 1.6), (6.1, 1.6, 1.4, 1.2, .9), (7.8, 4.2, 1.8, 1.5, 1.4), (6.6, 9.0, 1.5, 1.2, 1.0))
-for index, (x, y, rx, ry, rz) in enumerate(LEFT + RIGHT):
-    puff(banks, "Floor bank puff", (x, y, rz * .42), (rx, ry * 1.25, rz), CREAM if index % 3 else GREY)
+import sys
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from cloud_volume import cloud as cumulus, preview_tint
+for side, lobes, mat in (("Left", LEFT, CREAM), ("Right", RIGHT, GREY)):
+    # Low, spread lobes with extra buds read as cloud lying on the floor rather than boulders.
+    cumulus(banks, f"CloudFloorBank{side}", [((x, y, rz * .25), (rx * 1.15, ry * 1.4, rz * .78)) for x, y, rx, ry, rz in lobes], mat,
+            resolution=.28, faces=1500, cut=(2, SINK, True), seed=50 + len(side), detail=3)
 
 # 3. DistantCloudGate: three arches of overlapping cloud puffs stepping away and shrinking beyond the far end, so the
-# end of the corridor reads as layered cloud openings with real depth rather than a cut-out board. The middle arch
-# carries a few faded coral puffs.
+# end of the corridor reads as layered cloud openings with real depth rather than a cut-out board.
 gate = node("DistantCloudGate")
 
 random.seed(21)
 for name, y, a, b, size, base, accent in (("Near gate", 13.4, 9.4, 12.0, 2.0, CREAM, CREAM), ("Middle gate", 16.4, 8.0, 10.3, 1.6, GREY, CORAL),
                                          ("Far gate", 19.3, 6.7, 8.7, 1.3, SKY, CREAM)):
-    count = 15
+    count, lobes = 15, []
     for j in range(count):
         t = j / (count - 1) * math.pi
         r = size * random.uniform(.8, 1.15)
         z = max(b * math.sin(t), r * .55)
-        puff(gate, f"{name} puff", (a * math.cos(t), y + random.uniform(-.35, .35), z), (r, r * .75, r * random.uniform(.8, 1.0)),
-             accent if j in (4, 9) else base)
+        centre = (a * math.cos(t), y + random.uniform(-.35, .35), z)
+        lobes.append((centre, (r, r * .75, r * random.uniform(.8, 1.0))))
+    cumulus(gate, name.replace(" ", ""), lobes, base, resolution=.3, faces=1500, cut=(2, SINK, True), seed=int(y * 10))
 
 # 4. FloatingCloudIslands: three puff groups at different heights and depths, outside the flight path and the shell
 # even when drifting. Each group's node sits at its centre.
 islands = node("FloatingCloudIslands")
-GROUPS = (("FloatingCloudIslandA", (-6.85, -4.2, 4.3), .85, CREAM), ("FloatingCloudIslandB", (7.0, 3.6, 5.2), .9, GREY),
+GROUPS = (("FloatingCloudIslandA", (-6.85, -4.2, 4.3), .85, CREAM), ("FloatingCloudIslandB", (7.0, 3.6, 5.2), .9, CORAL),
           ("FloatingCloudIslandC", (.6, 7.4, 9.1), 1.9, CREAM))
 PUFFS = ((0, 0, 0, 1.0, .8, .62), (-.8, .2, -.08, .7, .6, .46), (.85, -.15, -.1, .72, .62, .5), (.2, .4, .3, .55, .45, .42), (-.3, -.45, .25, .5, .42, .38))
 for name, centre, size, mat in GROUPS:
     group = node(name, islands, centre)
-    for k, (dx, dy, dz, rx, ry, rz) in enumerate(PUFFS):
-        puff(group, f"{name} puff", (dx * size, dy * size, dz * size), (rx * size, ry * size, rz * size), CORAL if name.endswith("B") and k == 3 else mat)
+    cumulus(group, f"{name}Body", [((dx * size, dy * size, dz * size), (rx * size, ry * size, rz * size)) for dx, dy, dz, rx, ry, rz in PUFFS],
+            mat, resolution=.12 * size, faces=800, cut=(2, -.32 * size, True), seed=len(name) + int(size * 10))
 
 MODULES = (shell, banks, gate, islands)
 
@@ -184,9 +189,11 @@ for obj in bpy.data.objects:
 assert triangles <= 32_000 and len(bpy.data.materials) <= 6, (triangles, len(bpy.data.materials))
 bpy.ops.object.select_all(action="SELECT")
 bpy.ops.export_scene.gltf(filepath=str(GLB), export_format="GLB", use_selection=True, export_apply=True,
-                          export_yup=True, export_materials="EXPORT")
+                          export_yup=True, export_materials="EXPORT", export_vertex_color="ACTIVE")
 print(f"ASSET_CHECK: {GLB.name}: {triangles} triangles, {len(bpy.data.materials)} materials")
 bpy.ops.wm.save_as_mainfile(filepath=str(BLEND))
+for mat in (CREAM, GREY, SKY, CORAL):
+    preview_tint(mat)
 
 # Preview: the player's view from the entrance (foreground banks, mid islands, far gates), an outside three-quarter
 # view, the gates on their own, and the islands seen from below.

@@ -2,3 +2,4 @@
 work/served-*
 work/audit-results.json
 *.blend1
+__pycache__/

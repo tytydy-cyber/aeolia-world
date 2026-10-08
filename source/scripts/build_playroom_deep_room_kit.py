@@ -181,15 +181,14 @@ cluster = module("HangingCloudCluster")
 CLOUDS = (((-1.6, .6, -2.6), 1.0, CREAM), ((1.4, -.4, -3.7), 1.25, SKY), ((-.2, -1.2, -4.6), .9, CORAL), ((.9, 1.3, -5.4), .8, CREAM))
 PUFFS = ((0, 0, 0, 1.0, .62, .6), (-.85, .1, -.08, .7, .5, .48), (.9, -.08, -.1, .75, .52, .5),
          (.3, .25, .32, .6, .45, .45), (-.35, -.2, .28, .5, .4, .4), (.05, .1, -.3, .85, .55, .35))
+import sys
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from cloud_volume import cloud as cumulus, preview_tint
 for index, ((cx, cy, cz), size, mat) in enumerate(CLOUDS, 1):
-    parts = [blob(cluster, f"Cloud {index}", (cx + dx * size, cy + dy * size * (1 if index % 2 else -1), cz + dz * size),
-                  (rx * size, ry * size, rz * size), mat) for dx, dy, dz, rx, ry, rz in PUFFS]
-    bpy.ops.object.select_all(action="DESELECT")
-    for part in parts:
-        part.select_set(True)
-    bpy.context.view_layer.objects.active = parts[0]
-    bpy.ops.object.join()
-    parts[0].name = parts[0].data.name = f"Cloud {index}"
+    # One fused cumulus per cloud with a flat, shadowed base, instead of six separate egg-shaped puffs.
+    lobes = [((cx + dx * size, cy + dy * size * (1 if index % 2 else -1), cz + dz * size), (rx + ry + rz) / 3 * size * 1.05)
+             for dx, dy, dz, rx, ry, rz in PUFFS]
+    cumulus(cluster, f"Cloud {index}", lobes, mat, resolution=.16, faces=1800, cut=(2, cz - .32 * size, True), seed=30 + index)
     top = cz + (.32 + .45) * size
     rod(cluster, "Hanging cord", (cx, cy, -.08), (cx, cy, top - .15), .025, CREAM)
     rod(cluster, "Ceiling rose", (cx, cy, .05), (cx, cy, -.1), .22, CREAM)
@@ -218,9 +217,11 @@ for obj in bpy.data.objects:
 assert triangles <= 24_000 and len(bpy.data.materials) <= 5, (triangles, len(bpy.data.materials))
 bpy.ops.object.select_all(action="SELECT")
 bpy.ops.export_scene.gltf(filepath=str(GLB), export_format="GLB", use_selection=True, export_apply=True,
-                          export_yup=True, export_materials="EXPORT")
+                          export_yup=True, export_materials="EXPORT", export_vertex_color="ACTIVE")
 print(f"ASSET_CHECK: {GLB.name}: {triangles} triangles, {len(bpy.data.materials)} materials")
 bpy.ops.wm.save_as_mainfile(filepath=str(BLEND))
+for mat in (CREAM, SKY, CORAL):
+    preview_tint(mat)
 
 
 # Preview: each module in its setting (cove under a ceiling against a wall, alcove on a wall, cluster from below).

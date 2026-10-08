@@ -25,6 +25,7 @@ class Context {
   createDynamicsCompressor(){const n=new Node(this);n.threshold=new Param();n.knee=new Param();n.ratio=new Param();n.attack=new Param();n.release=new Param();return n}
   createBufferSource(){return new Node(this)}
   createOscillator(){return new Node(this)}
+  createConvolver(){return new Node(this)}
   createBuffer(channels,length){const data=Array.from({length:channels},()=>new Float32Array(length));return {getChannelData:i=>data[i]}}
   async resume(){this.state='running'}
   async suspend(){this.state='suspended'}
@@ -68,3 +69,12 @@ const complex=new WorldAudio(Context,'complex');await complex.start();complex.se
 const suburb=new WorldAudio(Context,'suburb');await suburb.start();suburb.setEnvironment(3,.8);suburb.nextPhrase=Infinity;suburb.update(.016,12,true,false,false);assert.equal(suburb.environment,3);assert.equal(suburb.altitude,.8);assert.equal(suburb.voices.size,1,'suburb district schedules one restrained environmental detail');suburb.setEnvironment(99,-2);assert.equal(suburb.environment,4);assert.equal(suburb.altitude,0,'environment values remain bounded');
 const playroom=new WorldAudio(Context,'playroom');await playroom.start();playroom.setEnvironment(2,.2);playroom.nextDetail=Infinity;playroom.distantPhrase();assert.equal(playroom.voices.size,3,'playroom schedules only a fragment of its shared melody');playroom.nextPhrase=0;playroom.update(.016,0,true,false,false);assert.equal(playroom.nextPhrase,9,'playroom renews its distant phrase before the ambience feels empty');playroom.nextPhrase=Infinity;playroom.nextDetail=0;playroom.update(.016,0,true,false,false);assert.equal(playroom.voices.size,7,'playroom adds a quiet room-specific sound');
 console.log('PASS: gesture-only start, single context, noise bounds, wind update, stone/wood steps, flight/fall silence, chimes, voice cleanup/cap, mute/volume, pause/resume, unavailable API. Audio output quality is not tested.');
+
+// Indoor worlds sound enclosed: a room tail is mixed in, and flight air is quieter and darker than the open-sky gust.
+const flightTone=async mood=>{const world=new WorldAudio(Context,mood);await world.start();world.nextPhrase=world.nextDetail=world.nextChord=Infinity;world.setEnvironment?.(0,.8);for(let i=0;i<60;i++){world.ctx.advance(1/60);world.update(1/60,35,true,false,false)}return world};
+const sky=await flightTone('sky'),room=await flightTone('playroom'),facility=await flightTone('complex');
+assert.ok(!sky.room&&room.room&&facility.room,'only indoor worlds get a room tail');
+assert.equal(room.master.connections[0],room.limiter,'indoor audio still passes through the limiter first');
+assert.ok(room.roomGain.connections.includes(room.limiter),'the room tail joins before the limiter');
+assert.ok(room.filter.frequency.value<sky.filter.frequency.value*.6&&room.windGain.gain.value<sky.windGain.gain.value*.6,'indoor flight air is darker and quieter than the sky gust');
+console.log('PASS: indoor worlds add a room tail and soften flight air.');
