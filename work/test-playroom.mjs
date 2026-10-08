@@ -3,7 +3,7 @@ import {readFileSync} from 'node:fs';
 
 const read=name=>readFileSync(new URL('../outputs/'+name,import.meta.url),'utf8');
 const html=read('playroom.html'),js=read('playroom.js'),hub=read('index.html');
-assert.ok(html.includes('DREAMCORE PLAYROOM 04')&&html.includes('playroom.js?v=43')&&html.includes('mobile-controls.js?v=83'),'playroom has its own entry page and current shared mobile controls');
+assert.ok(html.includes('DREAMCORE PLAYROOM 04')&&html.includes('playroom.js?v=44')&&html.includes('mobile-controls.js?v=83'),'playroom has its own entry page and current shared mobile controls');
 assert.ok(hub.includes('class="gate playroom"')&&hub.includes('4つのエリア'),'world select exposes the fourth world');
 for(const asset of ['playroom-rainbow.glb','playroom-soft-play-upgrade.glb','playroom-playground-pack.glb','playroom-child-town-pack.glb','playroom-quiet-split.glb','playroom-town-foreground.glb','playroom-cloud-corridor-v2.glb'])assert.ok(js.includes(asset),`${asset} is placed in the world`);
 assert.ok(!js.includes("loadAsset('playroom-slide.glb'")&&!js.includes("loadAsset('playroom-ball-pit.glb'"),'obsolete thin slide and box ball-pit assets are not loaded');
@@ -19,9 +19,9 @@ assert.equal((js.match(/'[^']+','[^']+'\]/g)||[]).filter(s=>['大きな虹','滑
 for(const safe of ["[10,5,-55,'遊具広場'","[52,3,-63,'子どもの街'","[-49,2,-99,'最後の布団'","[48,2,-106,'誕生日席'","[8,5,-139,'雲の回廊'"])assert.ok(js.includes(safe),`${safe} is outside its solid proxy`);
 assert.equal((js.match(/floorPatch\(\[/g)||[]).length,9,'nine asymmetric floor fields distinguish the entrance and added districts');
 assert.ok(js.includes('function contactBlob(')&&js.includes('shadow.position.set(x,.065,z)')&&js.includes('depthWrite:false')&&js.includes('polygonOffset:true'),'asymmetric fake contact shadows sit four centimetres above floor fields without coplanar flicker');
-assert.equal((js.match(/contactBlob\(/g)||[]).length,8,'seven landmarks receive low-cost contact shadows');
-assert.equal((js.match(/new THREE\.PointLight\(/g)||[]).length,1,'four restrained local lights are data-driven through one creation site');
-assert.ok(js.includes("[0,7,5,0xffe4bd,42,34]")&&js.includes("[0,8,-33.8,0xc8ddff,36,30]"),'local light pools ground the entrance and repeated portal without shadow maps');
+assert.equal((js.match(/contactBlob\(/g)||[]).length,12,'eleven landmarks and room groups receive low-cost contact shadows');
+assert.equal((js.match(/new THREE\.PointLight\(/g)||[]).length,1,'eight restrained local lights are data-driven through one creation site');
+assert.ok(js.includes("[0,7,5,0xffe4bd,42,34]")&&js.includes("[0,8,-33.8,0xc8ddff,36,30]")&&js.includes("[52,8,-63,0xffd9b8,58,30]")&&js.includes("[-49,7,-102,0xbfdcff,52,28]")&&js.includes("[48,7,-109,0xffcbb4,58,28]")&&js.includes("[0,8,-139,0xd7ecff,54,30]"),'local light pools ground the entrance and four deep rooms without shadow maps');
 for(const color of ['0xc48070','0xe2d4b6','0x92a076','0x708aa0'])assert.ok(js.includes(color),`fence uses muted shared palette ${color}`);
 assert.ok(js.includes('partitionZ(-38')&&js.includes('partitionZ(-84')&&js.includes('partitionZ(-126'),'the warehouse-sized floor is divided by three readable room thresholds');
 assert.ok(js.includes('partitionX(-25')&&js.includes('partitionX(25')&&js.includes('partitionX(0,-125.5'),'middle districts are separated into navigable rooms rather than one open warehouse');
@@ -46,7 +46,7 @@ assert.ok(js.includes("id='playroom:'+n[3]")&&js.includes("stored('aeolia-notes'
 assert.ok(js.includes('mergeStatic()'),'static architecture is batched after room materials are assigned');
 assert.ok(js.includes('o.visible=Math.abs(player.position.z-o.position.z)<55'),'distant room assets are culled by player depth without removing nearby landmarks');
 assert.ok(js.includes("o.userData.drift={x:o.position.x,y:o.position.y,phase:i*1.7}")&&js.includes("Math.sin(t*.00011+d.phase)*1.2")&&js.includes("Math.sin(t*.00017+d.phase)*.35"),'thick hanging cloud clusters drift slowly without entering the player route');
-assert.ok(js.includes('function compactAsset(source)')&&js.includes('vertexColors:true')&&js.includes("toNonIndexed()"),'Blender assets bake their colors into one draw batch per placement');
+assert.ok(js.includes('function compactAsset(source)')&&js.includes('vertexColors:true')&&js.includes("toNonIndexed()")&&js.includes('sheen:.45')&&js.includes('clearcoat:.28'),'Blender assets bake colors into fabric, plastic and metal physical material buckets');
 console.log('PASS: fourth-world entry, bounded layered hall, Blender landmarks, authored textures, discoveries, anomalies and shared journal.');
 
 assert.ok(js.includes('function segmentBoxHit(a,b,c,margin=.35)')&&js.includes('const hit=segmentBoxHit(focusTarget,targetCam,c)')&&!js.includes('for(let i=1;i<=20;i++'),'camera uses continuous segment-box collision instead of samples that can skip thin walls');
@@ -54,3 +54,7 @@ const segmentBoxHit=Function(`${js.match(/function segmentBoxHit.*?(?=\nfunction
 
 assert.ok(js.includes("['TownBenchCluster',[42,0,-57]")&&js.includes("['TownSignCluster',[63,0,-58]")&&js.includes("['TownVehicleSilhouette',[54,0,-51]"),'child town uses three foreground layers without blocking shop doors');
 assert.ok(js.includes("['CloudCorridorShell','CloudFloorBanks','DistantCloudGate','FloatingCloudIslands']")&&!js.includes('playroom-cloud-corridor-pack.glb'),'cloud corridor v2 replaces the old flat pack');
+
+assert.ok(js.includes('wallBase:new THREE.MeshStandardMaterial({map:wallMap')&&js.includes('0x879fb2')&&js.includes('0xc9928f'),'deep rooms use painted wall texture and distinct muted carpet fields');
+
+assert.ok(js.includes('new THREE.HemisphereLight(0xf2fbff,0x8c9a9b,1.55)')&&js.includes('new THREE.DirectionalLight(0xfff6de,.82)'),'restrained global light leaves room for local pools');
