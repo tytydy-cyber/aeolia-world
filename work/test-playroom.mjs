@@ -3,9 +3,10 @@ import {readFileSync} from 'node:fs';
 
 const read=name=>readFileSync(new URL('../outputs/'+name,import.meta.url),'utf8');
 const html=read('playroom.html'),js=read('playroom.js'),hub=read('index.html');
-assert.ok(html.includes('DREAMCORE PLAYROOM 04')&&html.includes('playroom.js?v=46')&&html.includes('mobile-controls.js?v=83'),'playroom has its own entry page and current shared mobile controls');
+assert.ok(html.includes('DREAMCORE PLAYROOM 04')&&html.includes('playroom.js?v=47')&&html.includes('mobile-controls.js?v=83'),'playroom has its own entry page and current shared mobile controls');
 assert.ok(hub.includes('class="gate playroom"')&&hub.includes('4つのエリア'),'world select exposes the fourth world');
 for(const asset of ['playroom-rainbow.glb','playroom-soft-play-upgrade.glb','playroom-playground-pack.glb','playroom-child-town-pack.glb','playroom-quiet-split.glb','playroom-town-foreground.glb','playroom-cloud-corridor-v2.glb'])assert.ok(js.includes(asset),`${asset} is placed in the world`);
+assert.ok(js.includes("loadAsset('playroom-playground-pack.glb',[0,0,-56],1.8")&&js.includes('{x:0,z:-56,w:6.3,d:3,bottom:0,top:11.4}'),'playground landmark and collision proxy keep the less obstructive matched scale');
 assert.ok(!js.includes("loadAsset('playroom-slide.glb'")&&!js.includes("loadAsset('playroom-ball-pit.glb'"),'obsolete thin slide and box ball-pit assets are not loaded');
 assert.ok(js.includes("['SoftSlideTower',[16,0,11],1.5,-Math.PI/2,'slide']")&&js.includes("['RoundedBallPit',[-16,0,12],2.2,0,'pit']")&&js.includes("['RoundedBallPit',[-49,0,-61],2.7,.18,'rear']"),'all three soft-play placements preserve the tested positions and scales');
 for(const texture of ['wall-clouds-v2.jpg','wall-meadow.jpg','wall-hills.jpg','carpet.jpg'])assert.ok(js.includes(texture),`${texture} is used by the hall`);
@@ -18,6 +19,7 @@ assert.ok(js.includes("location.search.includes('debug=1')")&&js.includes("new U
 assert.equal((js.match(/'[^']+','[^']+'\]/g)||[]).filter(s=>['大きな虹','滑り台の上','ボールプール','小さな扉','上の通路','遊具広場','奥のボールプール','子どもの街','最後の布団','誕生日席','雲の回廊','高い雲'].some(n=>s.includes(n))).length,12,'the expanded world has twelve discoveries');
 for(const safe of ["[10,5,-55,'遊具広場'","[52,3,-63,'子どもの街'","[-49,2,-99,'最後の布団'","[48,2,-106,'誕生日席'","[8,5,-139,'雲の回廊'"])assert.ok(js.includes(safe),`${safe} is outside its solid proxy`);
 assert.equal((js.match(/floorPatch\(\[/g)||[]).length,9,'nine asymmetric floor fields distinguish the entrance and added districts');
+assert.equal((js.match(/paddedRug\(-?\d/g)||[]).length,2,'quiet rooms use two raised asymmetric fabric islands without coplanar overlap');
 assert.ok(js.includes('function contactBlob(')&&js.includes('shadow.position.set(x,.065,z)')&&js.includes('depthWrite:false')&&js.includes('polygonOffset:true'),'asymmetric fake contact shadows sit four centimetres above floor fields without coplanar flicker');
 assert.equal((js.match(/contactBlob\(/g)||[]).length,12,'eleven landmarks and room groups receive low-cost contact shadows');
 assert.equal((js.match(/new THREE\.PointLight\(/g)||[]).length,1,'eight restrained local lights are data-driven through one creation site');
@@ -33,6 +35,7 @@ assert.ok(js.includes('playroom-entry-shell.glb')&&js.includes("['RainbowPortalW
 assert.ok(js.includes("['CloudReliefA',[-55,4.4,-83.55]")&&js.includes("['CloudReliefC',[-48,4.8,-125.55]")&&js.includes("['CloudReliefA',[48,7,-125.55]"),'authored cloud reliefs continue through the deep-room thresholds');
 const colliderSource=js.match(/colliders\.push\((\{x:16.*?\})\);/s)?.[1];assert.ok(colliderSource,'playroom collider list is inspectable');const colliders=Function(`return [${colliderSource}]`)(),contains=(c,x,z,margin=.55)=>Math.abs(x-c.x)<c.w+margin&&Math.abs(z-c.z)<c.d+margin,blocked=(x,y,z)=>colliders.some(c=>contains(c,x,z)&&y<c.top&&y+3.6>c.bottom);for(const y of [0,3])for(const x of [-3,-1.5,0,1.5,3])for(let z=8;z>=-38;z-=.25)assert.ok(!blocked(x,y,z),`rainbow passage remains traversable at x=${x}, y=${y}, z=${z}`);
 for(let z=25;z>=-149;z-=.5)assert.ok(!blocked(0,21,z),`high flight spine remains clear at z=${z}`);for(const [x,y,z] of [[0,2,6],[16,9,11],[-16,2,12],[0,1,-41],[-47,16,2],[10,5,-55],[-48,3,-61],[52,3,-63],[-49,2,-99],[48,2,-106],[8,5,-139],[0,12,-149]]){assert.ok(!blocked(x,y,z),`discovery ${x},${y},${z} is outside solid proxies`);for(let bx=0;Math.abs(bx)<=Math.abs(x);bx+=Math.sign(x||1)*.5)assert.ok(!blocked(bx,21,z),`high branch to ${x},${y},${z} remains clear`)}
+const discoveries=[[0,2,6],[16,9,11],[-16,2,12],[0,1,-41],[-47,16,2],[10,5,-55],[-48,3,-61],[52,3,-63],[-49,2,-99],[48,2,-106],[8,5,-139],[0,12,-149]],clearSegment=(a,b)=>{const steps=Math.max(1,Math.ceil(Math.hypot(b[0]-a[0],b[1]-a[1],b[2]-a[2])/.2));for(let i=0;i<=steps;i++){const t=i/steps,x=a[0]+(b[0]-a[0])*t,y=a[1]+(b[1]-a[1])*t,z=a[2]+(b[2]-a[2])*t;assert.ok(Math.abs(x)<92&&z<62&&z>-152&&!blocked(x,y,z),`continuous route remains clear at ${x.toFixed(1)},${y.toFixed(1)},${z.toFixed(1)}`)}};for(const target of discoveries){const high=[target[0],21,target[2]];clearSegment([0,21,25],[0,21,target[2]]);clearSegment([0,21,target[2]],high);clearSegment(high,target)}
 assert.ok(js.includes("['NapRoomSet',[-49,0,-105],1.7")&&js.includes("['BirthdayRoomSet',[48,0,-112],1.7")&&!js.includes("playroom-quiet-rooms-pack.glb"),'nap and birthday rooms load separate sets without duplicating the old combined pack');
 assert.ok(js.includes("function roomOf(x,z)")&&js.includes("local=left.filter"),'discovery guidance prefers unseen landmarks in the current room instead of pointing through walls');
 assert.ok(js.includes("const destination=near[3]===room?room"),'room and destination labels do not repeat the same name');
@@ -59,7 +62,7 @@ assert.ok(js.includes('wallBase:new THREE.MeshStandardMaterial({map:wallMap')&&j
 
 assert.ok(js.includes('new THREE.HemisphereLight(0xf2fbff,0x8c9a9b,1.55)')&&js.includes('new THREE.DirectionalLight(0xfff6de,.82)'),'restrained global light leaves room for local pools');
 
-for(const texture of ['fabric-weave.png','plastic-speckle.png'])assert.ok(js.includes(texture),`${texture} reaches the runtime material buckets`);assert.ok(js.includes("['position','normal','uv']")&&js.includes("/cloud|wall/.test(name)?3"),'asset compaction preserves UVs and keeps clouds out of the fabric bucket');assert.ok(js.includes('bumpMap:fabricMap,bumpScale:.06')&&js.includes('bumpMap:plasticMap,bumpScale:.035'),'fabric and plastic retain readable surface relief at the fixed review distance');
+for(const texture of ['fabric-weave.png','plastic-speckle.png','rug-pattern.png'])assert.ok(js.includes(texture),`${texture} reaches the runtime material buckets`);assert.ok(js.includes("['position','normal','uv']")&&js.includes("/cloud|wall/.test(name)?3"),'asset compaction preserves UVs and keeps clouds out of the fabric bucket');assert.ok(js.includes('bumpMap:fabricMap,bumpScale:.06')&&js.includes('bumpMap:plasticMap,bumpScale:.035'),'fabric and plastic retain readable surface relief at the fixed review distance');
 
 assert.ok(!js.includes('RectAreaLight'),'the rejected overexposed area-light experiment is absent');
 assert.ok(js.includes('function gradeAsset(o,saturation=-.18,lightness=.025)')&&js.includes("loadAsset('playroom-rainbow.glb',[0,0,-33.8],1.38,0,gradeAsset)"),'both rainbow meshes receive the shared faded palette grade');

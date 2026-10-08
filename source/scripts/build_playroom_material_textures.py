@@ -1,6 +1,7 @@
 from pathlib import Path
 from PIL import Image, ImageDraw
 import random
+import math
 
 out = Path(__file__).parents[2] / "outputs/assets/playroom/textures"
 out.mkdir(parents=True, exist_ok=True)
@@ -21,3 +22,18 @@ for _ in range(420):
     v = random.randrange(218, 240)
     d.point((x, y), fill=(v, v, v + 2))
 plastic.save(out / "plastic-speckle.png", optimize=True)
+
+rug = Image.new("RGB", (128, 128), (238, 236, 228))
+d = ImageDraw.Draw(rug)
+for x, y, r in [(20, 28, 10), (88, 78, 13)]:
+    c = (198, 204, 205)
+    d.ellipse((x-r, y-r//2, x+r, y+r//2), fill=c)
+    d.ellipse((x-r//2, y-r, x+r//2, y+r//2), fill=c)
+for x, y, r in [(58, 22, 7), (111, 39, 6), (42, 101, 8), (103, 112, 5)]:
+    pts=[]
+    for i in range(10):
+        a=-math.pi/2+i*math.pi/5
+        rr=r if i%2==0 else r*.42
+        pts.append((x+math.cos(a)*rr,y+math.sin(a)*rr))
+    d.polygon(pts,fill=(190,184,176))
+rug.save(out / "rug-pattern.png", optimize=True)
