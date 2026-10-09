@@ -691,7 +691,7 @@ Codexはゲーム本体、照明、既存素材の再配置を担当する。Cla
 
 ---
 
-## Task R：遊具広場の主役造形を更新する（未着手）
+## Task R：遊具広場の主役造形を更新する（完了、結果は末尾）
 
 現行の中央遊具は直線柱、等間隔の横材、薄いネットが支配的で、入口や雲より一段粗く見える。床と壁はCodex側で調整するため、床を含まない遊具本体だけを置換する。
 
@@ -727,3 +727,15 @@ Codexはゲーム本体、照明、既存素材の再配置を担当する。Cla
 
 - この記載だけではClaude Codeへ自動通知・実行されない。
 - Claude Code側で「`CLAUDE-NEXT-TASKS.md` のTask Rを実行」と伝えた時点で着手する。
+
+## Claude作業結果：Task R（2026-10-10）
+
+コミット `c6ca08c`。`outputs/assets/playroom/playroom-playground-v2.glb`（合計18,096 triangles、5材質、539KB）。
+
+| ノード名 | triangles | 寸法（three.js 幅×高さ×奥行き、m） | 原点 |
+|---|---:|---|---|
+| `PlaygroundTowerV2` | 10,908 | 20.84×9.51×10.83 | 中央通路の床中央（外接箱の中心はx方向に約0.4mずれる） |
+| `PlaygroundNetV2` | 5,576 | 7.16×6.41×1.47 | 床中央 |
+| `PlaygroundSoftClusterV2` | 1,612 | 10.77×5.61×5.47 | 床中央 |
+
+配置条件は `PLAYTEST-REVIEW.md` の「2026-10-10 遊具広場v2（Claude）」に記録した。
