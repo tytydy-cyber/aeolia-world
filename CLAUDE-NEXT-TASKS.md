@@ -688,3 +688,42 @@ Codexはゲーム本体、照明、既存素材の再配置を担当する。Cla
 | `TownVehicleSilhouette` | 1,728 | 2.90×2.01×1.88 |
 
 配置条件は `PLAYTEST-REVIEW.md` の「2026-10-08 子どもの街の前景キット（Claude）」に記録した。
+
+---
+
+## Task R：遊具広場の主役造形を更新する（未着手）
+
+現行の中央遊具は直線柱、等間隔の横材、薄いネットが支配的で、入口や雲より一段粗く見える。床と壁はCodex側で調整するため、床を含まない遊具本体だけを置換する。
+
+**Claude Codeの担当ファイル**
+
+- `source/scripts/build_playroom_playground_v2.py`
+- `source/blender/playroom-playground-v2.blend`
+- `outputs/assets/playroom/playroom-playground-v2.glb`
+- `source/previews/playroom-playground-v2-preview.png`
+- `work/test-playroom-playground-v2.mjs`
+
+**制作物**
+
+1. `PlaygroundTowerV2`：丸い断面の支柱、曲面踊り場、厚いトンネル、非対称な登り部を一体化する。
+2. `PlaygroundNetV2`：線ではなく厚みのあるロープを粗密を変えて張る。正面から同じ格子が反復しないこと。
+3. `PlaygroundSoftClusterV2`：人物サイズの1.5〜3倍の軟質ブロック群。通路を塞がず、前景の密度を補う。
+
+**受け入れ条件**
+
+- 床板、背景板、照明、コリジョンは含めない。
+- 合計24,000 triangles以下、材質5以下、GLB 1.5MB以下。
+- 中央に幅4m×高さ4m以上の通過経路を残し、主人公が内部を飛行できる。
+- 単純な直方体柱、完全な左右対称、等間隔の反復を主役にしない。
+- 退色した青、草色、黄、珊瑚色を使い、既存の入口・街と色調を合わせる。
+- 同一平面重なり、縮退面、完全重複面0。専用テストで検査する。
+- 上記5ファイルだけを1コミットにまとめ、SHA、各ノード寸法、三角形数、材質数を末尾へ記録する。
+
+**編集禁止**
+
+- `outputs/playroom.js`、HTML、共有テスト、既存GLB、既存生成スクリプト
+
+**連携状態**
+
+- この記載だけではClaude Codeへ自動通知・実行されない。
+- Claude Code側で「`CLAUDE-NEXT-TASKS.md` のTask Rを実行」と伝えた時点で着手する。

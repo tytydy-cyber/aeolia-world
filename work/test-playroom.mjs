@@ -3,7 +3,7 @@ import {readFileSync} from 'node:fs';
 
 const read=name=>readFileSync(new URL('../outputs/'+name,import.meta.url),'utf8');
 const html=read('playroom.html'),js=read('playroom.js'),hub=read('index.html');
-assert.ok(html.includes('DREAMCORE PLAYROOM 04')&&html.includes('playroom.js?v=49')&&html.includes('mobile-controls.js?v=83'),'playroom has its own entry page and current shared mobile controls');
+assert.ok(html.includes('DREAMCORE PLAYROOM 04')&&html.includes('playroom.js?v=50')&&html.includes('mobile-controls.js?v=83'),'playroom has its own entry page and current shared mobile controls');
 assert.ok(hub.includes('class="gate playroom"')&&hub.includes('4つのエリア'),'world select exposes the fourth world');
 for(const asset of ['playroom-rainbow.glb','playroom-soft-play-upgrade.glb','playroom-playground-pack.glb','playroom-child-town-pack.glb','playroom-quiet-split.glb','playroom-town-foreground.glb','playroom-cloud-corridor-v2.glb'])assert.ok(js.includes(asset),`${asset} is placed in the world`);
 assert.ok(js.includes("loadAsset('playroom-playground-pack.glb',[0,0,-56],1.8")&&js.includes('{x:0,z:-56,w:6.3,d:3,bottom:0,top:11.4}'),'playground landmark and collision proxy keep the less obstructive matched scale');
@@ -21,6 +21,7 @@ for(const safe of ["[10,5,-55,'遊具広場'","[52,3,-63,'子どもの街'","[-4
 assert.equal((js.match(/floorPatch\(\[/g)||[]).length,9,'nine asymmetric floor fields distinguish the entrance and added districts');
 assert.equal((js.match(/paddedRug\(-?\d/g)||[]).length,2,'quiet rooms use two raised asymmetric fabric islands without coplanar overlap');
 assert.ok(js.includes('function contactBlob(')&&js.includes('shadow.position.set(x,.065,z)')&&js.includes('depthWrite:false')&&js.includes('polygonOffset:true'),'asymmetric fake contact shadows sit four centimetres above floor fields without coplanar flicker');
+assert.ok(js.includes("new THREE.Color(color).lerp(new THREE.Color(0xffffff),.3)")&&js.includes('emissive:tint,emissiveIntensity:.18'),'irregular room floor patches keep a faded low-contrast colour instead of becoming dark flat polygons');
 assert.equal((js.match(/contactBlob\(/g)||[]).length,12,'eleven landmarks and room groups receive low-cost contact shadows');
 assert.equal((js.match(/new THREE\.PointLight\(/g)||[]).length,1,'eight restrained local lights are data-driven through one creation site');
 assert.ok(!js.includes("[0,7,5,0xffe4bd,42,34]")&&!js.includes("[0,8,-33.8,0xc8ddff,36,30]")&&js.includes("[52,8,-63,0xffd9b8,58,30]")&&js.includes("[-49,7,-102,0xbfdcff,52,28]")&&js.includes("[48,7,-109,0xffcbb4,58,28]")&&js.includes("[0,8,-139,0xd7ecff,54,30]"),'local light pools ground the entrance and four deep rooms without shadow maps');
