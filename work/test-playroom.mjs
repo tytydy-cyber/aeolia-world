@@ -3,7 +3,7 @@ import {readFileSync} from 'node:fs';
 
 const read=name=>readFileSync(new URL('../outputs/'+name,import.meta.url),'utf8');
 const html=read('playroom.html'),js=read('playroom.js'),hub=read('index.html');
-assert.ok(html.includes('DREAMCORE PLAYROOM 04')&&html.includes('playroom.js?v=51')&&html.includes('mobile-controls.js?v=83'),'playroom has its own entry page and current shared mobile controls');
+assert.ok(html.includes('DREAMCORE PLAYROOM 04')&&html.includes('playroom.js?v=52')&&html.includes('mobile-controls.js?v=83'),'playroom has its own entry page and current shared mobile controls');
 assert.ok(hub.includes('class="gate playroom"')&&hub.includes('4つのエリア'),'world select exposes the fourth world');
 for(const asset of ['playroom-rainbow.glb','playroom-soft-play-upgrade.glb','playroom-playground-v2.glb','playroom-child-town-pack.glb','playroom-quiet-split.glb','playroom-town-foreground.glb','playroom-cloud-corridor-v2.glb'])assert.ok(js.includes(asset),`${asset} is placed in the world`);
 assert.ok(js.includes("['PlaygroundTowerV2',[0,0,-56]]")&&js.includes("['PlaygroundNetV2',[-14,0,-55]]")&&js.includes("['PlaygroundSoftClusterV2',[15,0,-55]]"),'playground v2 modules form one asymmetric room without a duplicate floor');
@@ -58,6 +58,10 @@ assert.ok(js.includes('function segmentBoxHit(a,b,c,margin=.35)')&&js.includes('
 const segmentBoxHit=Function(`${js.match(/function segmentBoxHit.*?(?=\nfunction validGround)/s)[0]};return segmentBoxHit`)(),thin={x:0,z:0,w:.05,d:2,bottom:0,top:5};assert.ok(segmentBoxHit({x:-4,y:2,z:0},{x:4,y:2,z:0},thin)!==null,'continuous camera collision catches a wall thinner than the old sample interval');assert.equal(segmentBoxHit({x:-4,y:7,z:0},{x:4,y:7,z:0},thin),null,'camera segment above the wall remains clear');
 
 assert.ok(js.includes("['TownBenchCluster',[42,0,-57]")&&js.includes("['TownSignCluster',[63,0,-58]")&&js.includes("['TownVehicleSilhouette',[54,0,-51]"),'child town uses three foreground layers without blocking shop doors');
+assert.equal((js.match(/shopPortal\(/g)||[]).length,4,'three shop openings reveal recessed lit shelves instead of flat black planes');
+assert.ok(js.includes('hangingMobile(-63,-112,0)')&&js.includes('hangingMobile(62,-115,1)')&&js.includes('o.userData.mobile!==undefined'),'both quiet rooms have gently moving ceiling mobiles');
+assert.ok(js.includes("['HangingCloudCluster',[-76,14.3,-115]")&&js.includes("['HangingCloudCluster',[76,14.6,-115]"),'quiet rooms carry separate drifting cloud layers into their empty upper corners');
+assert.ok(js.includes("location.search.includes('tour=1')")&&js.includes("if(!auditTour)recenterYaw"),'the repeatable audit tour keeps cardinal controls stable without changing normal discovery camera behavior');
 assert.ok(js.includes("['CloudCorridorShell','CloudFloorBanks','DistantCloudGate','FloatingCloudIslandA','FloatingCloudIslandB','FloatingCloudIslandC']")&&!js.includes('playroom-cloud-corridor-pack.glb'),'cloud corridor v2 replaces the old flat pack');
 
 assert.ok(js.includes('wallBase:new THREE.MeshStandardMaterial({map:wallMap')&&js.includes('0x879fb2')&&js.includes('0xc9928f'),'deep rooms use painted wall texture and distinct muted carpet fields');
