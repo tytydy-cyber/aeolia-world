@@ -3,7 +3,7 @@ import {readFileSync} from 'node:fs';
 
 const read=name=>readFileSync(new URL('../outputs/'+name,import.meta.url),'utf8');
 const html=read('playroom.html'),js=read('playroom.js'),hub=read('index.html');
-assert.ok(html.includes('DREAMCORE PLAYROOM 04')&&html.includes('playroom.js?v=52')&&html.includes('mobile-controls.js?v=83'),'playroom has its own entry page and current shared mobile controls');
+assert.ok(html.includes('DREAMCORE PLAYROOM 04')&&html.includes('playroom.js?v=53')&&html.includes('mobile-controls.js?v=83'),'playroom has its own entry page and current shared mobile controls');
 assert.ok(hub.includes('class="gate playroom"')&&hub.includes('4つのエリア'),'world select exposes the fourth world');
 for(const asset of ['playroom-rainbow.glb','playroom-soft-play-upgrade.glb','playroom-playground-v2.glb','playroom-child-town-pack.glb','playroom-quiet-split.glb','playroom-town-foreground.glb','playroom-cloud-corridor-v2.glb'])assert.ok(js.includes(asset),`${asset} is placed in the world`);
 assert.ok(js.includes("['PlaygroundTowerV2',[0,0,-56]]")&&js.includes("['PlaygroundNetV2',[-14,0,-55]]")&&js.includes("['PlaygroundSoftClusterV2',[15,0,-55]]"),'playground v2 modules form one asymmetric room without a duplicate floor');
@@ -28,6 +28,7 @@ assert.equal((js.match(/new THREE\.PointLight\(/g)||[]).length,1,'eight restrain
 assert.ok(!js.includes("[0,7,5,0xffe4bd,42,34]")&&!js.includes("[0,8,-33.8,0xc8ddff,36,30]")&&js.includes("[52,8,-63,0xffd9b8,58,30]")&&js.includes("[-49,7,-102,0xbfdcff,52,28]")&&js.includes("[48,7,-109,0xffcbb4,58,28]")&&js.includes("[0,8,-139,0xd7ecff,54,30]"),'local light pools ground the entrance and four deep rooms without shadow maps');
 for(const color of ['0xc48070','0xe2d4b6','0x92a076','0x708aa0'])assert.ok(js.includes(color),`fence uses muted shared palette ${color}`);
 assert.ok(js.includes('partitionZ(-38')&&js.includes('partitionZ(-84')&&js.includes('partitionZ(-126'),'the warehouse-sized floor is divided by three readable room thresholds');
+assert.ok(js.includes("for(const side of [-35,35]){box(side,10,-21.5,.8,20,35")&&js.includes("box(side,10,36.5,.8,20,57"),'both side galleries have a direct twelve metre flight opening near the upper-passage discovery');
 assert.ok(js.includes('partitionX(-25')&&js.includes('partitionX(25')&&js.includes('partitionX(0,-125.5'),'middle districts are separated into navigable rooms rather than one open warehouse');
 assert.ok(js.includes('playroom-architecture.glb')&&js.includes("['ArchPassage'")&&js.includes("['CloudNiche'")&&js.includes("['WaveSoffit'")&&js.includes("['PaddedColumn'"),'authored architectural modules give thresholds, murals and ceilings real depth');
 assert.ok(js.includes('playroom-deep-room-kit.glb')&&js.includes("['CloudCeilingCove'")&&js.includes("['SoftWallAlcove'")&&js.includes("['HangingCloudCluster'"),'deep rooms use authored ceiling, wall and hanging silhouettes');
