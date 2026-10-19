@@ -3,7 +3,7 @@ import {readFileSync} from 'node:fs';
 
 const read=name=>readFileSync(new URL('../outputs/'+name,import.meta.url),'utf8');
 const html=read('playroom.html'),js=read('playroom.js'),hub=read('index.html');
-assert.ok(html.includes('DREAMCORE PLAYROOM 04')&&html.includes('playroom.js?v=53')&&html.includes('mobile-controls.js?v=83'),'playroom has its own entry page and current shared mobile controls');
+assert.ok(html.includes('DREAMCORE PLAYROOM 04')&&html.includes('playroom.js?v=54')&&html.includes('mobile-controls.js?v=83'),'playroom has its own entry page and current shared mobile controls');
 assert.ok(hub.includes('class="gate playroom"')&&hub.includes('4つのエリア'),'world select exposes the fourth world');
 for(const asset of ['playroom-rainbow.glb','playroom-soft-play-upgrade.glb','playroom-playground-v2.glb','playroom-child-town-pack.glb','playroom-quiet-split.glb','playroom-town-foreground.glb','playroom-cloud-corridor-v2.glb'])assert.ok(js.includes(asset),`${asset} is placed in the world`);
 assert.ok(js.includes("['PlaygroundTowerV2',[0,0,-56]]")&&js.includes("['PlaygroundNetV2',[-14,0,-55]]")&&js.includes("['PlaygroundSoftClusterV2',[15,0,-55]]"),'playground v2 modules form one asymmetric room without a duplicate floor');
@@ -41,6 +41,7 @@ for(let z=25;z>=-149;z-=.5)assert.ok(!blocked(0,21,z),`high flight spine remains
 const discoveries=[[0,2,6],[16,9,11],[-16,2,12],[0,1,-41],[-47,16,2],[0,0,-55],[-48,3,-61],[52,3,-63],[-49,2,-99],[48,2,-106],[8,5,-139],[0,12,-149]],clearSegment=(a,b)=>{const steps=Math.max(1,Math.ceil(Math.hypot(b[0]-a[0],b[1]-a[1],b[2]-a[2])/.2));for(let i=0;i<=steps;i++){const t=i/steps,x=a[0]+(b[0]-a[0])*t,y=a[1]+(b[1]-a[1])*t,z=a[2]+(b[2]-a[2])*t;assert.ok(Math.abs(x)<92&&z<62&&z>-152&&!blocked(x,y,z),`continuous route remains clear at ${x.toFixed(1)},${y.toFixed(1)},${z.toFixed(1)}`)}};for(const target of discoveries){if(target[2]===-55){clearSegment([0,21,25],[0,21,-48]);clearSegment([0,21,-48],[0,0,-48]);clearSegment([0,0,-48],target);continue}const high=[target[0],21,target[2]];clearSegment([0,21,25],[0,21,target[2]]);clearSegment([0,21,target[2]],high);clearSegment(high,target)}
 assert.ok(js.includes("['NapRoomSet',[-49,0,-105],1.7")&&js.includes("['BirthdayRoomSet',[48,0,-112],1.7")&&!js.includes("playroom-quiet-rooms-pack.glb"),'nap and birthday rooms load separate sets without duplicating the old combined pack');
 assert.ok(js.includes("function roomOf(x,z)")&&js.includes("local=left.filter"),'discovery guidance prefers unseen landmarks in the current room instead of pointing through walls');
+assert.ok(js.includes('function discoveryResponse(n)')&&js.includes('changes[turn%changes.length]()')&&js.includes("虹のホール:'小さな扉が開き"),'a discovery immediately produces a visible response in its room');
 assert.ok(js.includes("const destination=near[3]===room?room"),'room and destination labels do not repeat the same name');
 assert.ok(!js.includes('o.visible=!o.visible')&&!js.includes('o.position.z+=')&&!js.includes('o.position.x+='),'anomalies do not leave stale invisible collision proxies');
 assert.ok(js.includes("{x:0,z:3,w:11,d:1.5,bottom:6.8,top:12}")&&js.includes("{x:0,z:-33.8,w:10.3,d:1.35,bottom:6.6,top:11.2}"),'both thick rainbow arches keep the camera out while leaving the enlarged walk-through opening clear');

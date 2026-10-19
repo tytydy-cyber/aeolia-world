@@ -36,6 +36,7 @@ const localStorage={data:new Map(),getItem(k){return this.data.get(k)||null},set
 const gameContext=(overrides={})=>vm.createContext({THREE:{...Core,WebGLRenderer:Renderer,TextureLoader},GLTFLoader:Loader,mergeGeometries,Emotes,EMOTE_KEYS,houseAsset,lodAsset,WorldAudio,MotionEffects,applyTravelerDesign,document,localStorage,innerWidth:1280,innerHeight:800,devicePixelRatio:1,matchMedia(){return {matches:false}},addEventListener:on,requestAnimationFrame(){},setTimeout(){},console:{...console,assert(condition,message){assert.ok(condition,message)}},performance,...overrides});
 const context=gameContext();
 const html=readFileSync(new URL('../outputs/aeolia.html',import.meta.url),'utf8');
+assert.ok(html.includes('function discoveryResponse(d)')&&html.includes("上段庭園:()=>{waterSurfaces.material.emissive")&&html.includes("雲下の滝口:()=>{waterMat.emissive"),'floating-island discoveries produce visible local and route responses');
 const script=html.match(/<script type="module">([\s\S]*?)<\/script>/)[1].replace(/^import .*$/gm,'');
 vm.runInContext(script,context);
 assetCallbacks['assets/aeolia-house.glb'](houseAsset);assetCallbacks['assets/aeolia-house-lod.glb'](lodAsset);await new Promise(resolve=>setImmediate(resolve));

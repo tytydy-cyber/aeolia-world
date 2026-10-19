@@ -53,6 +53,8 @@ assert.ok(html.indexOf("const suburb=new URLSearchParams")<html.indexOf('type="i
 assert.ok(js.includes('smoothstep(player.position.y,5,24)')&&js.includes('boostTarget=diving?Math.min(10')&&js.includes('cameraProbe.lerpVectors'),'liminal flight changes with altitude, preserves dive momentum and avoids camera colliders');
 assert.ok(js.includes("player.rotation.order='YXZ'"),'liminal traveler pitches and rolls about its own axes after yaw, so the lean follows the heading');
 assert.ok(js.includes('function routeGate')&&js.includes('function updateRouteGates')&&js.includes('speed=THREE.MathUtils.lerp(fast?42:26,fast?52:36,altitude)+diveBoost+routeBoost'),'multi-height wind gates produce a temporary movement benefit');
+assert.ok(js.includes('function discoveryResponse(note)')&&js.includes("育苗室:()=>{mats.leaf.emissiveIntensity=.42")&&js.includes("配水庭:()=>{mats.water.opacity=.9")&&js.includes('const order={受付:2,宴会場:0,浴場:3,搬入口:1'),'discoveries immediately change visible infrastructure in both liminal worlds');
+assert.ok(js.includes('nextAnomaly=Math.max(nextAnomaly,Date.now()+90000)'),'a discovery response postpones the unrelated timed anomaly so cause and effect stay legible');
 assert.ok(js.includes('A water tower anchors the horizon')&&js.includes('The solar collector closes the long view'),'both worlds have reachable navigation landmarks');
 assert.ok(js.includes('function mesh(g,m,x,y,z,shadow=false)'),'static architecture skips redundant shadow passes by default');
 assert.ok(js.includes('const accentBatch=new THREE.InstancedMesh')&&js.includes('renderer.shadowMap.enabled=false'),'repeated solar accents are batched and generated-material worlds skip dynamic shadow passes');

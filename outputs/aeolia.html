@@ -461,6 +461,18 @@ const DISCOVERY_RADIUS=13;
 function readNotes(){try{return JSON.parse(stored('aeolia-notes')||'[]')}catch{return []}}
 function saveNote(d){const notes=readNotes(),id='aeolia:'+d.name;if(notes.some(n=>n.id===id))return 0;notes.push({id,world:'浮島の街',name:d.name,text:d.text});stored('aeolia-notes',JSON.stringify(notes));return notes.filter(n=>n.id.startsWith('aeolia:')).length}
 let discoveryShown=0;
+const discoveryEffects=new Set();
+function discoveryResponse(d){if(discoveryEffects.has(d.name))return'';discoveryEffects.add(d.name);const responses={
+  市場:()=>{MAT.roof.emissive.set(0x3b241d);MAT.roof.emissiveIntensity=.22;return'市場布に灯りが映り、上段庭園への階段が見えた。'},
+  上段庭園:()=>{waterSurfaces.material.emissive.set(0x315e66);waterSurfaces.material.emissiveIntensity=.38;return'水盤の反射が鐘楼の方向へ伸びた。'},
+  雲の停留所:()=>{MAT.gold.emissiveIntensity=1.7;return'停留所と雲下の点検灯が同時に点いた。'},
+  鐘楼:()=>{cloudMat.opacity=.82;return'鐘の音に合わせ、低い雲の切れ目が広がった。'},
+  風車工房:()=>{waterMat.opacity=.82;return'風車の滝が明るくなり、雲下まで流れを追える。'},
+  離宮:()=>{waterSurfaces.material.color.offsetHSL(.02,.05,.06);return'離宮と上段庭園の水面が同じ色に変わった。'},
+  雲下の滝口:()=>{waterMat.emissive.set(0x28545b);waterMat.emissiveIntensity=.35;return'滝沿いの点検灯が次の足場まで続いた。'},
+  雲下点検台:()=>{MAT.gold.color.offsetHSL(.02,.05,.08);return'三つの雲下設備の灯りが順に点いた。'},
+  雲量観測所:()=>{cloudMat.color.offsetHSL(.015,.04,.05);return'雲の流れが薄くなり、中央島への上昇路が見えた。'}
+};return responses[d.name]?.()||'離れた場所の灯りが応答した。'}
 function groundAt(x,z,maxBridgeHeight=Infinity){
   for(const b of BRIDGES){const y=bridgeSample(x,z,b);if(y!==null&&y<=maxBridgeHeight)return y}
   if(3<=maxBridgeHeight&&Math.abs(x-28)<=4&&z>=9&&z<=39)return 3+(39-z)*.5;
@@ -475,9 +487,9 @@ function discover(){
   for(const d of discoveries){
     const dist=player.position.distanceTo(d.p);if(dist<best){best=dist;nearest=d}
     const count=dist<DISCOVERY_RADIUS&&saveNote(d);if(!count)continue;
-    sound.chime();recenterYaw=Math.atan2(player.position.x-d.p.x,player.position.z-d.p.z);playEmote(count===discoveries.length?'Spin':'Bow');
+    sound.chime();recenterYaw=Math.atan2(player.position.x-d.p.x,player.position.z-d.p.z);playEmote(count===discoveries.length?'Spin':'Bow');const response=discoveryResponse(d);
     const el=document.querySelector('#discovery'),shown=++discoveryShown;
-    el.querySelector('div').textContent=count===discoveries.length?`${d.name} — 全地点を巡った`:`${d.name} — ${d.text}　${count} / ${discoveries.length}`;
+    el.querySelector('div').textContent=count===discoveries.length?`${d.name} — 全地点を巡った。${response}`:`${d.name} — ${d.text} ${response}　${count} / ${discoveries.length}`;
     el.classList.add('discovery-on');setTimeout(()=>{if(shown===discoveryShown)el.classList.remove('discovery-on')},2600);
   }
   const seen=new Set(readNotes().map(n=>n.id)),flat=Math.hypot(player.position.x-nearest.p.x,player.position.z-nearest.p.z);
