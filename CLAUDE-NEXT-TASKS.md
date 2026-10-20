@@ -742,28 +742,6 @@ Codexはゲーム本体、照明、既存素材の再配置を担当する。Cla
 
 ---
 
-## Task S：3世界の中間目印キットを制作する（未着手）
+## Task S：取り消し（2026-10-20）
 
-`WORLD-QUALITY-EXECUTION.md` の空間設計を実装するため、外部Claude Codeにはゲームロジックへ触れない素材制作を切り出す。この記載だけでは通知・実行されない。
-
-### 担当範囲
-
-- 浮島：橋脚、風向布、雲下の灯りを一つの軽量GLBへまとめる。
-- 閉鎖施設：点検路の入口灯、出口標識、配管継手を一つの軽量GLBへまとめる。
-- 郊外：水路と送電線の分岐点、低い点検橋を一つの軽量GLBへまとめる。
-- 各世界3ノード以内、合計30,000 triangles以下、材質は世界ごとに3以下。
-- 単純な箱だけで構成せず、輪郭、厚み、裏面を持たせる。
-- 同一平面重なり、縮退面、完全重複面を0にし、専用テストを追加する。
-
-### 編集可能
-
-- 新規 `source/scripts/build_world_route_markers.py`
-- 新規 `source/blender/world-route-markers.blend`
-- 新規 `outputs/assets/world-route-markers.glb`
-- 新規 `source/previews/world-route-markers-preview.png`
-- 新規 `work/test-world-route-markers.mjs`
-
-### 編集禁止
-
-- `outputs/*.js`、`outputs/*.html`
-- 既存GLB、既存テスト、`WORLD-QUALITY-EXECUTION.md`
+ユーザーの指示により、3世界の中間目印キットを含む今後のゲーム作業はCodex本体が担当する。Claude Codeへの依頼、通知、実行は行わない。旧Task Sの素材仕様は `WORLD-QUALITY-EXECUTION.md` に残し、Codexが設計・制作・統合・検証まで一貫して進める。
