@@ -37,6 +37,7 @@ const gameContext=(overrides={})=>vm.createContext({THREE:{...Core,WebGLRenderer
 const context=gameContext();
 const html=readFileSync(new URL('../outputs/aeolia.html',import.meta.url),'utf8');
 assert.ok(html.includes('function discoveryResponse(d)')&&html.includes("上段庭園:()=>{waterSurfaces.material.emissive")&&html.includes("雲下の滝口:()=>{waterMat.emissive"),'floating-island discoveries produce visible local and route responses');
+assert.ok(html.includes('const underRoute=')&&html.includes("underRouteLights.userData.routeRole='雲下設備から中央島へ戻る灯り'")&&html.includes('underCloudBatches.push(underRouteLights)'),'under-cloud discoveries are joined by a visible return route');
 const script=html.match(/<script type="module">([\s\S]*?)<\/script>/)[1].replace(/^import .*$/gm,'');
 vm.runInContext(script,context);
 assetCallbacks['assets/aeolia-house.glb'](houseAsset);assetCallbacks['assets/aeolia-house-lod.glb'](lodAsset);await new Promise(resolve=>setImmediate(resolve));
@@ -63,7 +64,7 @@ assert.ok(run("districtBatches.find(b=>b.material.name==='Island life atlas').ma
 assert.equal(run('islandLifeAtlas.flipY'),false,'the atlas is read unflipped to match glTF UVs, so each part shows its own cell');
 assert.ok(run("districtBatches.filter(b=>surfaceKind(b.material.name)).every(b=>b.material.map&&b.material.userData.textureKind)"),'district stone and wood use the shared surface textures');
 assert.equal(run('discoveries.length'),9,'the circuit covers the central island, three outer islands and three cloud-under sites');
-assert.deepEqual(Array.from(run('underCloudBatches.map(batch=>batch.count)')),[6,18,3],'three cloud-under sites share three bounded draw batches');
+assert.deepEqual(Array.from(run('underCloudBatches.map(batch=>batch.count)')),[6,18,3,9],'three cloud-under sites and their return lights share four bounded draw batches');
 assert.ok(run('underCloudSites.every(([x,y,z,sx,sz])=>solidColliders.some(c=>c.x===x&&c.z===z&&c.bottom===y-.35&&c.top===y+.35&&c.radius===Math.max(sx,sz)))'),'cloud-under platforms have matching landing collision');
 assert.ok(run('districtPlacements.every(([,x,y,z])=>y-groundAt(x,z)>=.08-1e-9)'),'district modules sit above their ground instead of sharing a coplanar layer');
 assert.ok(run('districtPlacements.filter(p=>p[4]).every(([,x,,z,c])=>!propColliders.some(p=>Math.abs(x-p.x)<c.w+p.w&&Math.abs(z-p.z)<c.d+p.d))'),'district modules do not overlap existing street furniture');
@@ -139,7 +140,7 @@ reset();inputPace('1.6');assert.equal(run('pace'),1.6);inputPace('bad');assert.e
 reset();inputPace('1.6');run('player.position.set(-43,3,-23);keys.ArrowUp=true;keys.ControlLeft=true');frames(100,20);assert.ok(run('player.position.z')>=-26.35,'maximum speed cannot tunnel through wall');
 localStorage.data.clear();reset();run('player.position.set(-105,80,-116)');run('discover()');assert.equal(localStorage.getItem('aeolia-notes'),null,'flying high over a landmark does not record it');assert.ok(document.querySelector('#place').textContent.includes('降りると記録'),'high pass hints that descending records the place');
 run('player.position.set(-105,34,-116)');run('discover()');run('discover()');const saved=JSON.parse(localStorage.getItem('aeolia-notes'));assert.deepEqual(saved.map(n=>n.id),['aeolia:鐘楼'],'floating-island discoveries persist once to the shared journal');assert.ok(saved[0].world&&saved[0].text,'journal entries carry world and description');
-frames(90);assert.ok(run('Math.hypot(-Math.sin(yaw)-0,-Math.cos(yaw)-1)')<.05,'camera turns toward the discovered landmark');assert.ok(document.querySelector('#place').textContent.includes('記録済'),'recorded places are marked');
+frames(90);assert.equal(run('yaw'),0,'discoveries preserve the player camera heading');assert.ok(document.querySelector('#place').textContent.includes('記録済'),'recorded places are marked');
 // Colonnade, ring beam and windmill blades block at cruise and boost speed and at 30/60/120 Hz.
 function sweep(start,direction,boost,hz,seconds=2){reset();run(`player.position.set(${start});yaw=Math.atan2(-(${direction[0]}),-(${direction[1]}));keys.ArrowUp=true;keys.ControlLeft=${boost}`);const steps=Math.ceil(120/hz),path=[];for(let i=0;i<hz*seconds;i++){for(let j=0;j<steps;j++)run(`update(${1/hz/steps},${i*1000/hz})`);path.push(run('player.position.toArray()'))}run('keys.ArrowUp=false;keys.ControlLeft=false');return path}
 const ringDirection=[Math.cos(Math.PI/10),Math.sin(Math.PI/10)];

@@ -3,7 +3,7 @@ import {readFileSync} from 'node:fs';
 
 const read=name=>readFileSync(new URL('../outputs/'+name,import.meta.url),'utf8');
 const html=read('playroom.html'),js=read('playroom.js'),hub=read('index.html');
-assert.ok(html.includes('DREAMCORE PLAYROOM 04')&&html.includes('playroom.js?v=54')&&html.includes('mobile-controls.js?v=83'),'playroom has its own entry page and current shared mobile controls');
+assert.ok(html.includes('DREAMCORE PLAYROOM 04')&&html.includes('playroom.js?v=55')&&html.includes('mobile-controls.js?v=83'),'playroom has its own entry page and current shared mobile controls');
 assert.ok(hub.includes('class="gate playroom"')&&hub.includes('4つのエリア'),'world select exposes the fourth world');
 for(const asset of ['playroom-rainbow.glb','playroom-soft-play-upgrade.glb','playroom-playground-v2.glb','playroom-child-town-pack.glb','playroom-quiet-split.glb','playroom-town-foreground.glb','playroom-cloud-corridor-v2.glb'])assert.ok(js.includes(asset),`${asset} is placed in the world`);
 assert.ok(js.includes("['PlaygroundTowerV2',[0,0,-56]]")&&js.includes("['PlaygroundNetV2',[-14,0,-55]]")&&js.includes("['PlaygroundSoftClusterV2',[15,0,-55]]"),'playground v2 modules form one asymmetric room without a duplicate floor');
@@ -42,6 +42,7 @@ const discoveries=[[0,2,6],[16,9,11],[-16,2,12],[0,1,-41],[-47,16,2],[0,0,-55],[
 assert.ok(js.includes("['NapRoomSet',[-49,0,-105],1.7")&&js.includes("['BirthdayRoomSet',[48,0,-112],1.7")&&!js.includes("playroom-quiet-rooms-pack.glb"),'nap and birthday rooms load separate sets without duplicating the old combined pack');
 assert.ok(js.includes("function roomOf(x,z)")&&js.includes("local=left.filter"),'discovery guidance prefers unseen landmarks in the current room instead of pointing through walls');
 assert.ok(js.includes('function discoveryResponse(n)')&&js.includes('changes[turn%changes.length]()')&&js.includes("虹のホール:'小さな扉が開き"),'a discovery immediately produces a visible response in its room');
+assert.equal((js.match(/routeBand\(\[/g)||[]).length,2,'two visible cross-room bands turn the middle and quiet-room openings into lateral loops');
 assert.ok(js.includes("const destination=near[3]===room?room"),'room and destination labels do not repeat the same name');
 assert.ok(!js.includes('o.visible=!o.visible')&&!js.includes('o.position.z+=')&&!js.includes('o.position.x+='),'anomalies do not leave stale invisible collision proxies');
 assert.ok(js.includes("{x:0,z:3,w:11,d:1.5,bottom:6.8,top:12}")&&js.includes("{x:0,z:-33.8,w:10.3,d:1.35,bottom:6.6,top:11.2}"),'both thick rainbow arches keep the camera out while leaving the enlarged walk-through opening clear');
@@ -63,7 +64,7 @@ assert.ok(js.includes("['TownBenchCluster',[42,0,-57]")&&js.includes("['TownSign
 assert.equal((js.match(/shopPortal\(/g)||[]).length,4,'three shop openings reveal recessed lit shelves instead of flat black planes');
 assert.ok(js.includes('hangingMobile(-63,-112,0)')&&js.includes('hangingMobile(62,-115,1)')&&js.includes('o.userData.mobile!==undefined'),'both quiet rooms have gently moving ceiling mobiles');
 assert.ok(js.includes("['HangingCloudCluster',[-76,14.3,-115]")&&js.includes("['HangingCloudCluster',[76,14.6,-115]"),'quiet rooms carry separate drifting cloud layers into their empty upper corners');
-assert.ok(js.includes("location.search.includes('tour=1')")&&js.includes("if(!auditTour)recenterYaw"),'the repeatable audit tour keeps cardinal controls stable without changing normal discovery camera behavior');
+assert.ok(js.includes("location.search.includes('tour=1')")&&!js.includes("if(!auditTour)recenterYaw"),'discoveries keep the camera heading stable during normal play and repeatable tours');
 assert.ok(js.includes("['CloudCorridorShell','CloudFloorBanks','DistantCloudGate','FloatingCloudIslandA','FloatingCloudIslandB','FloatingCloudIslandC']")&&!js.includes('playroom-cloud-corridor-pack.glb'),'cloud corridor v2 replaces the old flat pack');
 
 assert.ok(js.includes('wallBase:new THREE.MeshStandardMaterial({map:wallMap')&&js.includes('0x879fb2')&&js.includes('0xc9928f'),'deep rooms use painted wall texture and distinct muted carpet fields');

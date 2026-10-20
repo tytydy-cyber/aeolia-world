@@ -330,6 +330,8 @@ for(const [i,[x,y,z,sx,sz]] of underCloudSites.entries()){
   dummy.position.set(x,y+2.5,z);dummy.scale.set(1,1,1);dummy.updateMatrix();underLights.setMatrixAt(i,dummy.matrix);colliders.push({x,z,radius:Math.max(sx,sz),bottom:y-.35,top:y+.35});
 }
 for(const batch of [underDecks,underFrames,underLights]){batch.castShadow=false;batch.receiveShadow=true;batch.computeBoundingSphere();scene.add(batch);underCloudBatches.push(batch)}dummy.scale.setScalar(1);
+// A chain of lamps makes the three underside sites read as one route and points back up to the town.
+const underRoute=[[-105,-20,-128],[-92,-23,-95],[-70,-25,-42],[-42,-24,55],[-12,-28,30],[18,-30,-2],[45,-27,-35],[28,-15,-18],[8,-4,20]],underRouteLights=new THREE.InstancedMesh(new THREE.SphereGeometry(.58,8,6),MAT.gold,underRoute.length);for(const [i,[x,y,z]] of underRoute.entries()){dummy.position.set(x,y,z);dummy.scale.setScalar(i%3===0?1.35:1);dummy.updateMatrix();underRouteLights.setMatrixAt(i,dummy.matrix)}underRouteLights.userData.routeRole='雲下設備から中央島へ戻る灯り';underRouteLights.frustumCulled=false;scene.add(underRouteLights);underCloudBatches.push(underRouteLights);
 const solidColliders=colliders.concat(propColliders);
 const PLAYER_RADIUS=.58,PLAYER_HEIGHT=3.85;
 
@@ -486,8 +488,8 @@ function discover(){
   let nearest=discoveries[0],best=Infinity;
   for(const d of discoveries){
     const dist=player.position.distanceTo(d.p);if(dist<best){best=dist;nearest=d}
-    const count=dist<DISCOVERY_RADIUS&&saveNote(d);if(!count)continue;
-    sound.chime();recenterYaw=Math.atan2(player.position.x-d.p.x,player.position.z-d.p.z);playEmote(count===discoveries.length?'Spin':'Bow');const response=discoveryResponse(d);
+    const reached=dist<DISCOVERY_RADIUS,response=reached?discoveryResponse(d):'',count=reached&&saveNote(d);if(!count)continue;
+    sound.chime();playEmote(count===discoveries.length?'Spin':'Bow');
     const el=document.querySelector('#discovery'),shown=++discoveryShown;
     el.querySelector('div').textContent=count===discoveries.length?`${d.name} — 全地点を巡った。${response}`:`${d.name} — ${d.text} ${response}　${count} / ${discoveries.length}`;
     el.classList.add('discovery-on');setTimeout(()=>{if(shown===discoveryShown)el.classList.remove('discovery-on')},2600);
