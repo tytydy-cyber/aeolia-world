@@ -83,6 +83,13 @@ for(const [stage,names] of Object.entries({parallax:['給水塔','北側宿泊�
   const colors=game.run("[4,3,0].map(i=>{const c=new THREE.Color();suburbCircuitMarkers.getColorAt(i,c);return c.getHex()})");
   assert.equal(colors.join(','),[0xffe2a0,0x9fe8d5,0x537b78].join(','),'collector discovery highlights its junction, adjacent segment and leaves distant branches muted');
 }
+// The facility service shortcut has a lit entrance and exit, and its five decks leave a clear flight lane above them.
+{
+  const game=loadStage('parallax');assert.equal(game.run("world.children.find(o=>o.userData.serviceDeckCount)?.userData.serviceDeckCount"),5,'facility connects the original three decks to an entrance and exit deck');
+  game.run("activateFacilityRoute('渡り廊下')");const colors=game.run("[0,1,2,3].map(i=>{const c=new THREE.Color();facilityServiceThresholds.getColorAt(i,c);return c.getHex()})");
+  assert.equal(colors.join(','),Array(4).fill(0xffdfa0).join(','),'walkway discovery lights every threshold through the lobby-side exit');
+  for(const [x,y,z] of game.run("world.children.find(o=>o.userData.route)?.userData.route"))assert.equal(game.run(`colliders.some(c=>${y}>c.bottom&&${y}<c.top&&contains(c,${x},${z},.15))`),false,`service flight lane stays clear at ${x},${y},${z}`);
+}
 // Returning to the window resumes sound that leaving it paused, as on the floating islands.
 for(const stage of ['parallax','somnia']){
   const game=loadStage(stage);
