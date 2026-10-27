@@ -57,6 +57,8 @@ assert.ok(js.includes('function discoveryResponse(note)')&&js.includes("育苗�
 assert.ok(js.includes('nextAnomaly=Math.max(nextAnomaly,Date.now()+90000)'),'a discovery response postpones the unrelated timed anomaly so cause and effect stay legible');
 assert.ok(js.includes("serviceMarkers.userData.routeRole='宴会場から渡り廊下へ抜ける上段短絡路'")&&js.includes('servicePosts=new THREE.InstancedMesh')&&!js.includes('serviceGuide='),'facility upper decks use in-world maintenance lamps instead of a debug-like guide line');
 assert.ok(js.includes('const circuitStops=')&&js.includes('circuitMarkers=new THREE.InstancedMesh')&&js.includes("[[-72,-15,.15],[86,52,-.22],[-12,-112,.08]]"),'suburb water and power routes have visible junctions and three crossing points');
+assert.ok(js.includes('Secondary water branches')&&js.includes('[-143,.52,100]')&&js.includes('[98,20,76]')&&js.includes('[48,.52,-48]'),'secondary pipes visibly join the outer homes, aerial garden and balancing pond to the main circuit');
+assert.ok(js.includes('function activateSuburbCircuit(name)')&&js.includes("routeRole='集光塔から育苗室・配水庭へ分岐する水電力網'")&&js.includes('suburbCircuitMarkers.instanceColor.needsUpdate=true'),'discoveries highlight a concrete junction and its neighboring circuit segments');
 assert.ok(js.includes('A water tower anchors the horizon')&&js.includes('The solar collector closes the long view'),'both worlds have reachable navigation landmarks');
 assert.ok(js.includes('function mesh(g,m,x,y,z,shadow=false)'),'static architecture skips redundant shadow passes by default');
 assert.ok(js.includes('const accentBatch=new THREE.InstancedMesh')&&js.includes('renderer.shadowMap.enabled=false'),'repeated solar accents are batched and generated-material worlds skip dynamic shadow passes');

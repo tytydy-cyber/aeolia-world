@@ -77,6 +77,12 @@ for(const [stage,names] of Object.entries({parallax:['給水塔','北側宿泊�
   game.elements.get('#event').querySelector('div').textContent='';game.frames(120);
   assert.equal(game.elements.get('#event').querySelector('div').textContent,'','a remembered discovery is not announced again');
 }
+// A suburb discovery changes a concrete junction and the neighboring circuit, rather than text alone.
+{
+  const game=loadStage('somnia');game.run("activateSuburbCircuit('集光塔')");
+  const colors=game.run("[4,3,0].map(i=>{const c=new THREE.Color();suburbCircuitMarkers.getColorAt(i,c);return c.getHex()})");
+  assert.equal(colors.join(','),[0xffe2a0,0x9fe8d5,0x537b78].join(','),'collector discovery highlights its junction, adjacent segment and leaves distant branches muted');
+}
 // Returning to the window resumes sound that leaving it paused, as on the floating islands.
 for(const stage of ['parallax','somnia']){
   const game=loadStage(stage);
