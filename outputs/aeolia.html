@@ -208,6 +208,13 @@ function bridge(b){const [ax,az,bx,bz,y1,y2]=b,len=Math.hypot(bx-ax,bz-az),angle
 }
 BRIDGES.forEach(bridge);
 const bridgeBatch=new THREE.InstancedMesh(new THREE.BoxGeometry(1,1,1),MAT.wood,bridgeParts.length);bridgeParts.forEach((matrix,i)=>bridgeBatch.setMatrixAt(i,matrix));bridgeBatch.castShadow=bridgeBatch.receiveShadow=true;bridgeBatch.computeBoundingSphere();scene.add(bridgeBatch);
+// Sparse stone piers give each long crossing a readable middle without turning the sky into a wall.
+const bridgePierBatch=new THREE.InstancedMesh(new THREE.CylinderGeometry(.42,.72,1,7),MAT.stone,BRIDGES.length*3);let bridgePierCount=0;
+for(const b of BRIDGES)for(const t of [.25,.5,.75]){const [ax,az,bx,bz,y1,y2]=b,x=ax+(bx-ax)*t,z=az+(bz-az)*t,top=y1+(y2-y1)*t+Math.sin(t*Math.PI)*2,bottom=Math.max(-29,top-20),h=top-bottom;dummy.position.set(x,bottom+h/2,z);dummy.rotation.set(0,t*Math.PI,0);dummy.scale.set(1+(bridgePierCount%2)*.25,h,1);dummy.updateMatrix();bridgePierBatch.setMatrixAt(bridgePierCount++,dummy.matrix);colliders.push({x,z,radius:.72,bottom,top,routePier:true})}bridgePierBatch.castShadow=false;bridgePierBatch.receiveShadow=true;scene.add(bridgePierBatch);
+
+// Bird groups cross the same gaps as the bridges, so motion also points toward another district.
+const birdShape=new THREE.Shape();birdShape.moveTo(-1.2,0);birdShape.lineTo(-.32,.2);birdShape.lineTo(0,-.04);birdShape.lineTo(.32,.2);birdShape.lineTo(1.2,0);birdShape.lineTo(.38,-.25);birdShape.lineTo(0,-.1);birdShape.lineTo(-.38,-.25);birdShape.closePath();
+const islandBirdBatch=new THREE.InstancedMesh(new THREE.ShapeGeometry(birdShape),new THREE.MeshStandardMaterial({color:0x3e4b4b,side:THREE.DoubleSide,roughness:.9}),18),islandBirds=[],birdDummy=new THREE.Object3D();for(let i=0;i<18;i++){const bridge=BRIDGES[i%BRIDGES.length],t=.24+(i%6)*.105;islandBirds.push({x:bridge[0]+(bridge[2]-bridge[0])*t,y:Math.max(12,bridge[4]+(bridge[5]-bridge[4])*t+12+(i%3)*2),z:bridge[1]+(bridge[3]-bridge[1])*t,phase:i*1.71,r:4+(i%4)});birdDummy.position.set(islandBirds[i].x,islandBirds[i].y,islandBirds[i].z);birdDummy.rotation.set(-Math.PI/2,0,islandBirds[i].phase);birdDummy.scale.setScalar(.65+(i%3)*.14);birdDummy.updateMatrix();islandBirdBatch.setMatrixAt(i,birdDummy.matrix)}islandBirdBatch.frustumCulled=false;scene.add(islandBirdBatch);
 
 // Bell tower and windmill: landmarks visible across the map.
 function tower(px,py,pz){
@@ -344,9 +351,8 @@ const clothPosts=[],clothSheets=[[],[]];
 for(let i=0;i<7;i++){const postX=-35+i*11;clothPosts.push(new THREE.BoxGeometry(.2,9,.2).translate(postX,7,-53));clothSheets[i%2].push(new THREE.BoxGeometry(8,.08,3).rotateZ(.08*Math.sin(i)).translate(postX+4,11,-53))}
 mesh(mergeGeometries(clothPosts),MAT.wood,[0,0,0]);mesh(mergeGeometries(clothSheets[0]),MAT.roof2,[0,0,0],false);mesh(mergeGeometries(clothSheets[1]),MAT.roof,[0,0,0],false);
 
-// Waterfalls visibly connect high islands to the cloud layer.
-const waterMat=new THREE.MeshPhysicalMaterial({color:0x9edbe0,transparent:true,opacity:.62,roughness:.1});
-box([5,76,.7],[-105,-6,-128],waterMat,false);box([4,92,.6],[112,5,-116],waterMat,false);
+// Waterfalls visibly connect high islands and the central town to the cloud-under route in one draw.
+const waterMat=new THREE.MeshPhysicalMaterial({color:0x9edbe0,transparent:true,opacity:.62,roughness:.1}),waterfallBatch=new THREE.InstancedMesh(new THREE.BoxGeometry(1,1,1),waterMat,3);for(const [i,[x,y,z,w,h,d]] of [[-105,-6,-128,5,76,.7],[112,5,-116,4,92,.6],[-42,-10,55,3.4,34,.55]].entries()){dummy.position.set(x,y,z);dummy.rotation.set(0,(i-1)*.035,0);dummy.scale.set(w,h,d);dummy.updateMatrix();waterfallBatch.setMatrixAt(i,dummy.matrix)}waterfallBatch.frustumCulled=false;scene.add(waterfallBatch);
 
 // Feathered cloud sprites avoid hard sphere silhouettes against the sky.
 const cloudCanvas=document.createElement('canvas');cloudCanvas.width=cloudCanvas.height=128;
@@ -578,7 +584,7 @@ function update(dt,t){
   if(obstruction)camera.position.copy(focus).addScaledVector(cameraRay.ray.direction,Math.max(.4,obstruction.distance-.3));
   lookTarget.copy(focus);cameraLook.lerp(lookTarget,1-Math.exp(-9*dt));camera.lookAt(cameraLook);
   sun.target.position.copy(player.position);sun.position.copy(player.position).add(new THREE.Vector3(-80,110,-50));
-  blades.rotation.z-=dt*.35;clouds.forEach((c,i)=>{c.x+=dt*(.25+i%4*.07);if(c.x>400)c.x=-400;cloudDummy.position.set(c.x,c.y,c.z);cloudDummy.quaternion.copy(camera.quaternion);cloudDummy.scale.set(c.w,c.h,1);cloudDummy.updateMatrix();cloudBatch.setMatrixAt(i,cloudDummy.matrix)});cloudBatch.instanceMatrix.needsUpdate=true;
+  blades.rotation.z-=dt*.35;islandBirds.forEach((b,i)=>{const a=t*.00018+b.phase;birdDummy.position.set(b.x+Math.cos(a)*b.r,b.y+Math.sin(a*1.7)*1.4,b.z+Math.sin(a)*b.r);birdDummy.rotation.set(-Math.PI/2,0,-a+.4);birdDummy.scale.setScalar((.65+(i%3)*.14)*(1+Math.sin(t*.006+b.phase)*.08));birdDummy.updateMatrix();islandBirdBatch.setMatrixAt(i,birdDummy.matrix)});islandBirdBatch.instanceMatrix.needsUpdate=true;clouds.forEach((c,i)=>{c.x+=dt*(.25+i%4*.07);if(c.x>400)c.x=-400;cloudDummy.position.set(c.x,c.y,c.z);cloudDummy.quaternion.copy(camera.quaternion);cloudDummy.scale.set(c.w,c.h,1);cloudDummy.updateMatrix();cloudBatch.setMatrixAt(i,cloudDummy.matrix)});cloudBatch.instanceMatrix.needsUpdate=true;
   const haze=THREE.MathUtils.smoothstep(Math.hypot(player.position.x,player.position.z),220,280);for(const m of distantMaterials)m.opacity=1-.7*haze;
   scenicLayers.forEach((layer,i)=>{layer.sprite.position.y=layer.baseY+Math.sin(t*.00011+layer.phase)*1.8;layer.sprite.material.opacity=.68+Math.sin(t*.00017+layer.phase+i)*.05});
   if(t>=nextDiscovery){discover();nextDiscovery=t+500}

@@ -65,6 +65,10 @@ assert.equal(run('islandLifeAtlas.flipY'),false,'the atlas is read unflipped to 
 assert.ok(run("districtBatches.filter(b=>surfaceKind(b.material.name)).every(b=>b.material.map&&b.material.userData.textureKind)"),'district stone and wood use the shared surface textures');
 assert.equal(run('discoveries.length'),9,'the circuit covers the central island, three outer islands and three cloud-under sites');
 assert.deepEqual(Array.from(run('underCloudBatches.map(batch=>batch.count)')),[6,18,3,9],'three cloud-under sites and their return lights share four bounded draw batches');
+assert.equal(run('waterfallBatch.count'),3,'three waterfalls connect high islands and the central town to the cloud-under route in one draw');
+assert.equal(run('bridgePierBatch.count'),9,'three sparse piers make the midpoint of every long bridge readable');
+assert.equal(run('solidColliders.filter(c=>c.routePier).length'),9,'visible bridge piers have matching collision instead of pass-through geometry');
+assert.equal(run('islandBirdBatch.count'),18,'one animated bird batch points across the three island gaps');assert.ok(html.includes('islandBirdBatch.instanceMatrix.needsUpdate=true'),'bird landmark matrices update during play');
 assert.ok(run('underCloudSites.every(([x,y,z,sx,sz])=>solidColliders.some(c=>c.x===x&&c.z===z&&c.bottom===y-.35&&c.top===y+.35&&c.radius===Math.max(sx,sz)))'),'cloud-under platforms have matching landing collision');
 assert.ok(run('districtPlacements.every(([,x,y,z])=>y-groundAt(x,z)>=.08-1e-9)'),'district modules sit above their ground instead of sharing a coplanar layer');
 assert.ok(run('districtPlacements.filter(p=>p[4]).every(([,x,,z,c])=>!propColliders.some(p=>Math.abs(x-p.x)<c.w+p.w&&Math.abs(z-p.z)<c.d+p.d))'),'district modules do not overlap existing street furniture');
