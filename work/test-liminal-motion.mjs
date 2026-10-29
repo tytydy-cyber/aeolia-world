@@ -96,6 +96,11 @@ for(const [stage,names] of Object.entries({parallax:['給水塔','北側宿泊�
   const before=game.run("[...world.children].find(o=>o.userData.label==='搬入口の扉が一枚だけ暗くなった。').material.color.getHex()");game.run("facilityDiscoveryEffects.get('搬入口')()");const after=game.run("[...world.children].find(o=>o.userData.label==='搬入口の扉が一枚だけ暗くなった。').material.color.getHex()");
   assert.notEqual(after,before,'loading-bay discovery changes its own door material');
 }
+// Completing a world changes the whole route and the saved notes restore that state on revisit.
+for(const stage of ['parallax','somnia']){
+  const game=loadStage(stage);game.run("stored('aeolia-notes',JSON.stringify(cfg.notes.map(n=>({id:stageKey+':'+n[3]}))));completeWorld()");
+  assert.equal(game.run('worldComplete'),true,`${stage}: completion state is applied`);assert.ok(game.run('scene.fog.density<cfg.fogDensity'),`${stage}: completion clears the long view`);
+}
 // Returning to the window resumes sound that leaving it paused, as on the floating islands.
 for(const stage of ['parallax','somnia']){
   const game=loadStage(stage);

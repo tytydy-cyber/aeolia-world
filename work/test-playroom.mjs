@@ -3,7 +3,7 @@ import {readFileSync} from 'node:fs';
 
 const read=name=>readFileSync(new URL('../outputs/'+name,import.meta.url),'utf8');
 const html=read('playroom.html'),js=read('playroom.js'),hub=read('index.html');
-assert.ok(html.includes('DREAMCORE PLAYROOM 04')&&html.includes('playroom.js?v=56')&&html.includes('mobile-controls.js?v=83'),'playroom has its own entry page and current shared mobile controls');
+assert.ok(html.includes('DREAMCORE PLAYROOM 04')&&html.includes('playroom.js?v=57')&&html.includes('mobile-controls.js?v=83'),'playroom has its own entry page and current shared mobile controls');
 assert.ok(hub.includes('class="gate playroom"')&&hub.includes('4つのエリア'),'world select exposes the fourth world');
 for(const asset of ['playroom-rainbow.glb','playroom-soft-play-upgrade.glb','playroom-playground-v2.glb','playroom-child-town-pack.glb','playroom-quiet-split.glb','playroom-town-foreground.glb','playroom-cloud-corridor-v2.glb'])assert.ok(js.includes(asset),`${asset} is placed in the world`);
 assert.ok(js.includes("['PlaygroundTowerV2',[0,0,-56]]")&&js.includes("['PlaygroundNetV2',[-14,0,-55]]")&&js.includes("['PlaygroundSoftClusterV2',[15,0,-55]]"),'playground v2 modules form one asymmetric room without a duplicate floor');
@@ -17,7 +17,7 @@ assert.ok(js.includes('muralPanel(x,10,-37.54')&&js.includes('muralPanel(x,10,-3
 assert.ok(js.includes("spawn:[0,0,25]")&&js.includes("Math.abs(x)<92&&z<62&&z>-152")&&js.includes('limitY:32'),'seven districts share a bounded 190 by 220 metre playable volume');
 for(const view of ['playground:{player:[0,0,-42]','town:{player:[52,3,-55]','quiet:{player:[-49,3,-92]','birthday:{player:[48,3,-99]','cloud:{player:[0,3,-130]'])assert.ok(js.includes(view),`${view} has a repeatable debug review pose`);
 assert.ok(js.includes("location.search.includes('debug=1')")&&js.includes("new URLSearchParams(location.search).get('view')"),'fixed review positions are unavailable outside debug mode');
-assert.equal((js.match(/'[^']+','[^']+'\]/g)||[]).filter(s=>['大きな虹','滑り台の上','ボールプール','小さな扉','上の通路','遊具広場','奥のボールプール','子どもの街','最後の布団','誕生日席','雲の回廊','高い雲'].some(n=>s.includes(n))).length,12,'the expanded world has twelve discoveries');
+const noteConfig=js.slice(js.indexOf('const cfg='),js.indexOf('document.title='));assert.equal((noteConfig.match(/'[^']+','[^']+'\]/g)||[]).length,12,'the expanded world has twelve discoveries');
 for(const safe of ["[0,0,-55,'遊具広場'","[52,3,-63,'子どもの街'","[-49,2,-99,'最後の布団'","[48,2,-106,'誕生日席'","[8,5,-139,'雲の回廊'"])assert.ok(js.includes(safe),`${safe} is outside its solid proxy`);
 assert.equal((js.match(/floorPatch\(\[/g)||[]).length,9,'nine asymmetric floor fields distinguish the entrance and added districts');
 assert.equal((js.match(/paddedRug\(-?\d/g)||[]).length,2,'quiet rooms use two raised asymmetric fabric islands without coplanar overlap');
@@ -47,6 +47,7 @@ assert.ok(js.includes("upperRouteFrames.userData.routeRole='入口から奥区�
 assert.ok(js.includes("nextThresholdLights.userData.routeRole='発見後に次区画の開口を示す灯り'")&&js.includes('function activateNextThreshold(room)')&&js.includes('nextThresholdLights.instanceColor.needsUpdate=true'),'discoveries light the physical opening into the next room');
 assert.equal((js.match(/\[-?\d+,-(?:9[12]|11[79]),[\d.]+,[\d.]+\]/g)||[]).length,8,'eight irregular cushion islands divide the broad quiet-room approach');
 assert.ok(js.includes("transitionCushionBatch.userData.routeRole='家具区画手前を三本の移動帯へ分ける布の島'"),'quiet-room approach uses fabric islands as movement boundaries');
+assert.ok(js.includes('function completedWorld()')&&js.includes('function completeWorld()')&&js.includes("for(const room of ['虹のホール'")&&js.includes('if(completedWorld())completeWorld()'),'all playroom discoveries permanently light every opening and the upper return route');
 assert.ok(js.includes("const destination=near[3]===room?room"),'room and destination labels do not repeat the same name');
 assert.ok(!js.includes('o.visible=!o.visible')&&!js.includes('o.position.z+=')&&!js.includes('o.position.x+='),'anomalies do not leave stale invisible collision proxies');
 assert.ok(js.includes("{x:0,z:3,w:11,d:1.5,bottom:6.8,top:12}")&&js.includes("{x:0,z:-33.8,w:10.3,d:1.35,bottom:6.6,top:11.2}"),'both thick rainbow arches keep the camera out while leaving the enlarged walk-through opening clear');
