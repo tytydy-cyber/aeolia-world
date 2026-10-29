@@ -90,6 +90,12 @@ for(const [stage,names] of Object.entries({parallax:['給水塔','北側宿泊�
   assert.equal(colors.join(','),Array(4).fill(0xffdfa0).join(','),'walkway discovery lights every threshold through the lobby-side exit');
   for(const [x,y,z] of game.run("world.children.find(o=>o.userData.route)?.userData.route"))assert.equal(game.run(`colliders.some(c=>${y}>c.bottom&&${y}<c.top&&contains(c,${x},${z},.15))`),false,`service flight lane stays clear at ${x},${y},${z}`);
 }
+// Each facility discovery calls its named physical response; the loading-bay door stays present and changes material.
+{
+  const game=loadStage('parallax');assert.equal(game.run('[...facilityDiscoveryEffects.keys()].sort().join()'),['宴会場','受付','北側宿泊棟','搬入口','東側倉庫','浴場','渡り廊下','給水塔'].sort().join(),'all facility discoveries map to a concrete response');
+  const before=game.run("[...world.children].find(o=>o.userData.label==='搬入口の扉が一枚だけ暗くなった。').material.color.getHex()");game.run("facilityDiscoveryEffects.get('搬入口')()");const after=game.run("[...world.children].find(o=>o.userData.label==='搬入口の扉が一枚だけ暗くなった。').material.color.getHex()");
+  assert.notEqual(after,before,'loading-bay discovery changes its own door material');
+}
 // Returning to the window resumes sound that leaving it paused, as on the floating islands.
 for(const stage of ['parallax','somnia']){
   const game=loadStage(stage);
