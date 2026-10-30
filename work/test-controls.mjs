@@ -37,7 +37,7 @@ const gameContext=(overrides={})=>vm.createContext({THREE:{...Core,WebGLRenderer
 const context=gameContext();
 const html=readFileSync(new URL('../outputs/aeolia.html',import.meta.url),'utf8');
 assert.ok(html.includes('function discoveryResponse(d)')&&html.includes("上段庭園:()=>{waterSurfaces.material.emissive")&&html.includes("雲下の滝口:()=>{waterMat.emissive"),'floating-island discoveries produce visible local and route responses');
-assert.ok(html.includes('function completedWorld()')&&html.includes('function completeWorld()')&&html.includes("if(completedWorld())completeWorld()")&&html.includes('島々の水路と航路灯がつながり'),'floating-island completion joins water, cloud and route lighting and restores it on revisit');
+assert.ok(html.includes('function completedWorld()')&&html.includes('function completeWorld()')&&html.includes('scene.fog.color.setHex(0xd6e8e6)')&&html.includes("document.location.search.includes('incomplete=1')")&&html.includes('島々の水路と航路灯がつながり'),'floating-island completion changes the whole atmosphere, joins routes and supports non-persistent before/after QA');
 assert.ok(html.includes('const underRoute=')&&html.includes("underRouteLights.userData.routeRole='雲下設備から中央島へ戻る灯り'")&&html.includes('underCloudBatches.push(underRouteLights)'),'under-cloud discoveries are joined by a visible return route');
 const script=html.match(/<script type="module">([\s\S]*?)<\/script>/)[1].replace(/^import .*$/gm,'');
 vm.runInContext(script,context);

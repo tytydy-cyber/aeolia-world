@@ -3,7 +3,7 @@ import {readFileSync} from 'node:fs';
 
 const read=name=>readFileSync(new URL('../outputs/'+name,import.meta.url),'utf8');
 const html=read('playroom.html'),js=read('playroom.js'),hub=read('index.html');
-assert.ok(html.includes('DREAMCORE PLAYROOM 04')&&html.includes('playroom.js?v=57')&&html.includes('mobile-controls.js?v=83'),'playroom has its own entry page and current shared mobile controls');
+assert.ok(html.includes('DREAMCORE PLAYROOM 04')&&html.includes('playroom.js?v=58')&&html.includes('mobile-controls.js?v=83'),'playroom has its own entry page and current shared mobile controls');
 assert.ok(hub.includes('class="gate playroom"')&&hub.includes('4つのエリア'),'world select exposes the fourth world');
 for(const asset of ['playroom-rainbow.glb','playroom-soft-play-upgrade.glb','playroom-playground-v2.glb','playroom-child-town-pack.glb','playroom-quiet-split.glb','playroom-town-foreground.glb','playroom-cloud-corridor-v2.glb'])assert.ok(js.includes(asset),`${asset} is placed in the world`);
 assert.ok(js.includes("['PlaygroundTowerV2',[0,0,-56]]")&&js.includes("['PlaygroundNetV2',[-14,0,-55]]")&&js.includes("['PlaygroundSoftClusterV2',[15,0,-55]]"),'playground v2 modules form one asymmetric room without a duplicate floor');
@@ -47,7 +47,7 @@ assert.ok(js.includes("upperRouteFrames.userData.routeRole='入口から奥区�
 assert.ok(js.includes("nextThresholdLights.userData.routeRole='発見後に次区画の開口を示す灯り'")&&js.includes('function activateNextThreshold(room)')&&js.includes('nextThresholdLights.instanceColor.needsUpdate=true'),'discoveries light the physical opening into the next room');
 assert.equal((js.match(/\[-?\d+,-(?:9[12]|11[79]),[\d.]+,[\d.]+\]/g)||[]).length,8,'eight irregular cushion islands divide the broad quiet-room approach');
 assert.ok(js.includes("transitionCushionBatch.userData.routeRole='家具区画手前を三本の移動帯へ分ける布の島'"),'quiet-room approach uses fabric islands as movement boundaries');
-assert.ok(js.includes('function completedWorld()')&&js.includes('function completeWorld()')&&js.includes("for(const room of ['虹のホール'")&&js.includes('if(completedWorld())completeWorld()'),'all playroom discoveries permanently light every opening and the upper return route');
+assert.ok(js.includes('function completedWorld()')&&js.includes('function completeWorld()')&&js.includes("for(const room of ['虹のホール'")&&js.includes('scene.fog.color.setHex(0xe3f0ef)')&&js.includes("document.location.search.includes('incomplete=1')"),'all playroom discoveries permanently change the atmosphere, light every opening and support non-persistent before/after QA');
 assert.ok(js.includes("const destination=near[3]===room?room"),'room and destination labels do not repeat the same name');
 assert.ok(!js.includes('o.visible=!o.visible')&&!js.includes('o.position.z+=')&&!js.includes('o.position.x+='),'anomalies do not leave stale invisible collision proxies');
 assert.ok(js.includes("{x:0,z:3,w:11,d:1.5,bottom:6.8,top:12}")&&js.includes("{x:0,z:-33.8,w:10.3,d:1.35,bottom:6.6,top:11.2}"),'both thick rainbow arches keep the camera out while leaving the enlarged walk-through opening clear');

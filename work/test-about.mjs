@@ -1,0 +1,10 @@
+import assert from 'node:assert/strict';
+import {readFileSync,existsSync} from 'node:fs';
+const read=name=>readFileSync(new URL('../outputs/'+name,import.meta.url),'utf8'),about=read('about.html'),index=read('index.html');
+assert.ok(index.includes('href="about.html"')&&index.includes('ゲームと制作過程'),'world select links to the making-of page');
+for(const page of ['aeolia.html','liminal.html?stage=parallax','liminal.html?stage=somnia','playroom.html'])assert.ok(about.includes(`href="${page}"`),`${page} is linked from the world introduction`);
+for(const asset of ['sky-cities.jpg','complex-horizon-v1.png','distant-ruins.png','playroom-preview.png'])assert.ok(about.includes(asset),`${asset} represents the actual build`);
+for(const text of ['37','STEP 01','STEP 05','70 / 100','同一平面のちらつき','全地点を巡ると世界規模の変化'])assert.ok(about.includes(text),`making-of includes ${text}`);
+assert.ok(about.includes('@media(max-width:760px)')&&about.includes('@media(prefers-reduced-motion:reduce)')&&about.includes(':focus-visible'),'page supports mobile, reduced motion and keyboard focus');
+for(const path of ['assets/textures/sky-cities.jpg','assets/textures/complex-horizon-v1.png','assets/textures/distant-ruins.png','assets/playroom/playroom-preview.png'])assert.ok(existsSync(new URL('../outputs/'+path,import.meta.url)),`${path} exists`);
+console.log('PASS: game introduction uses actual worlds, documents the production process, and remains accessible on mobile.');

@@ -470,7 +470,7 @@ function readNotes(){try{return JSON.parse(stored('aeolia-notes')||'[]')}catch{r
 function saveNote(d){const notes=readNotes(),id='aeolia:'+d.name;if(notes.some(n=>n.id===id))return 0;notes.push({id,world:'浮島の街',name:d.name,text:d.text});stored('aeolia-notes',JSON.stringify(notes));return notes.filter(n=>n.id.startsWith('aeolia:')).length}
 let discoveryShown=0;
 const discoveryEffects=new Set();
-let worldComplete=false;function completedWorld(){const seen=new Set(readNotes().map(n=>n.id));return discoveries.every(d=>seen.has('aeolia:'+d.name))}function completeWorld(){if(!worldComplete){worldComplete=true;MAT.gold.emissive.set(0x8a6428);MAT.gold.emissiveIntensity=2.2;waterSurfaces.material.emissive.set(0x3f7780);waterSurfaces.material.emissiveIntensity=.55;waterMat.emissive.set(0x28545b);waterMat.emissiveIntensity=.48;waterMat.opacity=.88;cloudMat.opacity=.82}return'島々の水路と航路灯がつながり、雲下から街へ戻る道が一斉に見えた。'}
+let worldComplete=false;function completedWorld(){const seen=new Set(readNotes().map(n=>n.id));return discoveries.every(d=>seen.has('aeolia:'+d.name))}function completeWorld(){if(!worldComplete){worldComplete=true;MAT.gold.emissive.set(0x8a6428);MAT.gold.emissiveIntensity=2.2;waterSurfaces.material.emissive.set(0x3f7780);waterSurfaces.material.emissiveIntensity=.55;waterMat.emissive.set(0x28545b);waterMat.emissiveIntensity=.48;waterMat.opacity=.88;cloudMat.opacity=.82;scene.fog.color.setHex(0xd6e8e6);renderer.toneMappingExposure=1.16}return'島々の水路と航路灯がつながり、雲下から街へ戻る道が一斉に見えた。'}
 function discoveryResponse(d){if(discoveryEffects.has(d.name))return'';discoveryEffects.add(d.name);const responses={
   市場:()=>{MAT.roof.emissive.set(0x3b241d);MAT.roof.emissiveIntensity=.22;return'市場布に灯りが映り、上段庭園への階段が見えた。'},
   上段庭園:()=>{waterSurfaces.material.emissive.set(0x315e66);waterSurfaces.material.emissiveIntensity=.38;return'水盤の反射が鐘楼の方向へ伸びた。'},
@@ -683,7 +683,7 @@ function loop(t){
   }
   requestAnimationFrame(loop);
 }
-if(completedWorld())completeWorld();camera.position.set(-25,9,14);camera.lookAt(player.position.clone().add(new THREE.Vector3(0,2.4,0)));requestAnimationFrame(loop);
+const completionQA=document.location?.search.includes('debug=1')&&document.location.search.includes('incomplete=1');if(!completionQA&&(completedWorld()||(document.location?.search.includes('debug=1')&&document.location.search.includes('complete=1'))))completeWorld();camera.position.set(-25,9,14);camera.lookAt(player.position.clone().add(new THREE.Vector3(0,2.4,0)));requestAnimationFrame(loop);
 console.assert(groundAt(0,40)===3&&groundAt(500,500)===-Infinity,'walkable-world bounds');
 </script>
 <script>setTimeout(()=>{if(!document.querySelector('canvas'))document.querySelector('#error').style.display='block'},5000)</script>

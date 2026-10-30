@@ -17,7 +17,7 @@ main{position:relative;min-height:100vh;padding:7vh 7vw 6vh}.head{display:grid;g
 <a class="gate somnia" href="liminal.html?stage=somnia"><span class="number">SOLARPUNK SUBURB 03</span><h2>郊外</h2><p>丘陵、水路、空中庭園の先まで飛ぶ。</p></a>
 <a class="gate playroom" href="playroom.html"><span class="number">DREAMCORE PLAYROOM 04</span><h2>遊戯室</h2><p>虹と遊具が反復する巨大な室内を飛ぶ。</p></a>
 </section>
-<footer class="foot"><span>エリアを選ぶ</span><button class="journal" id="journal">発見記録を見る</button></footer>
+<footer class="foot"><a href="about.html">ゲームと制作過程</a><span>エリアを選ぶ</span><button class="journal" id="journal">発見記録を見る</button></footer>
 </main><section class="sheet" id="sheet" hidden><button id="close">閉じる</button><span class="status">DISCOVERIES</span><h2>発見記録</h2><div class="entries" id="entries"></div></section>
 <script>
 let notes=[];try{notes=JSON.parse(localStorage.getItem('aeolia-notes')||'[]')}catch{}
