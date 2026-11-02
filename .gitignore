@@ -4,4 +4,5 @@ work/audit-results.json
 *.blend1
 __pycache__/
 work/trailer/generated/
+work/trailer/generated-cinematic/
 exports/

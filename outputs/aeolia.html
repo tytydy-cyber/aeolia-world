@@ -380,7 +380,7 @@ const distantMaterials=[new THREE.MeshStandardMaterial({vertexColors:true,color:
 const distantIslands=[mesh(mergeGeometries(distantRock),distantMaterials[0],[0,0,0],false),mesh(mergeGeometries(distantTop),distantMaterials[1],[0,0,0],false)];
 
 // Traveler avatar. Thumbnail mode is a fixed, character-free documentary view.
-const thumbnailMode=Boolean(document.location?.search.includes('thumbnail=1')),player=new THREE.Group();scene.add(player);if(thumbnailMode){const style=document.createElement('style');style.textContent='body>*:not(canvas){display:none!important}';document.head.append(style)}
+const thumbnailMode=Boolean(document.location?.search.includes('thumbnail=1')),trailerMode=Boolean(document.location?.search.includes('trailer=1')),player=new THREE.Group();scene.add(player);if(thumbnailMode||trailerMode){const style=document.createElement('style');style.textContent='body>*:not(canvas){display:none!important}';document.head.append(style)}
 const body=new THREE.Group();player.add(body);
 const cloth=new THREE.MeshStandardMaterial({color:0x9f413b,roughness:.94}),clothDark=new THREE.MeshStandardMaterial({color:0x642f35,roughness:.96});
 const skin=new THREE.MeshStandardMaterial({color:0xe5ba8c,roughness:.86}),hairMat=new THREE.MeshStandardMaterial({color:0x312b2a,roughness:1});
@@ -658,6 +658,7 @@ new GLTFLoader().load('assets/aeolia-island-modules.glb',gltf=>{
 let previousFrame=null;
 const perfOutput=document.querySelector('#perf'),perfEnabled=Boolean(document.location?.search.includes('debug=1')),perfFrames=[];let perfStart=0;
 if(perfEnabled)perfOutput.hidden=false;
+function applyTrailerCamera(t){const p=(1-Math.cos(t/7000*Math.PI*2))/2,from=new THREE.Vector3(155,110,190),to=new THREE.Vector3(118,86,158),lookFrom=new THREE.Vector3(0,14,-18),lookTo=new THREE.Vector3(-10,18,-35);camera.position.lerpVectors(from,to,p);camera.lookAt(lookFrom.lerp(lookTo,p));camera.fov=55-6*p;camera.updateProjectionMatrix()}
 function loop(t){
   const elapsed=previousFrame===null?0:Math.max(0,(t-previousFrame)/1000);previousFrame=t;
   // Long suspension is paused time; ordinary slow frames retain their full elapsed time.
@@ -671,7 +672,7 @@ function loop(t){
       motionEffects.update(step,player.position,velocity,flying,grounded);
     }
   }
-  renderer.render(scene,camera);
+  if(trailerMode)applyTrailerCamera(t);renderer.render(scene,camera);
   if(perfEnabled&&elapsed>0&&elapsed<.25){
     perfFrames.push(elapsed*1000);
     if(!perfStart)perfStart=t;
@@ -683,7 +684,7 @@ function loop(t){
   }
   requestAnimationFrame(loop);
 }
-const completionQA=document.location?.search.includes('debug=1')&&document.location.search.includes('incomplete=1');if(!completionQA&&(completedWorld()||(document.location?.search.includes('debug=1')&&document.location.search.includes('complete=1'))))completeWorld();if(thumbnailMode){player.visible=false;camera.position.set(155,110,190);camera.lookAt(new THREE.Vector3(0,14,-18))}else{camera.position.set(-25,9,14);camera.lookAt(player.position.clone().add(new THREE.Vector3(0,2.4,0)))}requestAnimationFrame(loop);
+const completionQA=document.location?.search.includes('debug=1')&&document.location.search.includes('incomplete=1');if(!completionQA&&(completedWorld()||(document.location?.search.includes('debug=1')&&document.location.search.includes('complete=1'))))completeWorld();if(thumbnailMode){player.visible=false;camera.position.set(155,110,190);camera.lookAt(new THREE.Vector3(0,14,-18))}else if(trailerMode){player.visible=false;camera.position.set(182,92,214);camera.lookAt(new THREE.Vector3(0,14,-10))}else{camera.position.set(-25,9,14);camera.lookAt(player.position.clone().add(new THREE.Vector3(0,2.4,0)))}requestAnimationFrame(loop);
 console.assert(groundAt(0,40)===3&&groundAt(500,500)===-Infinity,'walkable-world bounds');
 </script>
 <script>setTimeout(()=>{if(!document.querySelector('canvas'))document.querySelector('#error').style.display='block'},5000)</script>
