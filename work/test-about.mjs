@@ -12,7 +12,11 @@ for(const count of ['9発見','8発見','12発見'])assert.ok(about.includes(cou
 for(const response of ['島々の水路と航路灯','点検路と各施設の照明','水・電力・食料の循環','入口から雲の回廊'])assert.ok(about.includes(response),`discovery response includes ${response}`);
 for(const text of ['作って、触って、','160+','WHO DID WHAT','Claude Codeとの受け渡し','THE TOOL LOOP','FIVE REBUILDS','70点まで作った。','57点へ戻した','現在の視覚再現度'])assert.ok(about.includes(text),`creation story includes ${text}`);
 for(const tool of ['Codexの画像生成','Blender + Python','Three.js + Web Audio','GitHub Pages'])assert.ok(about.includes(tool),`toolchain explains ${tool}`);
+for(const term of ['id="terms"','Codex','Claude Code','Blender','GLB','Three.js','Git / GitHub','自動テスト','Obsidian'])assert.ok(about.includes(term),`beginner glossary explains ${term}`);
+for(const principle of ['id="knowledge"','ルールを検査へ変える','生成側と判定側を分ける','再現できる環境を残す','結果を記録して比較する'])assert.ok(about.includes(principle),`Obsidian knowledge includes ${principle}`);
 assert.equal((about.match(/id="process"/g)||[]).length,1,'creation process anchor is unique');
+assert.equal((about.match(/id="terms"/g)||[]).length,1,'glossary anchor is unique');
+assert.equal((about.match(/id="knowledge"/g)||[]).length,1,'knowledge anchor is unique');
 assert.ok(!/<h[123][^>]*>[^<]*<br>/.test(about)&&about.includes('word-break:auto-phrase;text-wrap:balance'),'Japanese headings wrap by phrase instead of fixed line breaks');
 for(const text of ['実際の画面を見ながら作った。','実装と確認を繰り返す。','主な失敗と、その修正。','四つの世界には、それぞれ違う巡り方がある。'])assert.ok(about.includes(text),`plain Japanese heading includes ${text}`);
 assert.ok(about.includes('@media(max-width:760px)')&&about.includes('@media(prefers-reduced-motion:reduce)')&&about.includes(':focus-visible'),'page supports mobile, reduced motion and keyboard focus');
