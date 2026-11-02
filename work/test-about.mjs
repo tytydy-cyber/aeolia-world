@@ -3,7 +3,8 @@ import {readFileSync,existsSync} from 'node:fs';
 const read=name=>readFileSync(new URL('../outputs/'+name,import.meta.url),'utf8'),about=read('about.html'),index=read('index.html');
 assert.ok(index.includes('href="about.html"')&&index.includes('ゲームと制作過程'),'world select links to the making-of page');
 for(const page of ['aeolia.html','liminal.html?stage=parallax','liminal.html?stage=somnia','playroom.html'])assert.ok(about.includes(`href="${page}"`),`${page} is linked from the world introduction`);
-for(const asset of ['sky-cities.jpg','complex-horizon-v1.png','distant-ruins.png','playroom-preview.png'])assert.ok(about.includes(asset),`${asset} represents the actual build`);
+for(const asset of ['floating-islands.jpg','closed-complex.jpg','solarpunk-suburb.jpg','dreamcore-playroom.jpg'])assert.ok(about.includes(asset),`${asset} is an actual in-game capture`);
+for(const asset of ['floating-islands.jpg','closed-complex.jpg','solarpunk-suburb.jpg','dreamcore-playroom.jpg'])assert.ok(index.includes(asset),`${asset} appears on world select`);
 for(const text of ['37','PHASE 01','PHASE 05','73 / 100','同じ不具合が戻る','定義済みの実装・検査項目の完了率'])assert.ok(about.includes(text),`making-of includes ${text}`);
 for(const text of ['040M / HOW TO EXPLORE','120M / FOUR WORLDS','180M / DISCOVERY RESPONSE','240M / MAKING OF','320M / BEFORE DEPARTURE'])assert.ok(about.includes(text),`flight route includes ${text}`);
 for(const control of ['↑↓←→','SPACE','SHIFT','Ctrl','Q','C','画面スワイプ','加速ボタン'])assert.ok(about.includes(control),`controls explain ${control}`);
@@ -14,5 +15,5 @@ for(const tool of ['Codexの画像生成','Blender + Python','Three.js + Web Aud
 assert.equal((about.match(/id="process"/g)||[]).length,1,'creation process anchor is unique');
 assert.ok(about.includes('@media(max-width:760px)')&&about.includes('@media(prefers-reduced-motion:reduce)')&&about.includes(':focus-visible'),'page supports mobile, reduced motion and keyboard focus');
 assert.ok(about.includes('scroll-margin-top:72px')&&about.includes('aria-label="ページ内ナビゲーション"'),'fixed navigation does not cover anchored sections and remains labelled');
-for(const path of ['assets/textures/sky-cities.jpg','assets/textures/complex-horizon-v1.png','assets/textures/distant-ruins.png','assets/playroom/playroom-preview.png'])assert.ok(existsSync(new URL('../outputs/'+path,import.meta.url)),`${path} exists`);
+for(const path of ['assets/thumbnails/floating-islands.jpg','assets/thumbnails/closed-complex.jpg','assets/thumbnails/solarpunk-suburb.jpg','assets/thumbnails/dreamcore-playroom.jpg'])assert.ok(existsSync(new URL('../outputs/'+path,import.meta.url)),`${path} exists`);
 console.log('PASS: game introduction uses actual worlds, documents the production process, and remains accessible on mobile.');
