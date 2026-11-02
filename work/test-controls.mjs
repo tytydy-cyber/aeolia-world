@@ -193,6 +193,7 @@ assert.equal(run('blades.children.length'),2,'windmill arms render as one blade 
 assert.equal(run('(()=>{let n=0;scene.traverse(o=>{if(o.isPointLight)n++});return n})()'),3,'no more than three point lights');
 const visibleMeshes=run('(()=>{let n=0;scene.traverse(o=>{if(!o.isMesh)return;for(let p=o;p;p=p.parent)if(!p.visible)return;n++});return n})()');
 assert.ok(visibleMeshes<=90,`floating-island mesh count stays within budget (${visibleMeshes})`);
+assert.ok(script.includes("thumbnailMode=Boolean(document.location?.search.includes('thumbnail=1'))")&&script.includes('player.visible=false;camera.position.set(155,110,190)'),'thumbnail mode uses a wide character-free view without changing normal play');
 console.log('PASS: actual GLB parse/9 house placements, all arrow keys, passive mouse, drag/release, acceleration/braking, flight, focus loss, bridges, stairs, walls, speed slider, maximum-speed collision, 30/60/120 Hz, colonnade/blade collision, distant haze, under-island camera, discovery journal. GPU rendering is not tested.');
 const counts=Object.fromEntries(['pot','crate','bench'].map(kind=>[kind,run(`props.filter(p=>p.kind==='${kind}').length`)]));
 assert.ok(run('props.length')>=40,'meaningful street furniture count');

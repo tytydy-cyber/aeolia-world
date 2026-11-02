@@ -13,6 +13,8 @@ for(const response of ['島々の水路と航路灯','点検路と各施設の�
 for(const text of ['作って、触って、','160+','WHO DID WHAT','Claude Codeとの受け渡し','THE TOOL LOOP','FIVE REBUILDS','70点まで作った。','57点へ戻した','現在の視覚再現度'])assert.ok(about.includes(text),`creation story includes ${text}`);
 for(const tool of ['Codexの画像生成','Blender + Python','Three.js + Web Audio','GitHub Pages'])assert.ok(about.includes(tool),`toolchain explains ${tool}`);
 assert.equal((about.match(/id="process"/g)||[]).length,1,'creation process anchor is unique');
+assert.ok(!/<h[123][^>]*>[^<]*<br>/.test(about)&&about.includes('word-break:auto-phrase;text-wrap:balance'),'Japanese headings wrap by phrase instead of fixed line breaks');
+for(const text of ['実際の画面を見ながら作った。','実装と確認を繰り返す。','主な失敗と、その修正。','四つの世界には、それぞれ違う巡り方がある。'])assert.ok(about.includes(text),`plain Japanese heading includes ${text}`);
 assert.ok(about.includes('@media(max-width:760px)')&&about.includes('@media(prefers-reduced-motion:reduce)')&&about.includes(':focus-visible'),'page supports mobile, reduced motion and keyboard focus');
 assert.ok(about.includes('scroll-margin-top:72px')&&about.includes('aria-label="ページ内ナビゲーション"'),'fixed navigation does not cover anchored sections and remains labelled');
 for(const path of ['assets/thumbnails/floating-islands.jpg','assets/thumbnails/closed-complex.jpg','assets/thumbnails/solarpunk-suburb.jpg','assets/thumbnails/dreamcore-playroom.jpg'])assert.ok(existsSync(new URL('../outputs/'+path,import.meta.url)),`${path} exists`);
