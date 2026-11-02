@@ -4,7 +4,12 @@ const read=name=>readFileSync(new URL('../outputs/'+name,import.meta.url),'utf8'
 assert.ok(index.includes('href="about.html"')&&index.includes('ゲームと制作過程'),'world select links to the making-of page');
 for(const page of ['aeolia.html','liminal.html?stage=parallax','liminal.html?stage=somnia','playroom.html'])assert.ok(about.includes(`href="${page}"`),`${page} is linked from the world introduction`);
 for(const asset of ['sky-cities.jpg','complex-horizon-v1.png','distant-ruins.png','playroom-preview.png'])assert.ok(about.includes(asset),`${asset} represents the actual build`);
-for(const text of ['37','STEP 01','STEP 05','73 / 100','同一平面のちらつき','すべて巡ると、世界全体に変化'])assert.ok(about.includes(text),`making-of includes ${text}`);
+for(const text of ['37','PHASE 01','PHASE 05','73 / 100','同じ不具合が戻る','定義済みの実装・検査項目の完了率'])assert.ok(about.includes(text),`making-of includes ${text}`);
+for(const text of ['040M / HOW TO EXPLORE','120M / FOUR WORLDS','180M / DISCOVERY RESPONSE','240M / MAKING OF','320M / BEFORE DEPARTURE'])assert.ok(about.includes(text),`flight route includes ${text}`);
+for(const control of ['↑↓←→','SPACE','SHIFT','Ctrl','Q','C','画面スワイプ','加速ボタン'])assert.ok(about.includes(control),`controls explain ${control}`);
+for(const count of ['9発見','8発見','12発見'])assert.ok(about.includes(count),`world card includes ${count}`);
+for(const response of ['島々の水路と航路灯','点検路と各施設の照明','水・電力・食料の循環','入口から雲の回廊'])assert.ok(about.includes(response),`discovery response includes ${response}`);
 assert.ok(about.includes('@media(max-width:760px)')&&about.includes('@media(prefers-reduced-motion:reduce)')&&about.includes(':focus-visible'),'page supports mobile, reduced motion and keyboard focus');
+assert.ok(about.includes('scroll-margin-top:72px')&&about.includes('aria-label="ページ内ナビゲーション"'),'fixed navigation does not cover anchored sections and remains labelled');
 for(const path of ['assets/textures/sky-cities.jpg','assets/textures/complex-horizon-v1.png','assets/textures/distant-ruins.png','assets/playroom/playroom-preview.png'])assert.ok(existsSync(new URL('../outputs/'+path,import.meta.url)),`${path} exists`);
 console.log('PASS: game introduction uses actual worlds, documents the production process, and remains accessible on mobile.');
