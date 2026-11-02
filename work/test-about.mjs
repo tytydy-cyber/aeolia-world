@@ -9,6 +9,9 @@ for(const text of ['040M / HOW TO EXPLORE','120M / FOUR WORLDS','180M / DISCOVER
 for(const control of ['↑↓←→','SPACE','SHIFT','Ctrl','Q','C','画面スワイプ','加速ボタン'])assert.ok(about.includes(control),`controls explain ${control}`);
 for(const count of ['9発見','8発見','12発見'])assert.ok(about.includes(count),`world card includes ${count}`);
 for(const response of ['島々の水路と航路灯','点検路と各施設の照明','水・電力・食料の循環','入口から雲の回廊'])assert.ok(about.includes(response),`discovery response includes ${response}`);
+for(const text of ['作って、触って、','160+','WHO DID WHAT','Claude Codeとの受け渡し','THE TOOL LOOP','FIVE REBUILDS','70点まで作った。','57点へ戻した','現在の視覚再現度'])assert.ok(about.includes(text),`creation story includes ${text}`);
+for(const tool of ['Codexの画像生成','Blender + Python','Three.js + Web Audio','GitHub Pages'])assert.ok(about.includes(tool),`toolchain explains ${tool}`);
+assert.equal((about.match(/id="process"/g)||[]).length,1,'creation process anchor is unique');
 assert.ok(about.includes('@media(max-width:760px)')&&about.includes('@media(prefers-reduced-motion:reduce)')&&about.includes(':focus-visible'),'page supports mobile, reduced motion and keyboard focus');
 assert.ok(about.includes('scroll-margin-top:72px')&&about.includes('aria-label="ページ内ナビゲーション"'),'fixed navigation does not cover anchored sections and remains labelled');
 for(const path of ['assets/textures/sky-cities.jpg','assets/textures/complex-horizon-v1.png','assets/textures/distant-ruins.png','assets/playroom/playroom-preview.png'])assert.ok(existsSync(new URL('../outputs/'+path,import.meta.url)),`${path} exists`);
