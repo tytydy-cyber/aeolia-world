@@ -380,7 +380,7 @@ const distantMaterials=[new THREE.MeshStandardMaterial({vertexColors:true,color:
 const distantIslands=[mesh(mergeGeometries(distantRock),distantMaterials[0],[0,0,0],false),mesh(mergeGeometries(distantTop),distantMaterials[1],[0,0,0],false)];
 
 // Traveler avatar. Thumbnail mode is a fixed, character-free documentary view.
-const thumbnailMode=Boolean(document.location?.search.includes('thumbnail=1')),trailerMode=Boolean(document.location?.search.includes('trailer=1')),player=new THREE.Group();scene.add(player);if(thumbnailMode||trailerMode){const style=document.createElement('style');style.textContent='body>*:not(canvas){display:none!important}';document.head.append(style)}
+const thumbnailMode=Boolean(document.location?.search.includes('thumbnail=1')),trailerMode=Boolean(document.location?.search.includes('trailer=1')),trailerShot=document.location?.search.match(/[?&]shot=([^&]+)/)?.[1]||'wide',player=new THREE.Group();scene.add(player);if(thumbnailMode||trailerMode){const style=document.createElement('style');style.textContent='body>*:not(canvas){display:none!important}';document.head.append(style)}
 const body=new THREE.Group();player.add(body);
 const cloth=new THREE.MeshStandardMaterial({color:0x9f413b,roughness:.94}),clothDark=new THREE.MeshStandardMaterial({color:0x642f35,roughness:.96});
 const skin=new THREE.MeshStandardMaterial({color:0xe5ba8c,roughness:.86}),hairMat=new THREE.MeshStandardMaterial({color:0x312b2a,roughness:1});
@@ -658,7 +658,7 @@ new GLTFLoader().load('assets/aeolia-island-modules.glb',gltf=>{
 let previousFrame=null;
 const perfOutput=document.querySelector('#perf'),perfEnabled=Boolean(document.location?.search.includes('debug=1')),perfFrames=[];let perfStart=0;
 if(perfEnabled)perfOutput.hidden=false;
-function applyTrailerCamera(t){const p=(1-Math.cos(t/7000*Math.PI*2))/2,from=new THREE.Vector3(155,110,190),to=new THREE.Vector3(118,86,158),lookFrom=new THREE.Vector3(0,14,-18),lookTo=new THREE.Vector3(-10,18,-35);camera.position.lerpVectors(from,to,p);camera.lookAt(lookFrom.lerp(lookTo,p));camera.fov=55-6*p;camera.updateProjectionMatrix()}
+function applyTrailerCamera(t){const views={wide:[[155,110,190],[118,86,158],[0,14,-18],[-10,18,-35]],city:[[72,48,94],[38,34,60],[0,14,-18],[-18,17,-42]]},v=views[trailerShot]||views.wide,p=(1-Math.cos(t/4000*Math.PI*2))/2;camera.position.lerpVectors(new THREE.Vector3(...v[0]),new THREE.Vector3(...v[1]),p);camera.lookAt(new THREE.Vector3(...v[2]).lerp(new THREE.Vector3(...v[3]),p));camera.fov=55-5*p;camera.updateProjectionMatrix()}
 function loop(t){
   const elapsed=previousFrame===null?0:Math.max(0,(t-previousFrame)/1000);previousFrame=t;
   // Long suspension is paused time; ordinary slow frames retain their full elapsed time.

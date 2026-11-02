@@ -1,15 +1,16 @@
 #!/bin/zsh
 set -euo pipefail
 here=${0:a:h}; generated="$here/generated-cinematic"; clips="$generated/clips"; exports="$here/../../exports"; mkdir -p "$clips" "$exports"
-for name in islands suburb playroom; do
-  ffmpeg -y -hide_banner -loglevel error -framerate 10 -i "$generated/clip-$name/%04d.jpg" -vf "scale=1280:720:force_original_aspect_ratio=increase,crop=1280:720,minterpolate=fps=30:mi_mode=blend,format=yuv420p" -c:v libx264 -crf 18 -preset medium -an "$clips/$name.mp4"
+for name in islands-wide islands-city suburb-wide playroom-rainbow; do
+  ffmpeg -y -hide_banner -loglevel error -framerate 7.2 -i "$generated/clip-$name/%04d.jpg" -vf "scale=1280:720:force_original_aspect_ratio=increase,crop=1280:720,minterpolate=fps=30:mi_mode=blend,format=yuv420p" -c:v libx264 -crf 18 -preset medium -an "$clips/$name.mp4"
 done
-for spec in 'opening 2.0' 'ending 3.0'; do set -- ${(z)spec}; ffmpeg -y -hide_banner -loglevel error -loop 1 -i "$generated/card-$1.jpg" -t "$2" -r 30 -vf "scale=1280:720:force_original_aspect_ratio=increase,crop=1280:720,format=yuv420p" -c:v libx264 -crf 18 -preset medium -an "$clips/card-$1.mp4"; done
+for spec in 'opening 1.5' 'ending 2.5'; do set -- ${(z)spec}; ffmpeg -y -hide_banner -loglevel error -loop 1 -i "$generated/card-$1.jpg" -t "$2" -r 30 -vf "scale=1280:720:force_original_aspect_ratio=increase,crop=1280:720,format=yuv420p" -c:v libx264 -crf 18 -preset medium -an "$clips/card-$1.mp4"; done
 cat > "$clips/concat.txt" <<'EOF'
 file 'card-opening.mp4'
-file 'islands.mp4'
-file 'suburb.mp4'
-file 'playroom.mp4'
+file 'islands-wide.mp4'
+file 'islands-city.mp4'
+file 'suburb-wide.mp4'
+file 'playroom-rainbow.mp4'
 file 'card-ending.mp4'
 EOF
 ffmpeg -y -hide_banner -loglevel error -f concat -safe 0 -i "$clips/concat.txt" -c copy "$clips/picture.mp4"
