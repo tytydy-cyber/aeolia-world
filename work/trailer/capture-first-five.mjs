@@ -3,7 +3,7 @@ import {mkdir,writeFile} from 'node:fs/promises';
 import {once} from 'node:events';
 
 const browser='/Applications/Vivaldi.app/Contents/MacOS/Vivaldi',port=9343,root='http://localhost:8767/aeolia.html?trailer5=';
-const shots=[['drop',8],['reveal',20],['bridge',22]],delay=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+const shots=[['reveal',26],['bridge',24]],delay=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 const child=execFile(browser,[`--remote-debugging-port=${port}`,'--headless=new','--hide-scrollbars','--window-size=1280,720','--force-device-scale-factor=1','--user-data-dir=/tmp/aeolia-first-five-browser','about:blank']);
 try{
   let list;for(let i=0;i<40;i++){try{list=await fetch(`http://127.0.0.1:${port}/json`).then(r=>r.json());break}catch{await delay(250)}}

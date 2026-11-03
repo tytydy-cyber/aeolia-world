@@ -195,6 +195,7 @@ const visibleMeshes=run('(()=>{let n=0;scene.traverse(o=>{if(!o.isMesh)return;fo
 assert.ok(visibleMeshes<=90,`floating-island mesh count stays within budget (${visibleMeshes})`);
 assert.ok(script.includes("thumbnailMode=Boolean(document.location?.search.includes('thumbnail=1'))")&&script.includes('player.visible=false;camera.position.set(155,110,190)'),'thumbnail mode uses a wide character-free view without changing normal play');
 assert.ok(script.includes('Math.atan2(dx,dz)')&&!script.includes('Math.atan2(-(s.player[1][0]-s.player[0][0])'),'five-second trailer faces the traveler along the flight path');
+assert.ok(script.includes('player.rotation.set(0,Math.atan2(dx,dz),0)')&&!script.includes('drop:{ms:'),'five-second trailer uses the authored flight pose and starts with a readable world view');
 console.log('PASS: actual GLB parse/9 house placements, all arrow keys, passive mouse, drag/release, acceleration/braking, flight, focus loss, bridges, stairs, walls, speed slider, maximum-speed collision, 30/60/120 Hz, colonnade/blade collision, distant haze, under-island camera, discovery journal. GPU rendering is not tested.');
 const counts=Object.fromEntries(['pot','crate','bench'].map(kind=>[kind,run(`props.filter(p=>p.kind==='${kind}').length`)]));
 assert.ok(run('props.length')>=40,'meaningful street furniture count');

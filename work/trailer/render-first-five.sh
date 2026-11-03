@@ -1,9 +1,8 @@
 #!/bin/zsh
 set -euo pipefail
 here=${0:a:h}; generated="$here/generated-first-five"; exports="$here/../../exports"; mkdir -p "$generated/clips" "$exports"
-for spec in 'drop 7.78' 'reveal 9' 'bridge 9.13'; do set -- ${(z)spec}; ffmpeg -y -hide_banner -loglevel error -framerate "$2" -i "$generated/$1/%04d.jpg" -vf "scale=1280:720:force_original_aspect_ratio=increase,crop=1280:720,minterpolate=fps=30:mi_mode=blend,format=yuv420p" -c:v libx264 -crf 18 -preset medium -an "$generated/clips/$1.mp4"; done
+for spec in 'reveal 9.27' 'bridge 9.27'; do set -- ${(z)spec}; ffmpeg -y -hide_banner -loglevel error -framerate "$2" -i "$generated/$1/%04d.jpg" -vf "scale=1280:720:force_original_aspect_ratio=increase,crop=1280:720,minterpolate=fps=30:mi_mode=blend,format=yuv420p" -c:v libx264 -crf 18 -preset medium -an "$generated/clips/$1.mp4"; done
 cat > "$generated/clips/concat.txt" <<'EOF'
-file 'drop.mp4'
 file 'reveal.mp4'
 file 'bridge.mp4'
 EOF
