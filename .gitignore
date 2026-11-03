@@ -5,4 +5,5 @@ work/audit-results.json
 __pycache__/
 work/trailer/generated/
 work/trailer/generated-cinematic/
+work/trailer/generated-first-five/
 exports/
