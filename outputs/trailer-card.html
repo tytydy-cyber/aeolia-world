@@ -13,6 +13,8 @@
     h1{font-size:clamp(36px,6vw,78px);line-height:1.08;letter-spacing:.02em;margin:0 0 22px;font-weight:800}
     p{font-size:clamp(20px,2.5vw,33px);line-height:1.55;margin:0;color:#dce3ec}
     .mark{position:fixed;right:5vw;bottom:5vh;font-size:18px;letter-spacing:.16em;color:#8e9bae}
+    body.scene{background-position:center;background-size:cover}
+    body.scene::before{inset:0;background:linear-gradient(90deg,rgba(8,14,28,.88),rgba(8,14,28,.2) 68%,rgba(8,14,28,.08));filter:none;opacity:1}
   </style>
 </head>
 <body>
@@ -22,6 +24,8 @@
     const params = new URLSearchParams(location.search);
     for (const id of ['kicker','title','body']) document.getElementById(id).textContent = params.get(id) || '';
     document.body.style.setProperty('--accent', `#${(params.get('accent') || 'd5a55a').replace(/[^0-9a-f]/gi,'')}`);
+    const scenes=new Set(['floating-islands.jpg']);
+    if(scenes.has(params.get('scene'))){document.body.classList.add('scene');document.body.style.backgroundImage=`url(assets/thumbnails/${params.get('scene')})`}
   </script>
 </body>
 </html>
