@@ -8,6 +8,7 @@ for(const asset of ['floating-islands.jpg','closed-complex.jpg','solarpunk-subur
 for(const text of ['37','PHASE 01','PHASE 05','73 / 100','同じ不具合が戻る','定義済みの実装・検査項目の完了率'])assert.ok(about.includes(text),`making-of includes ${text}`);
 for(const text of ['040M / HOW TO EXPLORE','120M / FOUR WORLDS','180M / DISCOVERY RESPONSE','240M / MAKING OF','320M / BEFORE DEPARTURE'])assert.ok(about.includes(text),`flight route includes ${text}`);
 for(const control of ['↑↓←→','SPACE','SHIFT','Ctrl','Q','C','画面スワイプ','加速ボタン'])assert.ok(about.includes(control),`controls explain ${control}`);
+for(const text of ['THE TRAVELER','主人公は、世界を見るための身体です。','帽子の旅人','フードの旅人','光輪の旅人'])assert.ok(about.includes(text),`traveler section explains ${text}`);
 for(const count of ['9発見','8発見','12発見'])assert.ok(about.includes(count),`world card includes ${count}`);
 for(const response of ['島々の水路と航路灯','点検路と各施設の照明','水・電力・食料の循環','入口から雲の回廊'])assert.ok(about.includes(response),`discovery response includes ${response}`);
 for(const text of ['作って、触って、','160+','WHO DID WHAT','Claude Codeとの受け渡し','THE TOOL LOOP','FIVE REBUILDS','70点まで作った。','57点へ戻した','現在の視覚再現度'])assert.ok(about.includes(text),`creation story includes ${text}`);
