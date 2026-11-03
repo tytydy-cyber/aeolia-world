@@ -14,6 +14,7 @@ for(const response of ['島々の水路と航路灯','点検路と各施設の�
 for(const text of ['作って、触って、','160+','WHO DID WHAT','Claude Codeとの受け渡し','THE TOOL LOOP','FIVE REBUILDS','70点まで作った。','57点へ戻した','現在の視覚再現度'])assert.ok(about.includes(text),`creation story includes ${text}`);
 for(const tool of ['Codexの画像生成','Blender + Python','Three.js + Web Audio','GitHub Pages'])assert.ok(about.includes(tool),`toolchain explains ${tool}`);
 for(const term of ['id="terms"','Codex','Claude Code','Blender','GLB','Three.js','Git / GitHub','自動テスト','Obsidian'])assert.ok(about.includes(term),`beginner glossary explains ${term}`);
+assert.ok(about.includes('Cloudflare Pagesも候補として検討しましたが、現在の公開経路には使っていません。'),'making-of states that Cloudflare is not in the current deployment path');
 for(const principle of ['id="knowledge"','ルールを検査へ変える','生成側と判定側を分ける','再現できる環境を残す','結果を記録して比較する'])assert.ok(about.includes(principle),`Obsidian knowledge includes ${principle}`);
 assert.equal((about.match(/id="process"/g)||[]).length,1,'creation process anchor is unique');
 assert.equal((about.match(/id="terms"/g)||[]).length,1,'glossary anchor is unique');
