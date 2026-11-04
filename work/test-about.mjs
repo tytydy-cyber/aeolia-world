@@ -23,6 +23,8 @@ assert.ok(about.includes('模式図は当時の画面キャプチャではあり
 assert.ok(about.includes('https://tytydy-cyber.github.io/aeolia-world/')&&about.includes('assets/aeolia-world-qr.svg'),'public URL and QR code are shown together');
 assert.ok(existsSync(new URL('../outputs/assets/aeolia-world-qr.svg',import.meta.url)),'QR code asset exists');
 assert.ok(!about.includes('紹介映像'),'the page does not discuss the promotional video');
+assert.ok(about.includes('.label,.step-title b{display:none}')&&about.includes('.world p,.world dl,.character p')&&about.includes('font-size:13px'),'redundant bilingual labels are hidden and supporting copy has a readable size floor');
+assert.ok(about.includes('h1,h2,h3,h4{text-wrap:balance}')&&about.includes('p,li,dd,figcaption{text-wrap:pretty}')&&!about.includes('<br'),'headings and copy wrap naturally without fixed line breaks');
 assert.ok(about.includes('@media(max-width:760px)')&&about.includes('@media(prefers-reduced-motion:reduce)')&&about.includes(':focus-visible'),'page supports mobile, reduced motion and keyboard focus');
 assert.ok(!/<h[123][^>]*>[^<]*<br>/.test(about),'headings do not force Japanese line breaks');
 console.log('PASS: introduction explains the game first, then the complete production loop, fixes and failures.');
