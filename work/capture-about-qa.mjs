@@ -11,7 +11,7 @@ try{
   socket.onmessage=e=>{const m=JSON.parse(e.data);if(m.id&&pending.has(m.id)){pending.get(m.id)(m);pending.delete(m.id)}};
   const send=(method,params={})=>new Promise((resolve,reject)=>{const call=++id;pending.set(call,m=>m.error?reject(new Error(m.error.message)):resolve(m.result));socket.send(JSON.stringify({id:call,method,params}))});
   await send('Page.navigate',{url:'http://localhost:8767/about.html?v=qa4'});await delay(2500);
-  for(const [name,selector] of mobile?[['mobile-characters','#characters'],['mobile-bugs','#bugs'],['mobile-final','.final']]:[['top','body'],['process','#process'],['bugs','#bugs'],['final','.final']]){
+  for(const [name,selector] of mobile?[['mobile-characters','#characters'],['mobile-bugs','#bugs'],['mobile-trailer','#trailer'],['mobile-final','.final']]:[['top','body'],['process','#process'],['bugs','#bugs'],['trailer','#trailer'],['final','.final']]){
     await send('Runtime.evaluate',{expression:`document.querySelector('${selector}').scrollIntoView()`});await delay(350);const {data}=await send('Page.captureScreenshot',{format:'jpeg',quality:86,fromSurface:true,captureBeyondViewport:false});await writeFile(`/tmp/aeolia-about-${name}.jpg`,Buffer.from(data,'base64'));console.log(name);
   }
   socket.close();
