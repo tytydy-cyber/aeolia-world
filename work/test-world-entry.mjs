@@ -8,6 +8,8 @@ const hub=read('index.html'),aeolia=read('aeolia.html'),liminalPage=read('limina
 const gates=[...hub.matchAll(/class="gate [a-z]+" href="([^"]+)"/g)].map(m=>m[1]);
 assert.deepEqual(gates,['aeolia.html','liminal.html?stage=parallax','liminal.html?stage=somnia','playroom.html'],'world select links each stage once');
 for(const [name,page] of [['aeolia.html',aeolia],['liminal.html',liminalPage],['playroom.html',playroomPage]])assert.ok(page.includes('class="return" href="index.html"'),`${name} links back to the world select`);
+for(const [name,page] of [['aeolia.html',aeolia],['liminal.html',liminalPage],['playroom.html',playroomPage]])assert.ok(page.includes('min-height:52px')&&page.includes('min-height:46px'),`${name} gives the enter and world-select actions a touch-sized target`);
+assert.ok(hub.includes('.foot a,.journal{display:inline-flex;min-height:46px'),'world-select footer actions are not rendered as tiny text links');
 assert.ok(liminal.includes("get('stage')==='somnia'?'somnia':'parallax'"),'unknown stage values fall back to the facility');
 
 const options=page=>[...page.matchAll(/<option value="([a-z]+)">([^<]+)/g)].map(m=>m[1]+':'+m[2]);

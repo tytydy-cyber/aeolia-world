@@ -2,11 +2,11 @@ import {execFile} from 'node:child_process';
 import {mkdir,writeFile} from 'node:fs/promises';
 import {once} from 'node:events';
 
-const browser='/Applications/Vivaldi.app/Contents/MacOS/Vivaldi',port=9342,root='http://localhost:8767/';
-const shots=[['islands-wide','aeolia.html?trailer=1&shot=wide'],['islands-city','aeolia.html?trailer=1&shot=city'],['suburb-wide','liminal.html?stage=somnia&trailer=1&shot=wide'],['suburb-water','liminal.html?stage=somnia&trailer=1&shot=water'],['playroom-rainbow','playroom.html?trailer=1&shot=rainbow'],['playroom-playground','playroom.html?trailer=1&shot=playground']],selected=process.env.SHOTS?shots.filter(([name])=>process.env.SHOTS.split(',').includes(name)):shots;
+const browser='/Applications/Vivaldi.app/Contents/MacOS/Vivaldi',port=9400+process.pid%200,root='http://localhost:8767/';
+const shots=[['islands-wide','aeolia.html?trailer=1&shot=wide'],['facility','liminal.html?stage=parallax&trailer=1&shot=facility'],['suburb-wide','liminal.html?stage=somnia&trailer=1&shot=wide'],['playroom-rainbow','playroom.html?trailer=1&shot=rainbow']],selected=process.env.SHOTS?shots.filter(([name])=>process.env.SHOTS.split(',').includes(name)):shots;
 const cards=[['opening','','あそこまで、行ける。','','d6a556','floating-islands.jpg'],['ending','','AEOLIA','tytydy-cyber.github.io/aeolia-world','d6a556','']];
 const delay=ms=>new Promise(resolve=>setTimeout(resolve,ms));
-const child=execFile(browser,[`--remote-debugging-port=${port}`,'--headless=new','--hide-scrollbars','--window-size=1280,720','--force-device-scale-factor=1','--user-data-dir=/tmp/aeolia-cinematic-browser','about:blank']);
+const child=execFile(browser,[`--remote-debugging-port=${port}`,'--headless=new','--hide-scrollbars','--window-size=1280,720','--force-device-scale-factor=1',`--user-data-dir=/tmp/aeolia-cinematic-browser-${process.pid}`,'about:blank']);
 
 try{
   let list;for(let i=0;i<40;i++){try{list=await fetch(`http://127.0.0.1:${port}/json`).then(r=>r.json());break}catch{await delay(250)}}
