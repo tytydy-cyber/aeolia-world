@@ -197,6 +197,7 @@ assert.ok(script.includes("thumbnailMode=Boolean(document.location?.search.inclu
 assert.ok(script.includes('Math.atan2(dx,dz)')&&!script.includes('Math.atan2(-(s.player[1][0]-s.player[0][0])'),'five-second trailer faces the traveler along the flight path');
 assert.ok(script.includes('player.rotation.set(0,Math.atan2(dx,dz),0)')&&!script.includes('drop:{ms:'),'five-second trailer uses the authored flight pose and starts with a readable world view');
 assert.ok(script.includes("innerHTML:'<b>AEOLIA</b><span>空を飛び、四つの世界を巡る探索ゲーム</span>'")&&script.includes('p=Math.min(1,age/s.ms)')&&!script.includes('s.ms),p=raw*raw'),'five-second trailer titles a continuously moving opening instead of easing to a stop');
+assert.ok(script.includes('characterPreview=(ember|mist|lilac)')&&script.includes('characterSelect.value=characterPreviewName||')&&script.includes('else if(characterPreviewMode){player.position.set(0,18,0)'),'three traveler thumbnails use the actual selectable game models');
 console.log('PASS: actual GLB parse/9 house placements, all arrow keys, passive mouse, drag/release, acceleration/braking, flight, focus loss, bridges, stairs, walls, speed slider, maximum-speed collision, 30/60/120 Hz, colonnade/blade collision, distant haze, under-island camera, discovery journal. GPU rendering is not tested.');
 const counts=Object.fromEntries(['pot','crate','bench'].map(kind=>[kind,run(`props.filter(p=>p.kind==='${kind}').length`)]));
 assert.ok(run('props.length')>=40,'meaningful street furniture count');

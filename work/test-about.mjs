@@ -1,27 +1,28 @@
 import assert from 'node:assert/strict';
 import {readFileSync,existsSync} from 'node:fs';
-const read=name=>readFileSync(new URL('../outputs/'+name,import.meta.url),'utf8'),about=read('about.html'),index=read('index.html');
-assert.ok(index.includes('href="about.html"')&&index.includes('ゲームと制作過程'),'world select links to the making-of page');
-for(const page of ['aeolia.html','liminal.html?stage=parallax','liminal.html?stage=somnia','playroom.html'])assert.ok(about.includes(`href="${page}"`),`${page} is linked from the world introduction`);
-for(const asset of ['floating-islands.jpg','closed-complex.jpg','solarpunk-suburb.jpg','dreamcore-playroom.jpg'])assert.ok(about.includes(asset),`${asset} is an actual in-game capture`);
-for(const asset of ['floating-islands.jpg','closed-complex.jpg','solarpunk-suburb.jpg','dreamcore-playroom.jpg'])assert.ok(index.includes(asset),`${asset} appears on world select`);
-for(const text of ['37','PHASE 01','PHASE 05','73 / 100','同じ不具合が戻る','定義済みの実装・検査項目の完了率'])assert.ok(about.includes(text),`making-of includes ${text}`);
-for(const text of ['040M / HOW TO EXPLORE','120M / FOUR WORLDS','180M / DISCOVERY RESPONSE','240M / MAKING OF','320M / BEFORE DEPARTURE'])assert.ok(about.includes(text),`flight route includes ${text}`);
-for(const control of ['↑↓←→','SPACE','SHIFT','Ctrl','Q','C','画面スワイプ','加速ボタン'])assert.ok(about.includes(control),`controls explain ${control}`);
-for(const text of ['THE TRAVELER','主人公は、世界を見るための身体です。','帽子の旅人','フードの旅人','光輪の旅人'])assert.ok(about.includes(text),`traveler section explains ${text}`);
-for(const count of ['9発見','8発見','12発見'])assert.ok(about.includes(count),`world card includes ${count}`);
-for(const response of ['島々の水路と航路灯','点検路と各施設の照明','水・電力・食料の循環','入口から雲の回廊'])assert.ok(about.includes(response),`discovery response includes ${response}`);
-for(const text of ['作って、触って、','160+','WHO DID WHAT','Claude Codeとの受け渡し','THE TOOL LOOP','FIVE REBUILDS','70点まで作った。','57点へ戻した','現在の視覚再現度'])assert.ok(about.includes(text),`creation story includes ${text}`);
-for(const tool of ['Codexの画像生成','Blender + Python','Three.js + Web Audio','GitHub Pages'])assert.ok(about.includes(tool),`toolchain explains ${tool}`);
-for(const term of ['id="terms"','Codex','Claude Code','Blender','GLB','Three.js','Git / GitHub','自動テスト','Obsidian'])assert.ok(about.includes(term),`beginner glossary explains ${term}`);
-assert.ok(about.includes('Cloudflare Pagesも候補として検討しましたが、現在の公開経路には使っていません。'),'making-of states that Cloudflare is not in the current deployment path');
-for(const principle of ['id="knowledge"','ルールを検査へ変える','生成側と判定側を分ける','再現できる環境を残す','結果を記録して比較する'])assert.ok(about.includes(principle),`Obsidian knowledge includes ${principle}`);
-assert.equal((about.match(/id="process"/g)||[]).length,1,'creation process anchor is unique');
-assert.equal((about.match(/id="terms"/g)||[]).length,1,'glossary anchor is unique');
-assert.equal((about.match(/id="knowledge"/g)||[]).length,1,'knowledge anchor is unique');
-assert.ok(!/<h[123][^>]*>[^<]*<br>/.test(about)&&about.includes('word-break:auto-phrase;text-wrap:balance'),'Japanese headings wrap by phrase instead of fixed line breaks');
-for(const text of ['実際の画面を見ながら作った。','実装と確認を繰り返す。','主な失敗と、その修正。','四つの世界には、それぞれ違う巡り方がある。'])assert.ok(about.includes(text),`plain Japanese heading includes ${text}`);
+
+const about=readFileSync(new URL('../outputs/about.html',import.meta.url),'utf8');
+const index=readFileSync(new URL('../outputs/index.html',import.meta.url),'utf8');
+assert.ok(index.includes('href="about.html"')&&index.includes('ゲームと制作過程'),'world select links to the introduction');
+for(const [page,name] of [['aeolia.html','浮島の街'],['liminal.html?stage=parallax','閉鎖施設'],['liminal.html?stage=somnia','郊外'],['playroom.html','遊戯室']]){
+  assert.ok(about.includes(`href="${page}"`),`${name} links to the actual game`);
+  assert.ok(about.includes(name),`${name} is explained`);
+}
+for(const asset of ['floating-islands.jpg','closed-complex.jpg','solarpunk-suburb.jpg','dreamcore-playroom.jpg','traveler-ember.jpg','traveler-mist.jpg','traveler-lilac.jpg']){
+  assert.ok(about.includes(asset),`${asset} appears in the page`);
+  assert.ok(existsSync(new URL('../outputs/assets/thumbnails/'+asset,import.meta.url)),`${asset} exists`);
+}
+for(const text of ['このゲームで何をするのか','主人公は3種類','操作方法','どのように作ったか','見た目と操作のために工夫したこと','検知して修正した不具合','うまくいかなかったこと','人とAIの分担'])assert.ok(about.includes(text),`${text} section exists`);
+for(const control of ['↑↓←→','WASD','SPACE','SHIFT','Ctrl','Q','C','画面スワイプ','手を振る、お辞儀、回転'])assert.ok(about.includes(control),`${control} is explained`);
+for(const step of ['要望を設計へ変える','画像で方向を確認する','Blenderで立体を作る','Three.jsでゲームにする','音を付ける','動作を確認する','公開する'])assert.ok(about.includes(step),`${step} is explained`);
+for(const detail of ['受け取るもの','成果物','確認方法','生成画像をそのまま歩ける空間にはできません','GitHub Pages','Cloudflare Pagesは候補として検討しましたが、現在の公開経路には使っていません'])assert.ok(about.includes(detail),`production detail exists: ${detail}`);
+for(const bug of ['床や水面がちらつく','虹が裏から薄く見える','フードの主人公が飛ぶと頭部が欠ける','見えない壁で止まる','高く飛ぶと屋根面だけが見える'])assert.ok(about.includes(bug),`bug history includes ${bug}`);
+for(const failure of ['デモ画像を先に作りすぎた','広さを増やせば探索になると考えた','閉鎖施設と郊外の差が弱かった','進捗を過大評価した','修正した問題が戻った'])assert.ok(about.includes(failure),`failure history includes ${failure}`);
+assert.equal((about.match(/<figure class="bug-case">/g)||[]).length,4,'four bug mechanisms have labelled diagrams');
+assert.ok(about.includes('模式図は当時の画面キャプチャではありません。'),'bug diagrams are not presented as historical screenshots');
+assert.ok(about.includes('https://tytydy-cyber.github.io/aeolia-world/')&&about.includes('assets/aeolia-world-qr.svg'),'public URL and QR code are shown together');
+assert.ok(existsSync(new URL('../outputs/assets/aeolia-world-qr.svg',import.meta.url)),'QR code asset exists');
+assert.ok(!about.includes('紹介映像'),'the page does not discuss the promotional video');
 assert.ok(about.includes('@media(max-width:760px)')&&about.includes('@media(prefers-reduced-motion:reduce)')&&about.includes(':focus-visible'),'page supports mobile, reduced motion and keyboard focus');
-assert.ok(about.includes('scroll-margin-top:72px')&&about.includes('aria-label="ページ内ナビゲーション"'),'fixed navigation does not cover anchored sections and remains labelled');
-for(const path of ['assets/thumbnails/floating-islands.jpg','assets/thumbnails/closed-complex.jpg','assets/thumbnails/solarpunk-suburb.jpg','assets/thumbnails/dreamcore-playroom.jpg'])assert.ok(existsSync(new URL('../outputs/'+path,import.meta.url)),`${path} exists`);
-console.log('PASS: game introduction uses actual worlds, documents the production process, and remains accessible on mobile.');
+assert.ok(!/<h[123][^>]*>[^<]*<br>/.test(about),'headings do not force Japanese line breaks');
+console.log('PASS: introduction explains the game first, then the complete production loop, fixes and failures.');
