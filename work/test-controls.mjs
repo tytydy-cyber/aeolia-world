@@ -135,7 +135,7 @@ run("setCharacterStyle('mist')");assert.equal(run('cloth.color.getHex()'),0x527b
 reset();run('player.position.set(28,3,39);keys.ArrowUp=true');frames(390);assert.ok(run('player.position.y')>17,'stairs reach upper terrace');
 reset();run('player.position.set(-43,3,-23);keys.ArrowUp=true');frames(100);assert.ok(run('player.position.z')>=-26.35,'wall collision');
 reset();run('player.position.set(0,-30,80);keys.ArrowUp=true');frames(120);assert.ok(run('player.position.z')<55,'island underside uses its tapered rock shape instead of the top footprint');
-reset();run('player.position.set(0,20,715);keys.ArrowDown=true;keys.ControlLeft=true');frames(120);assert.ok(run('Math.hypot(player.position.x,player.position.z)')<=720.01,'world boundary stays inside the sky sphere');
+reset();run('player.position.set(0,20,229);keys.ArrowDown=true;keys.ControlLeft=true');frames(120);assert.ok(run('Math.hypot(player.position.x,player.position.z)<=WORLD_RADIUS+.01'),'world boundary keeps distant scenery unreachable');
 reset();run('player.position.set(112,60,-92);update(.016,0);player.position.y=-86;update(.016,16)');assert.ok(run('Math.hypot(player.position.x-112,player.position.z+92)<1&&player.position.y===55'),'cloud fall returns to the most recent island');
 
 // Time-step behavior should agree at common refresh rates.
@@ -198,6 +198,9 @@ assert.ok(script.includes('Math.atan2(dx,dz)')&&!script.includes('Math.atan2(-(s
 assert.ok(script.includes('player.rotation.set(0,Math.atan2(dx,dz),0)')&&!script.includes('drop:{ms:'),'five-second trailer uses the authored flight pose and starts with a readable world view');
 assert.ok(script.includes("innerHTML:'<b>AEOLIA</b><span>空を飛び、四つの世界を巡る探索ゲーム</span>'")&&script.includes('p=Math.min(1,age/s.ms)')&&!script.includes('s.ms),p=raw*raw'),'five-second trailer titles a continuously moving opening instead of easing to a stop');
 assert.ok(script.includes('characterPreview=(ember|mist|lilac)')&&script.includes('characterSelect.value=characterPreviewName||')&&script.includes('else if(characterPreviewMode){player.position.set(0,18,0)'),'three traveler thumbnails use the actual selectable game models');
+assert.ok(script.includes('WORLD_RADIUS=230')&&script.includes('>WORLD_RADIUS'),'playable flight stops before the distant scenery starts');
+assert.ok(script.includes('Math.max(7000,message.length*110)'),'floating-island discoveries remain visible for reading');
+assert.ok(script.includes('depthTest:false,fog:false')&&script.includes('renderOrder=-2+scenicLayers.length*.01'),'distant transparent layers use a stable order instead of flickering');
 console.log('PASS: actual GLB parse/9 house placements, all arrow keys, passive mouse, drag/release, acceleration/braking, flight, focus loss, bridges, stairs, walls, speed slider, maximum-speed collision, 30/60/120 Hz, colonnade/blade collision, distant haze, under-island camera, discovery journal. GPU rendering is not tested.');
 const counts=Object.fromEntries(['pot','crate','bench'].map(kind=>[kind,run(`props.filter(p=>p.kind==='${kind}').length`)]));
 assert.ok(run('props.length')>=40,'meaningful street furniture count');

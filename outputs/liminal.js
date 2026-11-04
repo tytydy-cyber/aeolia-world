@@ -3,7 +3,7 @@ import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
 import {mergeGeometries} from 'three/addons/utils/BufferGeometryUtils.js';
 import {WorldAudio} from './audio.js?v=54';
 import {MotionEffects} from './effects.js?v=51';
-import {applyTravelerDesign} from './character-designs.js?v=47';
+import {applyTravelerDesign} from './character-designs.js?v=48';
 import {Emotes,EMOTE_KEYS} from './emotes.js?v=1';
 
 const searchParams=new URLSearchParams(location.search),stageKey=searchParams.get('stage')==='somnia'?'somnia':'parallax',thumbnailMode=searchParams.has('thumbnail'),trailerMode=searchParams.has('trailer');
@@ -225,7 +225,7 @@ function discoveryResponse(note){
 }
 function discover(t){if(t<nextDiscover)return;nextDiscover=t+500;const low=player.position.y<NOTE_MAX_HEIGHT;for(const n of cfg.notes){const d=Math.hypot(player.position.x-n[0],player.position.z-n[2]),reached=d<NOTE_RADIUS&&low,response=reached?discoveryResponse(n):'',count=reached&&saveNote(n);if(!count){if(response)showEvent(response,'');continue}const completion=count===cfg.notes.length?completeWorld():'';sound.chime();playEmote(completion?'Spin':'Bow');showEvent(completion?`${n[3]} — 全地点を巡った。${completion}`:`${n[3]} — ${n[4]} ${response}　${count} / ${cfg.notes.length}`)}const seen=new Set(readNotes().map(n=>n.id)),remaining=cfg.notes.filter(n=>!seen.has(stageKey+':'+n[3])),targets=remaining.length?remaining:cfg.notes;let nearest=targets[0],best=Infinity;for(const n of targets){const d=Math.hypot(player.position.x-n[0],player.position.z-n[2]);if(d<best){best=d;nearest=n}}document.querySelector('#place').textContent=nearest[3]+(!remaining.length?' · 記録済':best<NOTE_RADIUS&&!low?' · 降りると記録':best<90?` · ${Math.round(best)}m`:'')}
 let eventTimer;// Only discoveries carry the 発見 heading; gates and ambient changes show their text alone.
-function showEvent(text,label='発見'){const e=document.querySelector('#event'),heading=e.querySelector('small');heading.textContent=label;heading.hidden=!label;e.querySelector('div').textContent=text;e.classList.add('on');clearTimeout(eventTimer);eventTimer=setTimeout(()=>e.classList.remove('on'),2600)}
+function showEvent(text,label='発見'){const e=document.querySelector('#event'),heading=e.querySelector('small');heading.textContent=label;heading.hidden=!label;e.querySelector('div').textContent=text;e.classList.add('on');clearTimeout(eventTimer);const readingTime=label?Math.min(12000,Math.max(7000,text.length*110)):3600;eventTimer=setTimeout(()=>e.classList.remove('on'),readingTime)}
 function anomaly(){const now=Date.now();if(now<nextAnomaly)return;nextAnomaly=now+180000+Math.random()*120000;const candidates=[];world.traverse(o=>{if(o.userData.anomaly&&o.userData.trigger)candidates.push(o)});const o=candidates[Math.floor(Math.random()*candidates.length)];o?.userData.trigger();scene.fog.density=cfg.fogDensity*1.8;setTimeout(()=>scene.fog.density=cfg.fogDensity,9000);showEvent(stageKey==='parallax'?(o?.userData.label||'施設のどこかが変わった。'):'チャイムが鳴った。','')}
 // Gates are listed from the spawn toward the landmark; the next one in order glows brighter.
 let nextGate=0;

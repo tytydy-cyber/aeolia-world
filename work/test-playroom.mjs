@@ -3,7 +3,7 @@ import {readFileSync} from 'node:fs';
 
 const read=name=>readFileSync(new URL('../outputs/'+name,import.meta.url),'utf8');
 const html=read('playroom.html'),js=read('playroom.js'),hub=read('index.html');
-assert.ok(html.includes('DREAMCORE PLAYROOM 04')&&html.includes('playroom.js?v=59')&&html.includes('mobile-controls.js?v=83'),'playroom has its own entry page and current shared mobile controls');
+assert.ok(html.includes('DREAMCORE PLAYROOM 04')&&html.includes('playroom.js?v=60')&&html.includes('mobile-controls.js?v=83'),'playroom has its own entry page and current shared mobile controls');
 assert.ok(hub.includes('class="gate playroom"')&&hub.includes('4つのエリア'),'world select exposes the fourth world');
 for(const asset of ['playroom-rainbow.glb','playroom-soft-play-upgrade.glb','playroom-playground-v2.glb','playroom-child-town-pack.glb','playroom-quiet-split.glb','playroom-town-foreground.glb','playroom-cloud-corridor-v2.glb'])assert.ok(js.includes(asset),`${asset} is placed in the world`);
 assert.ok(js.includes("['PlaygroundTowerV2',[0,0,-56]]")&&js.includes("['PlaygroundNetV2',[-14,0,-55]]")&&js.includes("['PlaygroundSoftClusterV2',[15,0,-55]]"),'playground v2 modules form one asymmetric room without a duplicate floor');

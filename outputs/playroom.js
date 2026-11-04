@@ -3,7 +3,7 @@ import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
 import {mergeGeometries} from 'three/addons/utils/BufferGeometryUtils.js';
 import {WorldAudio} from './audio.js?v=54';
 import {MotionEffects} from './effects.js?v=51';
-import {applyTravelerDesign} from './character-designs.js?v=47';
+import {applyTravelerDesign} from './character-designs.js?v=48';
 import {Emotes,EMOTE_KEYS} from './emotes.js?v=1';
 
 const cfg={name:'遊戯室',code:'DREAMCORE PLAYROOM 04',spawn:[0,0,25],limitY:32,notes:[
@@ -101,7 +101,7 @@ new GLTFLoader().load('assets/aeolia-traveler.glb',g=>{avatarModel=g.scene;avata
 const sound=new WorldAudio(undefined,'playroom'),effects=new MotionEffects(THREE,scene,camera),keys={},velocity=new THREE.Vector3(),lastSafe=player.position.clone(),targetCam=new THREE.Vector3(),probe=new THREE.Vector3(),focus=new THREE.Vector3(),focusTarget=new THREE.Vector3();let yaw=debugView?.yaw??0,pitch=debugView?.pitch??.24,started=false,dragging=false,previous=null,travelYaw=0,recenterYaw=null,bob=0,nextDiscover=0,nextAnomaly=Infinity;const anomalyTurns=new Map();
 function resetKeys(){for(const k in keys)delete keys[k];velocity.set(0,0,0);dragging=false}
 function readNotes(){try{return JSON.parse(stored('aeolia-notes')||'[]')}catch{return []}}function saveNote(n){const notes=readNotes(),id='playroom:'+n[3];if(notes.some(x=>x.id===id))return 0;notes.push({id,world:cfg.name,name:n[3],text:n[4]});stored('aeolia-notes',JSON.stringify(notes));return notes.filter(x=>x.id.startsWith('playroom:')).length}
-function showEvent(text,label='発見'){const e=document.querySelector('#event'),h=e.querySelector('small');h.textContent=label;h.hidden=!label;e.querySelector('div').textContent=text;e.classList.add('on');clearTimeout(showEvent.timer);showEvent.timer=setTimeout(()=>e.classList.remove('on'),2800)}
+function showEvent(text,label='発見'){const e=document.querySelector('#event'),h=e.querySelector('small');h.textContent=label;h.hidden=!label;e.querySelector('div').textContent=text;e.classList.add('on');clearTimeout(showEvent.timer);const readingTime=label?Math.min(12000,Math.max(7000,text.length*110)):3600;showEvent.timer=setTimeout(()=>e.classList.remove('on'),readingTime)}
 function roomOf(x,z){if(z>-38)return'虹のホール';if(z>-84)return x<-25?'球の部屋':x>25?'子どもの街':'遊具広場';if(z>-126)return x<0?'昼寝室':'誕生日会場';return'雲の回廊'}
 const litThresholds=new Set(),discoveryEffects=new Set();function activateNextThreshold(room){const targets={'虹のホール':[0],'球の部屋':[1],'遊具広場':[1,2],'子どもの街':[2],'昼寝室':[3],'誕生日会場':[4],'雲の回廊':[5]}[room]||[];targets.forEach(i=>litThresholds.add(i));for(let i=0;i<thresholdPoints.length;i++)nextThresholdLights.setColorAt(i,new THREE.Color(litThresholds.has(i)?0xffe2ad:0x728b8d));nextThresholdLights.instanceColor.needsUpdate=true}
 function activateUpperRoute(){for(let i=0;i<5;i++)upperRouteFrames.setColorAt(i,new THREE.Color(i<4?0xb8ded4:0xffe2ad));upperRouteFrames.instanceColor.needsUpdate=true}

@@ -39,7 +39,7 @@ function buildVariants(THREE,player){
 export function applyTravelerDesign(THREE,player,model,name='ember'){
   const style=palettes[name]||palettes.ember,variants=player.userData.designVariants??=buildVariants(THREE,player);
   variants.mist.visible=variants.mistHead.visible=name==='mist';variants.lilac.visible=variants.lilacHead.visible=name==='lilac';
-  const head=model?.getObjectByName('head');if(head){player.updateMatrixWorld(true);for(const headwear of [variants.mistHead,variants.lilacHead])if(headwear.parent!==head)head.attach(headwear)}
+  const head=model?.getObjectByName('head'),spine=model?.getObjectByName('spine');if(head||spine){player.updateMatrixWorld(true);if(head)for(const headwear of [variants.mistHead,variants.lilacHead])if(headwear.parent!==head)head.attach(headwear);if(spine)for(const bodywear of [variants.mist,variants.lilac])if(bodywear.parent!==spine)spine.attach(bodywear)}
   const cloth=[...variants.clothMaterials];model?.traverse(o=>{if(!o.isMesh)return;const objectName=o.name.toLowerCase().replace(/[^a-z]/g,''),replaceClassic=name!=='ember'&&(objectName.includes('hat')||objectName.includes('satchel')||objectName.includes('scarf')||(name==='mist'&&objectName.includes('hair')));o.visible=!replaceClassic;for(const material of [o.material].flat()){const color=style[material.name];if(color!==undefined){material.color.setHex(color);cloth.push(material)}}});clothFinish(THREE,player,cloth);
   return style;
 }

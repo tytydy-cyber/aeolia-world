@@ -43,7 +43,7 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { WorldAudio } from './audio.js?v=54';
 import { MotionEffects } from './effects.js?v=51';
-import { applyTravelerDesign } from './character-designs.js?v=47';
+import { applyTravelerDesign } from './character-designs.js?v=48';
 import { Emotes, EMOTE_KEYS } from './emotes.js?v=1';
 
 const scene=new THREE.Scene();
@@ -282,7 +282,7 @@ for(let i=0;i<10;i++){
 mesh(mergeGeometries(columnShafts),MAT.pale,[0,0,0]);mesh(mergeGeometries(columnRings),MAT.stone,[0,0,0]);
 for(let i=0;i<30;i++){const a=i/30*mathTau;colliders.push({x:78+Math.cos(a)*10,z:100+Math.sin(a)*10,radius:.6,bottom:14.25,top:15.35})}
 const cornice=mesh(new THREE.TorusGeometry(10,.55,8,48),MAT.pale,[78,14.8,100]);cornice.rotation.x=Math.PI/2;
-const palaceWater=organicDisc(6,2.4),gardenWater=organicDisc(4.55,.8);palaceWater.rotateX(-Math.PI/2);palaceWater.translate(78,7.4,100);gardenWater.rotateX(-Math.PI/2);gardenWater.translate(28,18.2,-18);const waterSurfaces=mesh(mergeGeometries([palaceWater,gardenWater]),new THREE.MeshPhysicalMaterial({color:0x739da0,metalness:.35,roughness:.16,transparent:true,opacity:.86}),[0,0,0],false);
+const palaceWater=organicDisc(6,2.4),gardenWater=organicDisc(4.55,.8);palaceWater.rotateX(-Math.PI/2);palaceWater.translate(78,7.4,100);gardenWater.rotateX(-Math.PI/2);gardenWater.translate(28,18.2,-18);const waterSurfaces=mesh(mergeGeometries([palaceWater,gardenWater]),new THREE.MeshPhysicalMaterial({color:0x739da0,metalness:.35,roughness:.16,transparent:true,opacity:.86,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2}),[0,0,0],false);
 
 // Street furniture: shared geometry/material batches instead of a draw per object.
 const props=[],propBatches=[],propColliders=[];
@@ -340,7 +340,7 @@ for(const batch of [underDecks,underFrames,underLights]){batch.castShadow=false;
 // A chain of lamps makes the three underside sites read as one route and points back up to the town.
 const underRoute=[[-105,-20,-128],[-92,-23,-95],[-70,-25,-42],[-42,-24,55],[-12,-28,30],[18,-30,-2],[45,-27,-35],[28,-15,-18],[8,-4,20]],underRouteLights=new THREE.InstancedMesh(new THREE.SphereGeometry(.58,8,6),MAT.gold,underRoute.length);for(const [i,[x,y,z]] of underRoute.entries()){dummy.position.set(x,y,z);dummy.scale.setScalar(i%3===0?1.35:1);dummy.updateMatrix();underRouteLights.setMatrixAt(i,dummy.matrix)}underRouteLights.userData.routeRole='雲下設備から中央島へ戻る灯り';underRouteLights.frustumCulled=false;scene.add(underRouteLights);underCloudBatches.push(underRouteLights);
 const solidColliders=colliders.concat(propColliders);
-const PLAYER_RADIUS=.58,PLAYER_HEIGHT=3.85;
+const PLAYER_RADIUS=.58,PLAYER_HEIGHT=3.85,WORLD_RADIUS=230;
 
 // Lamp posts and glows merge into two draws. Point lights cost every lit pixel, so only the three central-island lamps cast light.
 const lampSpots=[[-10,3,-8,true],[20,17,-11,true],[-42,3,18,true],[49,3,18],[-105,33,-83],[112,53,-75],[78,6,91]];
@@ -366,8 +366,8 @@ const sky=mesh(new THREE.SphereGeometry(850,32,16),new THREE.MeshBasicMaterial({
 const scenicLayers=[];
 function scenicRuin(position,scale,offset,repeat,phase){
   const map=textureLoader.load('assets/textures/distant-ruins.png',loaded=>{loaded.colorSpace=THREE.SRGBColorSpace});map.offset.x=offset;map.repeat.x=repeat;
-  const material=new THREE.SpriteMaterial({map,transparent:true,opacity:.72,depthWrite:false,fog:false});
-  const sprite=new THREE.Sprite(material);sprite.position.set(...position);sprite.scale.set(...scale,1);sprite.renderOrder=-2;scene.add(sprite);
+  const material=new THREE.SpriteMaterial({map,transparent:true,opacity:.72,depthWrite:false,depthTest:false,fog:false});
+  const sprite=new THREE.Sprite(material);sprite.position.set(...position);sprite.scale.set(...scale,1);sprite.renderOrder=-2+scenicLayers.length*.01;scene.add(sprite);
   scenicLayers.push({sprite,baseY:position[1],phase});
 }
 scenicRuin([-270,55,-330],[190,95],0,.54,0);
@@ -498,8 +498,8 @@ function discover(){
     const reached=dist<DISCOVERY_RADIUS,response=reached?discoveryResponse(d):'',count=reached&&saveNote(d);if(!count)continue;
     const completion=count===discoveries.length?completeWorld():'';sound.chime();playEmote(completion?'Spin':'Bow');
     const el=document.querySelector('#discovery'),shown=++discoveryShown;
-    el.querySelector('div').textContent=completion?`${d.name} — 全地点を巡った。${completion}`:`${d.name} — ${d.text} ${response}　${count} / ${discoveries.length}`;
-    el.classList.add('discovery-on');setTimeout(()=>{if(shown===discoveryShown)el.classList.remove('discovery-on')},2600);
+    const message=completion?`${d.name} — 全地点を巡った。${completion}`:`${d.name} — ${d.text} ${response}　${count} / ${discoveries.length}`;
+    el.querySelector('div').textContent=message;el.classList.add('discovery-on');const readingTime=Math.min(12000,Math.max(7000,message.length*110));setTimeout(()=>{if(shown===discoveryShown)el.classList.remove('discovery-on')},readingTime);
   }
   const seen=new Set(readNotes().map(n=>n.id)),flat=Math.hypot(player.position.x-nearest.p.x,player.position.z-nearest.p.z);
   document.querySelector('#place').textContent=nearest.name+(seen.has('aeolia:'+nearest.name)?' · 記録済':flat<DISCOVERY_RADIUS?' · 降りると記録':best<90?` · ${Math.round(best)}m`:'');
@@ -544,7 +544,7 @@ function update(dt,t){
     const old=player.position[axis];player.position[axis]+=velocity[axis]*dt;
     const h=groundAt(player.position.x,player.position.z,before.y+.55);
     const blocked=solidColliders.some(c=>colliderContains(c,player.position.x,player.position.z,PLAYER_RADIUS)&&player.position.y<c.top&&player.position.y+PLAYER_HEIGHT>c.bottom)||islandRockContains(player.position.x,player.position.z,player.position.y+PLAYER_HEIGHT*.5,PLAYER_RADIUS)||islandRockContains(player.position.x,player.position.z,player.position.y+PLAYER_HEIGHT,PLAYER_RADIUS)||BRIDGES.some(b=>{const deck=bridgeSample(player.position.x,player.position.z,b);return deck!==null&&deck>before.y+.55&&deck-.3<before.y+PLAYER_HEIGHT});
-    if(blocked||Math.hypot(player.position.x,player.position.z)>720||h>before.y+.55||(wasGrounded&&h===-Infinity)){player.position[axis]=old;velocity[axis]=0}
+    if(blocked||Math.hypot(player.position.x,player.position.z)>WORLD_RADIUS||h>before.y+.55||(wasGrounded&&h===-Infinity)){player.position[axis]=old;velocity[axis]=0}
   }
   player.position.y+=velocity.y*dt;
   if(velocity.y>0&&islandRockContains(player.position.x,player.position.z,player.position.y+PLAYER_HEIGHT)&&!islandRockContains(before.x,before.z,before.y+PLAYER_HEIGHT)){player.position.y=before.y;velocity.y=0}
