@@ -15,7 +15,7 @@ for(const stage of ['parallax','somnia']){
   // Boosted flight at 30 Hz cannot tunnel through a wall (the thinnest full-height box in the stage).
   const wall=run("colliders.filter(c=>c.w>2&&c.bottom<=0&&c.top>=8&&validGround(c.x,c.z+c.d+4)).sort((a,b)=>a.d-b.d)[0]");
   assert.ok(wall,`${stage}: has a full-height wall to test against`);
-  for(const hz of [30,120]){
+  for(const hz of [30,60,120]){
     reset(wall.x,1,wall.z+wall.d+4);run('keys.ArrowUp=true;keys.ControlLeft=true');frames(hz,hz);run('keys.ArrowUp=false;keys.ControlLeft=false');
     assert.ok(run('player.position.z')>=wall.z+wall.d,`${stage}: boosted flight stops at a wall at ${hz} Hz`);
   }

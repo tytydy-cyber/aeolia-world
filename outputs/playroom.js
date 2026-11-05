@@ -37,7 +37,7 @@ function mesh(g,m,x,y,z){const o=new THREE.Mesh(g,m);o.position.set(x,y,z);o.rec
 function box(x,y,z,w,h,d,m=mats.wall,solid=false){const o=mesh(new THREE.BoxGeometry(w,h,d),m,x,y,z);if(solid)colliders.push({x,z,w:w/2,d:d/2,bottom:y-h/2,top:y+h/2});return o}
 function contains(c,x,z,margin=.55){return Math.abs(x-c.x)<c.w+margin&&Math.abs(z-c.z)<c.d+margin}
 function segmentBoxHit(a,b,c,margin=.35){let lo=0,hi=1;for(const [p,q,min,max] of [[a.x,b.x,c.x-c.w-margin,c.x+c.w+margin],[a.y,b.y,c.bottom-margin,c.top+margin],[a.z,b.z,c.z-c.d-margin,c.z+c.d+margin]]){const d=q-p;if(Math.abs(d)<1e-9){if(p<min||p>max)return null;continue}let t0=(min-p)/d,t1=(max-p)/d;if(t0>t1)[t0,t1]=[t1,t0];lo=Math.max(lo,t0);hi=Math.min(hi,t1);if(lo>hi)return null}return lo}
-function validGround(x,z){return Math.abs(x)<94&&z<64&&z>(endpointOpen?-216:-154)}
+function validGround(x,z){return endpointOpen&&z<=-154?Math.hypot(x,z+187)<57.5:Math.abs(x)<94&&z<64&&z>(endpointOpen?-216:-154)}
 
 // A sequence of rooms rather than one warehouse-sized floor. Wide openings preserve fast flight.
 box(0,-.08,-45,190,.16,220,mats.floor);for(const side of [-95,95]){box(side,18,13.5,1.2,36,103,mats.wall,true);box(side,18,-61,1.2,36,46,mats.meadow,true);box(side,18,-105,1.2,36,42,mats.hills,true);box(side,18,-140.5,1.2,36,29,mats.wall,true)}box(-55,18,-155,80,36,1.2,mats.wall,true);box(55,18,-155,80,36,1.2,mats.wall,true);const endpointGateMesh=box(0,18,-155,30,36,1.2,mats.wall,true),endpointGateCollider=colliders[colliders.length-1];endpointGateMesh.userData.endpointGate=true;box(0,18,65,190,36,1.2,mats.wall,true);box(0,36.2,-45,190,.4,220,mats.ceiling,true);

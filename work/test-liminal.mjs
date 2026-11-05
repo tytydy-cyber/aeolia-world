@@ -88,9 +88,7 @@ assert.ok(js.includes('box(48,.24,-48,34,.03,22,mats.water)')&&js.includes('box(
 assert.ok(js.includes("box(0,.16,-12,18,.06,390,road,false)")&&js.includes('dummy.position.set(x,.105,z)')&&js.includes('dummy.position.set(x,.16,z)'),'suburb ground, meadow and road surfaces use distinct depth tiers');
 assert.ok(js.includes("box(4,.16,22,42,.08,118,mats.dark,false)")&&js.includes("box(0,.24,-58,24,.08,94,mats.dark,false)")&&js.includes('roundedFloor(x,.08,z,w,.12,d,4')&&js.includes('zoneDummy.position.set(26+i*8,.22,-40)'),'overlapping facility floor sections use distinct depth tiers');
 assert.ok(js.includes("accent(x,15+i*.025,z")&&js.includes("accent(x,y+2+i*.025,z")&&js.includes("accent(x,h+1,z+i*.025")&&js.includes("accent(0,42+i*.025,-170"),'rotated garden, beacon and collector accents are staggered instead of coplanar');
-assert.ok(js.includes('corner:Math.min(r,w/2,d/2)')&&js.includes('Math.hypot(qx,qz)<c.corner+margin'),'rounded buildings use rounded collision bounds');
-const contains=(c,x,z,margin=.55)=>{const dx=Math.abs(x-c.x),dz=Math.abs(z-c.z),qx=Math.max(dx-(c.w-c.corner),0),qz=Math.max(dz-(c.d-c.corner),0);return dx<c.w+margin&&dz<c.d+margin&&Math.hypot(qx,qz)<c.corner+margin};
-const rounded={x:0,z:0,w:10,d:8,corner:4};assert.equal(contains(rounded,10,8),false,'empty rounded corner stays passable');assert.equal(contains(rounded,10,0),true,'visible rounded side still blocks');
+assert.ok(js.includes('function roundedBlock')&&!js.match(/function roundedBlock[^\n]+colliders\.push\([^\n]+corner:/),'vertically rounded blocks retain their full rectangular XZ collision footprint');
 assert.ok(js.includes('playgroundPart(-34,2.2,-45,10,.4,3,-.28)'),'rotated slide stays decorative and leaves no invisible wall');
 for(const batch of ['meadowBatch','outerRoadBatch','playgroundBatch','pondRim','commonsRings','commonsCores'])assert.ok(js.includes(`${batch}=new THREE.InstancedMesh`),`${batch} keeps repeated scenery in one draw batch`);
 const edgeScale=(a,phase)=>.91+.075*Math.sin(a*3+phase)+.045*Math.sin(a*5-phase*.7)+.025*Math.sin(a*9+phase*.3),specs={parallax:[178,148,.4],somnia:[250,210,2.1]};
