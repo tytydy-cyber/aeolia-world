@@ -48,6 +48,17 @@ for(const [stage,names] of Object.entries({parallax:['給水塔','北側宿泊�
   facility.reset(-30,6,35);facility.run('keys.Space=true');facility.frames(120);facility.run('keys.Space=false');
   assert.ok(Math.abs(facility.run('player.position.y+3.6')-13.45)<.01,`rising under the banquet ceiling stops below it (${facility.run('player.position.y')})`);
 }
+// The three tilted facility bridges use the same X-dependent height as their visible Z-axis rotation.
+{
+  const facility=loadStage('parallax'),bridges=facility.run('colliders.filter(c=>c.slopedBridge)');
+  assert.equal(bridges.length,3,'facility registers three sloped bridge colliders');
+  for(const bridge of bridges)for(const offset of [-bridge.w*.7,0,bridge.w*.7]){
+    const x=bridge.x+offset,expected=bridge.top+bridge.slopeX*offset,actual=facility.run(`verticalBounds(colliders.find(c=>c.slopedBridge&&c.x===${bridge.x}),${x})[1]`);
+    assert.ok(Math.abs(actual-expected)<1e-9,`bridge top follows its visible slope at x=${x}`);
+  }
+  const bridge=bridges[0],x=bridge.x+bridge.w*.55,top=bridge.top+bridge.slopeX*(x-bridge.x);facility.reset(x,top+5,bridge.z);facility.run('keys.ShiftLeft=true');facility.frames(120);facility.run('keys.ShiftLeft=false');
+  assert.ok(Math.abs(facility.run('player.position.y')-top)<.02,`descending lands on the tilted bridge surface (${facility.run('player.position.y')} vs ${top})`);
+}
 // A column immediately behind the traveler pulls the camera in front of it instead of leaving the column across the view.
 {
   const facility=loadStage('parallax');facility.reset(1.3,1,70);facility.run('yaw=-Math.PI/2');facility.frames(120);
