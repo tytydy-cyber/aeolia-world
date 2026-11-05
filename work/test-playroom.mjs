@@ -3,7 +3,7 @@ import {readFileSync} from 'node:fs';
 
 const read=name=>readFileSync(new URL('../outputs/'+name,import.meta.url),'utf8');
 const html=read('playroom.html'),js=read('playroom.js'),hub=read('index.html');
-assert.ok(html.includes('DREAMCORE PLAYROOM 04')&&html.includes('playroom.js?v=62')&&html.includes('mobile-controls.js?v=83'),'playroom has its own entry page and current shared mobile controls');
+assert.ok(html.includes('DREAMCORE PLAYROOM 04')&&html.includes('playroom.js?v=63')&&html.includes('mobile-controls.js?v=83'),'playroom has its own entry page and current shared mobile controls');
 assert.ok(hub.includes('class="gate playroom"')&&hub.includes('4つのエリア'),'world select exposes the fourth world');
 for(const asset of ['playroom-rainbow.glb','playroom-soft-play-upgrade.glb','playroom-playground-v2.glb','playroom-child-town-pack.glb','playroom-quiet-split.glb','playroom-town-foreground.glb','playroom-cloud-corridor-v2.glb'])assert.ok(js.includes(asset),`${asset} is placed in the world`);
 assert.ok(js.includes("['PlaygroundTowerV2',[0,0,-56]]")&&js.includes("['PlaygroundNetV2',[-14,0,-55]]")&&js.includes("['PlaygroundSoftClusterV2',[15,0,-55]]"),'playground v2 modules form one asymmetric room without a duplicate floor');
@@ -93,3 +93,7 @@ assert.ok(js.includes('x.material.emissive.set(0xffd7b5)')&&js.includes('x.mater
 assert.ok(js.includes("setAvatarAction(hs>1||Math.abs(velocity.y)>1?'Fly':'Idle')")&&js.includes('avatarModel.position.y=Math.sin(t*.0023)*.07'),'traveler transitions between hover and flight with a subtle breathing drift');assert.ok(js.includes("e.code==='Space'||e.code==='ShiftLeft'||e.code==='ShiftRight'")&&js.includes('sound.flightCue'),'vertical flight controls produce a visible burst and matching cue once per press');assert.ok(js.includes("'虹のホール':0,'球の部屋':1,'遊具広場':2,'子どもの街':3,'昼寝室':4,'誕生日会場':1,'雲の回廊':2"),'each room selects a deliberate restrained audio environment');
 assert.ok(js.includes('sound.update(dt,velocity.length(),true'),'playroom intentionally stays in flight, so movement uses continuous indoor air instead of footsteps');
 assert.ok(js.includes("has('thumbnail')")&&js.includes('player.visible=false;camera.position.set(0,12,30)'),'playroom thumbnail frames the rainbow and play equipment without the traveler');
+assert.ok(js.includes('pace=1')&&js.includes("THREE.MathUtils.clamp(n,.7,1.6)")&&js.includes("pace.toFixed(1)+'×'")&&js.includes('(fast?42:26)*pace')&&js.includes("addEventListener('pointerup'"),'pace slider clamps its value, updates its label and scales horizontal speed');
+assert.ok(js.includes("e.code==='Escape'")&&js.includes("['INPUT','SELECT','BUTTON'].includes(e.target?.tagName)"),'Escape resets and focuses the world while form controls ignore gameplay keys');
+const event=js.match(/function showEvent\([^\n]+/);assert.ok(event&&event[0].includes('clearTimeout(')&&event[0].includes("===timer)e.classList.remove('on')")&&(event[0].match(/setTimeout\(/g)||[]).length===1,'one guarded timer prevents an older notification from hiding a newer one');
+assert.ok(js.includes("document.querySelectorAll('#emoteControls [data-emote]')"),'desktop emote buttons trigger the shared emote action');
