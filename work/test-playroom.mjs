@@ -3,7 +3,7 @@ import {readFileSync} from 'node:fs';
 
 const read=name=>readFileSync(new URL('../outputs/'+name,import.meta.url),'utf8');
 const html=read('playroom.html'),js=read('playroom.js'),hub=read('index.html');
-assert.ok(html.includes('DREAMCORE PLAYROOM 04')&&html.includes('playroom.js?v=61')&&html.includes('mobile-controls.js?v=83'),'playroom has its own entry page and current shared mobile controls');
+assert.ok(html.includes('DREAMCORE PLAYROOM 04')&&html.includes('playroom.js?v=62')&&html.includes('mobile-controls.js?v=83'),'playroom has its own entry page and current shared mobile controls');
 assert.ok(hub.includes('class="gate playroom"')&&hub.includes('4つのエリア'),'world select exposes the fourth world');
 for(const asset of ['playroom-rainbow.glb','playroom-soft-play-upgrade.glb','playroom-playground-v2.glb','playroom-child-town-pack.glb','playroom-quiet-split.glb','playroom-town-foreground.glb','playroom-cloud-corridor-v2.glb'])assert.ok(js.includes(asset),`${asset} is placed in the world`);
 assert.ok(js.includes("['PlaygroundTowerV2',[0,0,-56]]")&&js.includes("['PlaygroundNetV2',[-14,0,-55]]")&&js.includes("['PlaygroundSoftClusterV2',[15,0,-55]]"),'playground v2 modules form one asymmetric room without a duplicate floor');
@@ -53,8 +53,11 @@ assert.ok(js.includes("const destination=endpointOpen&&!endpointArrived?'屋外�
 assert.ok(!js.includes('o.visible=!o.visible')&&!js.includes('o.position.z+=')&&!js.includes('o.position.x+='),'anomalies do not leave stale invisible collision proxies');
 assert.ok(js.includes("{x:0,z:3,w:11,d:1.5,bottom:6.8,top:12}")&&js.includes("{x:0,z:-33.8,w:10.3,d:1.35,bottom:6.6,top:11.2}"),'both thick rainbow arches keep the camera out while leaving the enlarged walk-through opening clear');
 assert.ok(js.includes("{x:-18.45,z:3,w:7.45,d:1.12,bottom:0,top:20}")&&js.includes("{x:20.65,z:3,w:9.65,d:1.12,bottom:0,top:20}")&&js.includes("{x:2.2,z:3,w:28.2,d:1.12,bottom:10.8,top:20}"),'entry-shell collision is split around the opening instead of blocking it');
-assert.ok(js.includes('Math.sin(yaw)*13')&&js.includes('Math.cos(yaw)*13')&&js.includes('player.position.y+5+Math.sin(pitch)*3'),'the lower closer camera keeps the traveler inside the play equipment rather than above it');
-assert.ok(js.includes('velocity.x*ahead')&&js.includes('velocity.z*ahead')&&js.includes("clamp(velocity.y*.06,-.6,1.2)"),'flight camera looks ahead of the leaning traveler instead of staying aimed at the feet');
+assert.ok(js.includes('Math.sin(yaw)*13')&&js.includes('Math.cos(yaw)*13')&&js.includes('player.position.y+5.4+Math.sin(pitch)*7'),'the camera uses the shared 13-unit distance and pitch-scaled height');
+assert.ok(js.includes('hs>=2?Math.min(8,(hs-2)*.22):0')&&js.includes('Math.exp(-2.4*dt)')&&js.includes('player.position.y+2.4+cameraLead.y'),'camera lead uses the shared dead zone, maximum distance and smoothing');
+assert.ok(js.includes('Math.exp(-5.5*dt)')&&js.includes('pitch=THREE.MathUtils.damp(pitch,.28,7,dt)')&&js.includes('pitch=debugView?.pitch??.28'),'camera follow and C recentering use the shared response and pitch');
+assert.ok(js.includes('MathUtils.clamp(pitch+e.movementY*.002,-.55,1.15)'),'camera drag pitch uses the shared bounds');
+assert.ok(js.includes('cameraLeadTarget.set(hs>=2?velocity.x/hs*leadDistance:0')&&js.includes('THREE.MathUtils.clamp(velocity.y*.035,-.35,.7)'),'flight camera lead follows horizontal direction and vertical velocity');
 assert.ok(js.includes('new THREE.InstancedMesh(new THREE.BoxGeometry(.22,1.45,.18)')&&js.includes('fenceColors'),'a single colored fence batch gives the first room human scale');
 for(const room of ['虹のホール','球の部屋','遊具広場','子どもの街','昼寝室','誕生日会場','雲の回廊'])assert.ok(js.includes(`addAnomaly('${room}'`),`${room} has a local non-blocking anomaly`);assert.ok(js.includes('const room=roomOf(player.position.x,player.position.z),changes=zoneAnomalies.get(room)')&&js.includes('anomalyTurns.set(room,turn+1)'),'anomalies advance independently in the room the traveler is visiting');
 assert.ok(js.includes("id='playroom:'+n[3]")&&js.includes("stored('aeolia-notes',JSON.stringify(notes))"),'playroom discoveries share the cross-world journal under their own namespace');
