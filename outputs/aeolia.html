@@ -138,6 +138,10 @@ const dummy=new THREE.Object3D();
 const ISLANDS={tower:{x:-105,z:-105,r:29,phase:1.8},mill:{x:112,z:-92,r:25,phase:0},palace:{x:78,z:100,r:22,phase:3.7}};
 const ISLAND_BODIES=[{x:0,z:0,r:67,top:3,depth:48,organic:true,phase:0},{...ISLANDS.tower,top:34,depth:45},{...ISLANDS.mill,top:54,depth:58},{...ISLANDS.palace,top:7,depth:32}];
 island(0,3,0,67,48,true);island(-105,34,-105,29,45,false,ISLANDS.tower.phase);island(112,54,-92,25,58,false,ISLANDS.mill.phase);island(78,7,100,22,32,false,ISLANDS.palace.phase);
+const endpointGroup=new THREE.Group(),endpointIris=new THREE.Group(),endpointUpdraft=new THREE.Group(),endpointLight=new THREE.Object3D();endpointLight.intensity=0;endpointGroup.position.set(0,82,-8);endpointGroup.add(endpointIris,endpointUpdraft,endpointLight);scene.add(endpointGroup);
+const endpointStone=MAT.stone.clone(),endpointGlow=MAT.gold.clone();endpointGlow.emissive.set(0x7edbe6);endpointGlow.emissiveIntensity=.35;const endpointPlatform=new THREE.Mesh(new THREE.CylinderGeometry(11,14,3,12),endpointStone),endpointRing=new THREE.Mesh(new THREE.TorusGeometry(8.5,.72,10,36),endpointGlow);endpointRing.rotation.x=Math.PI/2;endpointRing.position.y=2.2;endpointGroup.add(endpointPlatform,endpointRing);
+for(let i=0;i<6;i++){const a=i/6*mathTau,pylon=new THREE.Mesh(new THREE.CylinderGeometry(.45,.72,8,8),endpointStone),blade=new THREE.Mesh(new THREE.BoxGeometry(7.4,.55,2.1),endpointStone);pylon.position.set(Math.cos(a)*8.4,5,Math.sin(a)*8.4);blade.position.set(Math.cos(a)*3.7,-2.3,Math.sin(a)*3.7);blade.rotation.y=-a;endpointGroup.add(pylon);endpointIris.add(blade)}
+for(let i=0;i<10;i++){const stream=new THREE.Mesh(new THREE.CylinderGeometry(.08,.28,30,6),endpointGlow),a=i/10*mathTau;stream.position.set(Math.cos(a)*(3+i%3*1.2),-18,Math.sin(a)*(3+i%3*1.2));stream.rotation.z=(i%2?1:-1)*.035;endpointUpdraft.add(stream)}endpointUpdraft.visible=false;
 cameraBlockers.push(cyl(35,15,[28,10.5,-18],MAT.stone,48));
 const BRIDGES=[[-48,-45,-86,-85,3,34],[47,-43,93,-78,18,54],[49,44,70,84,3,7]];
 function bridgeSample(x,z,b){
@@ -468,9 +472,14 @@ const discoveries=[
   {name:'雲下点検台',text:'島の下面と支柱を確認するための足場。',p:new THREE.Vector3(-42,-26,55)},
   {name:'雲量観測所',text:'雲の高さと流れる方向を記録している。',p:new THREE.Vector3(45,-30,-35)}
 ];
+const majorDiscoveries=new Set(['市場','上段庭園','鐘楼','風車工房']),ENDPOINT_ID='aeolia:雲上観測台';
 const DISCOVERY_RADIUS=13;
 function readNotes(){try{return JSON.parse(stored('aeolia-notes')||'[]')}catch{return []}}
 function saveNote(d){const notes=readNotes(),id='aeolia:'+d.name;if(notes.some(n=>n.id===id))return 0;notes.push({id,world:'浮島の街',name:d.name,text:d.text});stored('aeolia-notes',JSON.stringify(notes));return notes.filter(n=>n.id.startsWith('aeolia:')).length}
+function readEndpoints(){try{return JSON.parse(stored('aeolia-endpoints')||'[]')}catch{return []}}
+function saveEndpoint(){const endpoints=readEndpoints();if(endpoints.some(e=>e.id===ENDPOINT_ID))return false;endpoints.push({id:ENDPOINT_ID,world:'浮島の街',name:'雲上観測台'});stored('aeolia-endpoints',JSON.stringify(endpoints));return true}
+let endpointOpen=false,endpointArrived=readEndpoints().some(e=>e.id===ENDPOINT_ID);function majorComplete(){const seen=new Set(readNotes().map(n=>n.id));return [...majorDiscoveries].every(name=>seen.has('aeolia:'+name))}function openEndpoint(){if(endpointOpen)return;endpointOpen=true;endpointIris.visible=false;endpointUpdraft.visible=true;endpointLight.intensity=95;endpointGlow.emissiveIntensity=2.4}
+function updateEndpoint(before){if(!endpointOpen&&majorComplete())openEndpoint();const local=player.position.clone().sub(endpointGroup.position);if(!endpointOpen&&Math.hypot(local.x,local.z)<12&&Math.abs(local.y)<7){player.position.copy(before);velocity.set(0,0,0)}if(endpointOpen&&!endpointArrived&&Math.hypot(local.x,local.z)<9&&Math.abs(local.y)<6){endpointArrived=saveEndpoint()||endpointArrived;if(endpointArrived){sound.chime();playEmote('Spin');const el=document.querySelector('#discovery');el.querySelector('div').textContent='雲上観測台に到達した';el.classList.add('discovery-on');setTimeout(()=>el.classList.remove('discovery-on'),7000)}}}
 let discoveryShown=0;
 const discoveryEffects=new Set();
 let worldComplete=false;function completedWorld(){const seen=new Set(readNotes().map(n=>n.id));return discoveries.every(d=>seen.has('aeolia:'+d.name))}function completeWorld(){if(!worldComplete){worldComplete=true;MAT.gold.emissive.set(0x8a6428);MAT.gold.emissiveIntensity=2.2;waterSurfaces.material.emissive.set(0x3f7780);waterSurfaces.material.emissiveIntensity=.55;waterMat.emissive.set(0x28545b);waterMat.emissiveIntensity=.48;waterMat.opacity=.88;cloudMat.opacity=.82;scene.fog.color.setHex(0xd6e8e6);renderer.toneMappingExposure=1.16}return'島々の水路と航路灯がつながり、雲下から街へ戻る道が一斉に見えた。'}
@@ -498,10 +507,11 @@ function discover(){
   let nearest=discoveries[0],best=Infinity;
   for(const d of discoveries){
     const dist=player.position.distanceTo(d.p);if(dist<best){best=dist;nearest=d}
-    const reached=dist<DISCOVERY_RADIUS,response=reached?discoveryResponse(d):'',count=reached&&saveNote(d);if(!count)continue;
+    const reached=dist<DISCOVERY_RADIUS,isMajor=majorDiscoveries.has(d.name),response=reached&&isMajor?discoveryResponse(d):'',count=reached&&saveNote(d);if(!count)continue;
+    if(majorComplete())openEndpoint();
     const completion=count===discoveries.length?completeWorld():'';sound.chime();playEmote(completion?'Spin':'Bow');
     const el=document.querySelector('#discovery'),shown=++discoveryShown;
-    const message=completion?`${d.name} — 全地点を巡った。${completion}`:`${d.name} — ${d.text} ${response}　${count} / ${discoveries.length}`;
+    const majorCount=[...majorDiscoveries].filter(name=>readNotes().some(n=>n.id==='aeolia:'+name)).length,message=completion?`${d.name} — 全地点を巡った。${completion}`:isMajor?`${d.name} — ${response}　主要発見 ${majorCount} / ${majorDiscoveries.size}`:`場所を記録：${d.name}`;
     el.querySelector('div').textContent=message;el.classList.add('discovery-on');const readingTime=Math.min(12000,Math.max(7000,message.length*110));setTimeout(()=>{if(shown===discoveryShown)el.classList.remove('discovery-on')},readingTime);
   }
   const seen=new Set(readNotes().map(n=>n.id)),flat=Math.hypot(player.position.x-nearest.p.x,player.position.z-nearest.p.z);
@@ -581,7 +591,7 @@ function update(dt,t){
   for(let i=0;i<vertices.count;i++){const along=(scarfRest[i*3+1]+1.2)/2.4;vertices.setZ(i,Math.sin(t*.004-along*4)*.16*along+along*along*.25)}vertices.needsUpdate=true;scarf.geometry.computeVertexNormals();
   const dist=9+flightBlend*4,up=4.4+flightBlend;
   targetCam.set(player.position.x+Math.sin(yaw)*dist,player.position.y+up+Math.sin(pitch)*7,player.position.z+Math.cos(yaw)*dist);
-  const focus=player.position.clone().add(new THREE.Vector3(0,2.4,0));
+  const lookAhead=horizontalSpeed>.1?Math.min(11,horizontalSpeed*.25)/horizontalSpeed:0,focus=player.position.clone().add(new THREE.Vector3(velocity.x*lookAhead,2.4+THREE.MathUtils.clamp(velocity.y*.06,-.6,1.3),velocity.z*lookAhead));
   camera.position.lerp(targetCam,1-Math.exp(-5.5*dt));
   const cameraVector=camera.position.clone().sub(focus);cameraRay.set(focus,cameraVector.clone().normalize());cameraRay.far=cameraVector.length();
   const obstruction=cameraRay.intersectObjects(cameraBlockers,false)[0];
@@ -591,7 +601,7 @@ function update(dt,t){
   blades.rotation.z-=dt*.35;islandBirds.forEach((b,i)=>{const a=t*.00018+b.phase;birdDummy.position.set(b.x+Math.cos(a)*b.r,b.y+Math.sin(a*1.7)*1.4,b.z+Math.sin(a)*b.r);birdDummy.rotation.set(-Math.PI/2,0,-a+.4);birdDummy.scale.setScalar((.65+(i%3)*.14)*(1+Math.sin(t*.006+b.phase)*.08));birdDummy.updateMatrix();islandBirdBatch.setMatrixAt(i,birdDummy.matrix)});islandBirdBatch.instanceMatrix.needsUpdate=true;clouds.forEach((c,i)=>{c.x+=dt*(.25+i%4*.07);if(c.x>400)c.x=-400;cloudDummy.position.set(c.x,c.y,c.z);cloudDummy.quaternion.copy(camera.quaternion);cloudDummy.scale.set(c.w,c.h,1);cloudDummy.updateMatrix();cloudBatch.setMatrixAt(i,cloudDummy.matrix)});cloudBatch.instanceMatrix.needsUpdate=true;
   const radius=Math.hypot(player.position.x,player.position.z),edgeHaze=THREE.MathUtils.smoothstep(radius,185,225),haze=THREE.MathUtils.smoothstep(radius,220,280);scene.fog.density=.0028+edgeHaze*.0032;boundaryCloudMaterial.opacity=.48+edgeHaze*.28;for(const m of distantMaterials)m.opacity=1-.7*haze;
   scenicLayers.forEach((layer,i)=>{layer.sprite.position.y=layer.baseY+Math.sin(t*.00011+layer.phase)*1.8;layer.sprite.material.opacity=.68+Math.sin(t*.00017+layer.phase+i)*.05});
-  if(t>=nextDiscovery){discover();nextDiscovery=t+500}
+  updateEndpoint(before);if(t>=nextDiscovery){discover();nextDiscovery=t+500}
 }
 // Desktop keeps full detail on the two houses in front of the spawn; other houses and every phone house use the LOD asset.
 // Parts sharing a surface are merged across houses into one draw; the existing collision proxies stay.
@@ -688,7 +698,7 @@ function loop(t){
   }
   requestAnimationFrame(loop);
 }
-const completionQA=document.location?.search.includes('debug=1')&&document.location.search.includes('incomplete=1');if(!completionQA&&(completedWorld()||(document.location?.search.includes('debug=1')&&document.location.search.includes('complete=1'))))completeWorld();if(thumbnailMode){player.visible=false;camera.position.set(155,110,190);camera.lookAt(new THREE.Vector3(0,14,-18))}else if(trailerMode){player.visible=false;camera.position.set(182,92,214);camera.lookAt(new THREE.Vector3(0,14,-10))}else if(trailerFiveMode){camera.position.set(7,5,90);camera.lookAt(player.position)}else if(characterPreviewMode){player.position.set(0,18,0);player.rotation.y=Math.PI;camera.position.set(4.8,21.4,-8.4);camera.lookAt(new THREE.Vector3(0,19.9,0))}else{camera.position.set(-25,9,14);camera.lookAt(player.position.clone().add(new THREE.Vector3(0,2.4,0)))}requestAnimationFrame(loop);
+const completionQA=document.location?.search.includes('debug=1')&&document.location.search.includes('incomplete=1');if(!completionQA&&(completedWorld()||(document.location?.search.includes('debug=1')&&document.location.search.includes('complete=1'))))completeWorld();if(!completionQA&&majorComplete())openEndpoint();if(thumbnailMode){player.visible=false;camera.position.set(155,110,190);camera.lookAt(new THREE.Vector3(0,14,-18))}else if(trailerMode){player.visible=false;camera.position.set(182,92,214);camera.lookAt(new THREE.Vector3(0,14,-10))}else if(trailerFiveMode){camera.position.set(7,5,90);camera.lookAt(player.position)}else if(characterPreviewMode){player.position.set(0,18,0);player.rotation.y=Math.PI;camera.position.set(4.8,21.4,-8.4);camera.lookAt(new THREE.Vector3(0,19.9,0))}else{camera.position.set(-25,9,14);camera.lookAt(player.position.clone().add(new THREE.Vector3(0,2.4,0)))}requestAnimationFrame(loop);
 console.assert(groundAt(0,40)===3&&groundAt(500,500)===-Infinity,'walkable-world bounds');
 </script>
 <script>setTimeout(()=>{if(!document.querySelector('canvas'))document.querySelector('#error').style.display='block'},5000)</script>

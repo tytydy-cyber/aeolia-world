@@ -3,7 +3,7 @@ import {readFileSync} from 'node:fs';
 
 const read=name=>readFileSync(new URL('../outputs/'+name,import.meta.url),'utf8');
 const html=read('playroom.html'),js=read('playroom.js'),hub=read('index.html');
-assert.ok(html.includes('DREAMCORE PLAYROOM 04')&&html.includes('playroom.js?v=60')&&html.includes('mobile-controls.js?v=83'),'playroom has its own entry page and current shared mobile controls');
+assert.ok(html.includes('DREAMCORE PLAYROOM 04')&&html.includes('playroom.js?v=61')&&html.includes('mobile-controls.js?v=83'),'playroom has its own entry page and current shared mobile controls');
 assert.ok(hub.includes('class="gate playroom"')&&hub.includes('4つのエリア'),'world select exposes the fourth world');
 for(const asset of ['playroom-rainbow.glb','playroom-soft-play-upgrade.glb','playroom-playground-v2.glb','playroom-child-town-pack.glb','playroom-quiet-split.glb','playroom-town-foreground.glb','playroom-cloud-corridor-v2.glb'])assert.ok(js.includes(asset),`${asset} is placed in the world`);
 assert.ok(js.includes("['PlaygroundTowerV2',[0,0,-56]]")&&js.includes("['PlaygroundNetV2',[-14,0,-55]]")&&js.includes("['PlaygroundSoftClusterV2',[15,0,-55]]"),'playground v2 modules form one asymmetric room without a duplicate floor');
@@ -14,7 +14,7 @@ for(const texture of ['wall-clouds-v2.jpg','wall-meadow.jpg','wall-hills.jpg','c
 assert.ok(js.includes('wallMap.repeat.set(3,1.35)'),'painted cloud plaster repeats as a material instead of one stretched background image');
 assert.ok(!js.includes('clouds-12-atlas.png')&&!js.includes('cloudPlane('),'flat sticker clouds are replaced by room-scale murals');
 assert.ok(js.includes('muralPanel(x,10,-37.54')&&js.includes('muralPanel(x,10,-38.46'),'entrance mural sits clear of both partition faces without stretching across thin edges');
-assert.ok(js.includes("spawn:[0,0,25]")&&js.includes("Math.abs(x)<94&&z<64&&z>-154")&&js.includes('limitY:32'),'seven districts share a bounded 190 by 220 metre playable volume');
+assert.ok(js.includes("spawn:[0,0,25]")&&js.includes("Math.abs(x)<94&&z<64&&z>(endpointOpen?-216:-154)")&&js.includes('limitY:32'),'indoor districts stay bounded until the approved outdoor endpoint opens');
 for(const view of ['playground:{player:[0,0,-42]','town:{player:[52,3,-55]','quiet:{player:[-49,3,-92]','birthday:{player:[48,3,-99]','cloud:{player:[0,3,-130]'])assert.ok(js.includes(view),`${view} has a repeatable debug review pose`);
 assert.ok(js.includes("location.search.includes('debug=1')")&&js.includes("new URLSearchParams(location.search).get('view')"),'fixed review positions are unavailable outside debug mode');
 const noteConfig=js.slice(js.indexOf('const cfg='),js.indexOf('document.title='));assert.equal((noteConfig.match(/'[^']+','[^']+'\]/g)||[]).length,12,'the expanded world has twelve discoveries');
@@ -49,14 +49,16 @@ assert.ok(js.includes("nextThresholdLights.userData.routeRole='発見後に次�
 assert.equal((js.match(/\[-?\d+,-(?:9[12]|11[79]),[\d.]+,[\d.]+\]/g)||[]).length,8,'eight irregular cushion islands divide the broad quiet-room approach');
 assert.ok(js.includes("transitionCushionBatch.userData.routeRole='家具区画手前を三本の移動帯へ分ける布の島'"),'quiet-room approach uses fabric islands as movement boundaries');
 assert.ok(js.includes('function completedWorld()')&&js.includes('function completeWorld()')&&js.includes("for(const room of ['虹のホール'")&&js.includes('scene.fog.color.setHex(0xe3f0ef)')&&js.includes("document.location.search.includes('incomplete=1')"),'all playroom discoveries permanently change the atmosphere, light every opening and support non-persistent before/after QA');
-assert.ok(js.includes("const destination=near[3]===room?room"),'room and destination labels do not repeat the same name');
+assert.ok(js.includes("const destination=endpointOpen&&!endpointArrived?'屋外遊び場 · 経路開通':near[3]===room?room"),'room and destination labels do not repeat while an opened endpoint takes priority');
 assert.ok(!js.includes('o.visible=!o.visible')&&!js.includes('o.position.z+=')&&!js.includes('o.position.x+='),'anomalies do not leave stale invisible collision proxies');
 assert.ok(js.includes("{x:0,z:3,w:11,d:1.5,bottom:6.8,top:12}")&&js.includes("{x:0,z:-33.8,w:10.3,d:1.35,bottom:6.6,top:11.2}"),'both thick rainbow arches keep the camera out while leaving the enlarged walk-through opening clear');
 assert.ok(js.includes("{x:-18.45,z:3,w:7.45,d:1.12,bottom:0,top:20}")&&js.includes("{x:20.65,z:3,w:9.65,d:1.12,bottom:0,top:20}")&&js.includes("{x:2.2,z:3,w:28.2,d:1.12,bottom:10.8,top:20}"),'entry-shell collision is split around the opening instead of blocking it');
 assert.ok(js.includes('Math.sin(yaw)*13')&&js.includes('Math.cos(yaw)*13')&&js.includes('player.position.y+5+Math.sin(pitch)*3'),'the lower closer camera keeps the traveler inside the play equipment rather than above it');
+assert.ok(js.includes('velocity.x*ahead')&&js.includes('velocity.z*ahead')&&js.includes("clamp(velocity.y*.06,-.6,1.2)"),'flight camera looks ahead of the leaning traveler instead of staying aimed at the feet');
 assert.ok(js.includes('new THREE.InstancedMesh(new THREE.BoxGeometry(.22,1.45,.18)')&&js.includes('fenceColors'),'a single colored fence batch gives the first room human scale');
 for(const room of ['虹のホール','球の部屋','遊具広場','子どもの街','昼寝室','誕生日会場','雲の回廊'])assert.ok(js.includes(`addAnomaly('${room}'`),`${room} has a local non-blocking anomaly`);assert.ok(js.includes('const room=roomOf(player.position.x,player.position.z),changes=zoneAnomalies.get(room)')&&js.includes('anomalyTurns.set(room,turn+1)'),'anomalies advance independently in the room the traveler is visiting');
 assert.ok(js.includes("id='playroom:'+n[3]")&&js.includes("stored('aeolia-notes',JSON.stringify(notes))"),'playroom discoveries share the cross-world journal under their own namespace');
+assert.ok(js.includes("MAJOR_NAMES=['大きな虹','ボールプール','誕生日席','高い雲']")&&js.includes("ENDPOINT_ID='playroom:屋外遊び場'")&&js.includes("stored('aeolia-endpoints'")&&js.includes('outdoor.visible=true'),'four unordered major discoveries open and persist the outdoor playground endpoint');
 assert.ok(js.includes('mergeStatic()'),'static architecture is batched after room materials are assigned');
 assert.ok(js.includes('o.visible=Math.abs(player.position.z-o.position.z)<55'),'distant room assets are culled by player depth without removing nearby landmarks');
 assert.ok(js.includes('registerAsset=o=>{assetRoots.push(o);o.visible=Math.abs(player.position.z-o.position.z)<55;return o}')&&(js.match(/assetRoots\.push\(/g)||[]).length===1,'newly loaded room assets are culled before the start screen is dismissed');
