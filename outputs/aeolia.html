@@ -366,7 +366,7 @@ const sky=mesh(new THREE.SphereGeometry(850,32,16),new THREE.MeshBasicMaterial({
 const scenicLayers=[];
 function scenicRuin(position,scale,offset,repeat,phase){
   const map=textureLoader.load('assets/textures/distant-ruins.png',loaded=>{loaded.colorSpace=THREE.SRGBColorSpace});map.offset.x=offset;map.repeat.x=repeat;
-  const material=new THREE.SpriteMaterial({map,transparent:true,opacity:.72,depthWrite:false,depthTest:false,fog:false});
+  const material=new THREE.SpriteMaterial({map,transparent:true,opacity:.72,depthWrite:false,depthTest:true,fog:false});
   const sprite=new THREE.Sprite(material);sprite.position.set(...position);sprite.scale.set(...scale,1);sprite.renderOrder=-2+scenicLayers.length*.01;scene.add(sprite);
   scenicLayers.push({sprite,baseY:position[1],phase});
 }
@@ -378,6 +378,9 @@ const distantRock=[],distantTop=[];
 for(let i=0;i<12;i++){const a=i/12*Math.PI*2,r=280+random()*110,{rock,cap}=islandGeometries(Math.cos(a)*r,-5+random()*35,Math.sin(a)*r,18+random()*28,45+random()*30,false,random()*mathTau,[16,2,16]);distantRock.push(rock);distantTop.push(cap)}
 const distantMaterials=[new THREE.MeshStandardMaterial({vertexColors:true,color:0xc9d4d4,roughness:1,map:surfaceMaps.cliff.color,transparent:true}),new THREE.MeshStandardMaterial({color:0xa9b7b2,roughness:1,transparent:true})];
 const distantIslands=[mesh(mergeGeometries(distantRock),distantMaterials[0],[0,0,0],false),mesh(mergeGeometries(distantTop),distantMaterials[1],[0,0,0],false)];
+// A broken cloud belt makes the playable edge visible before the unreachable panorama begins.
+const boundaryCloudMaterial=new THREE.MeshStandardMaterial({color:0xe5ece9,roughness:1,transparent:true,opacity:.58,depthWrite:false}),boundaryCloudCount=36,boundaryCloudBatch=new THREE.InstancedMesh(new THREE.SphereGeometry(1,12,8),boundaryCloudMaterial,boundaryCloudCount);
+for(let i=0;i<boundaryCloudCount;i++){const a=i/boundaryCloudCount*mathTau+.13*Math.sin(i*1.7),r=211+(i%5)*3.2;dummy.position.set(Math.cos(a)*r,-7+(i%4)*6,Math.sin(a)*r);dummy.rotation.set(i*.17,i*.31,0);dummy.scale.set(15+(i%4)*5,6+(i%3)*2.5,12+(i%5)*3);dummy.updateMatrix();boundaryCloudBatch.setMatrixAt(i,dummy.matrix)}boundaryCloudBatch.frustumCulled=false;scene.add(boundaryCloudBatch);
 
 // Traveler avatar. Thumbnail mode is a fixed, character-free documentary view.
 const thumbnailMode=Boolean(document.location?.search.includes('thumbnail=1')),trailerMode=Boolean(document.location?.search.includes('trailer=1')),trailerShot=document.location?.search.match(/[?&]shot=([^&]+)/)?.[1]||'wide',trailerFiveShot=document.location?.search.match(/[?&]trailer5=([^&]+)/)?.[1]||'',trailerFiveMode=Boolean(trailerFiveShot),characterPreviewName=document.location?.search.match(/[?&]characterPreview=(ember|mist|lilac)/)?.[1]||'',characterPreviewMode=Boolean(characterPreviewName),player=new THREE.Group();scene.add(player);if(thumbnailMode||trailerMode||trailerFiveMode||characterPreviewMode){const style=document.createElement('style');style.textContent='body>*:not(canvas):not(#trailerTitle){display:none!important}';document.head.append(style)}const trailerTitle=trailerFiveMode&&trailerFiveShot==='reveal'?Object.assign(document.body.appendChild(document.createElement('div')),{id:'trailerTitle',innerHTML:'<b>AEOLIA</b><span>空を飛び、四つの世界を巡る探索ゲーム</span>'}):null;if(trailerTitle){const style=document.createElement('style');style.textContent='#trailerTitle{position:fixed;z-index:30;left:6vw;bottom:8vh;color:#fff;text-shadow:0 2px 18px #10252d;font-family:system-ui;transition:opacity .15s}#trailerTitle b{display:block;font:500 clamp(38px,6vw,72px) Georgia,serif;letter-spacing:.12em}#trailerTitle span{display:block;margin-top:6px;font-size:clamp(12px,1.5vw,18px);letter-spacing:.08em}';document.head.append(style)}
@@ -502,7 +505,7 @@ function discover(){
     el.querySelector('div').textContent=message;el.classList.add('discovery-on');const readingTime=Math.min(12000,Math.max(7000,message.length*110));setTimeout(()=>{if(shown===discoveryShown)el.classList.remove('discovery-on')},readingTime);
   }
   const seen=new Set(readNotes().map(n=>n.id)),flat=Math.hypot(player.position.x-nearest.p.x,player.position.z-nearest.p.z);
-  document.querySelector('#place').textContent=nearest.name+(seen.has('aeolia:'+nearest.name)?' · 記録済':flat<DISCOVERY_RADIUS?' · 降りると記録':best<90?` · ${Math.round(best)}m`:'');
+  const edgeDistance=Math.hypot(player.position.x,player.position.z);document.querySelector('#place').textContent=edgeDistance>202?'外縁の雲海 · この先は遠景':nearest.name+(seen.has('aeolia:'+nearest.name)?' · 記録済':flat<DISCOVERY_RADIUS?' · 降りると記録':best<90?` · ${Math.round(best)}m`:'');
 }
 function resetInput(){for(const k in keys)delete keys[k];dragging=false;diveBoost=0;velocity.set(0,0,0)}
 addEventListener('blur',()=>{resetInput();previousFrame=null;sound.pause()});
@@ -586,7 +589,7 @@ function update(dt,t){
   lookTarget.copy(focus);cameraLook.lerp(lookTarget,1-Math.exp(-9*dt));camera.lookAt(cameraLook);
   sun.target.position.copy(player.position);sun.position.copy(player.position).add(new THREE.Vector3(-80,110,-50));
   blades.rotation.z-=dt*.35;islandBirds.forEach((b,i)=>{const a=t*.00018+b.phase;birdDummy.position.set(b.x+Math.cos(a)*b.r,b.y+Math.sin(a*1.7)*1.4,b.z+Math.sin(a)*b.r);birdDummy.rotation.set(-Math.PI/2,0,-a+.4);birdDummy.scale.setScalar((.65+(i%3)*.14)*(1+Math.sin(t*.006+b.phase)*.08));birdDummy.updateMatrix();islandBirdBatch.setMatrixAt(i,birdDummy.matrix)});islandBirdBatch.instanceMatrix.needsUpdate=true;clouds.forEach((c,i)=>{c.x+=dt*(.25+i%4*.07);if(c.x>400)c.x=-400;cloudDummy.position.set(c.x,c.y,c.z);cloudDummy.quaternion.copy(camera.quaternion);cloudDummy.scale.set(c.w,c.h,1);cloudDummy.updateMatrix();cloudBatch.setMatrixAt(i,cloudDummy.matrix)});cloudBatch.instanceMatrix.needsUpdate=true;
-  const haze=THREE.MathUtils.smoothstep(Math.hypot(player.position.x,player.position.z),220,280);for(const m of distantMaterials)m.opacity=1-.7*haze;
+  const radius=Math.hypot(player.position.x,player.position.z),edgeHaze=THREE.MathUtils.smoothstep(radius,185,225),haze=THREE.MathUtils.smoothstep(radius,220,280);scene.fog.density=.0028+edgeHaze*.0032;boundaryCloudMaterial.opacity=.48+edgeHaze*.28;for(const m of distantMaterials)m.opacity=1-.7*haze;
   scenicLayers.forEach((layer,i)=>{layer.sprite.position.y=layer.baseY+Math.sin(t*.00011+layer.phase)*1.8;layer.sprite.material.opacity=.68+Math.sin(t*.00017+layer.phase+i)*.05});
   if(t>=nextDiscovery){discover();nextDiscovery=t+500}
 }

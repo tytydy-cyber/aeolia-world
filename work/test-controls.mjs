@@ -200,7 +200,8 @@ assert.ok(script.includes("innerHTML:'<b>AEOLIA</b><span>空を飛び、四つ�
 assert.ok(script.includes('characterPreview=(ember|mist|lilac)')&&script.includes('characterSelect.value=characterPreviewName||')&&script.includes('else if(characterPreviewMode){player.position.set(0,18,0)'),'three traveler thumbnails use the actual selectable game models');
 assert.ok(script.includes('WORLD_RADIUS=230')&&script.includes('>WORLD_RADIUS'),'playable flight stops before the distant scenery starts');
 assert.ok(script.includes('Math.max(7000,message.length*110)'),'floating-island discoveries remain visible for reading');
-assert.ok(script.includes('depthTest:false,fog:false')&&script.includes('renderOrder=-2+scenicLayers.length*.01'),'distant transparent layers use a stable order instead of flickering');
+assert.ok(script.includes('depthTest:true,fog:false')&&script.includes('renderOrder=-2+scenicLayers.length*.01'),'distant transparent layers respect island depth while keeping a stable order');
+assert.ok(script.includes('boundaryCloudCount=36')&&script.includes("'外縁の雲海 · この先は遠景'")&&script.includes('scene.fog.density=.0028+edgeHaze*.0032'),'an irregular cloud belt, place label and denser haze explain the playable edge');
 console.log('PASS: actual GLB parse/9 house placements, all arrow keys, passive mouse, drag/release, acceleration/braking, flight, focus loss, bridges, stairs, walls, speed slider, maximum-speed collision, 30/60/120 Hz, colonnade/blade collision, distant haze, under-island camera, discovery journal. GPU rendering is not tested.');
 const counts=Object.fromEntries(['pot','crate','bench'].map(kind=>[kind,run(`props.filter(p=>p.kind==='${kind}').length`)]));
 assert.ok(run('props.length')>=40,'meaningful street furniture count');
