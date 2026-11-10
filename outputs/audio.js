@@ -1,7 +1,13 @@
 // Browser-native synthesis: no downloads, audio service, or autoplay before a gesture.
+const THEMES={
+  sky:{intervals:[0,7,14],roots:[174.61,146.83,196,164.81],phrase:[261.63,329.63,392,523.25,440],step:.72,filter:1100,waves:['triangle','sine','sine'],phraseWave:'sine'},
+  complex:{intervals:[0,3,10],roots:[110,123.47,103.83,116.54],phrase:[146.83,138.59,110,123.47],step:1.08,filter:480,waves:['triangle','sine','triangle'],phraseWave:'triangle'},
+  suburb:{intervals:[0,4,9],roots:[146.83,174.61,196,220],phrase:[293.66,369.99,440,392,493.88],step:.64,filter:920,waves:['triangle','triangle','sine'],phraseWave:'triangle'},
+  playroom:{intervals:[0,5,12],roots:[130.81,164.81,146.83,196],phrase:[261.63,329.63,293.66,220,261.63],step:.82,filter:650,waves:['sine','triangle','sine'],phraseWave:'sine'}
+};
 export class WorldAudio {
   constructor(Context=globalThis.AudioContext||globalThis.webkitAudioContext,mood='sky'){
-    this.Context=Context;this.mood=mood;this.ctx=null;this.volume=.5;this.muted=false;this.paused=true;
+    this.Context=Context;this.mood=mood;this.theme=THEMES[mood]||THEMES.sky;this.ctx=null;this.volume=.5;this.muted=false;this.paused=true;
     this.voices=new Set();this.distance=0;this.nextMix=0;this.nextChord=0;this.nextPhrase=0;this.nextDetail=0;this.environment=0;this.altitude=0;
   }
   async start(){
@@ -12,6 +18,9 @@ export class WorldAudio {
         this.master=c.createGain();this.master.gain.value=0;
         this.limiter=c.createDynamicsCompressor();this.limiter.threshold.value=-6;this.limiter.knee.value=3;this.limiter.ratio.value=12;this.limiter.attack.value=.003;this.limiter.release.value=.25;
         this.master.connect(this.limiter);this.limiter.connect(c.destination);
+        this.musicBus=c.createGain();this.musicBus.gain.value=1;this.musicBus.connect(this.master);
+        this.ambienceBus=c.createGain();this.ambienceBus.gain.value=.85;this.ambienceBus.connect(this.master);
+        this.effectsBus=c.createGain();this.effectsBus.gain.value=.58;this.effectsBus.connect(this.master);
         // Indoor worlds get a short room tail, so wind and music sound enclosed rather than open sky.
         this.indoor=['complex','playroom'].includes(this.mood);
         if(this.indoor&&c.createConvolver){this.room=c.createConvolver();this.room.buffer=roomImpulse(c);this.roomGain=c.createGain();this.roomGain.gain.value=.2;this.master.connect(this.room);this.room.connect(this.roomGain);this.roomGain.connect(this.limiter)}
@@ -23,9 +32,9 @@ export class WorldAudio {
         this.wind=c.createBufferSource();this.wind.buffer=this.noise;this.wind.loop=true;
         this.filter=c.createBiquadFilter();this.filter.type='lowpass';this.filter.frequency.value=450;
         this.windGain=c.createGain();this.windGain.gain.value=.11;
-        this.wind.connect(this.filter);this.filter.connect(this.windGain);this.windGain.connect(this.master);this.wind.start();
+        this.wind.connect(this.filter);this.filter.connect(this.windGain);this.windGain.connect(this.ambienceBus);this.wind.start();
         const tone={sky:[.11,1100],complex:[.1,720],suburb:[.105,940],playroom:[.085,680]}[this.mood]||[.1,900];this.musicGain=c.createGain();this.musicGain.gain.value=tone[0];this.musicFilter=c.createBiquadFilter();this.musicFilter.type='lowpass';this.musicFilter.frequency.value=tone[1];
-        this.musicGain.connect(this.musicFilter);this.musicFilter.connect(this.master);this.pads=[0,7,14].map((step,i)=>{const osc=c.createOscillator(),gain=c.createGain();osc.type=i===2?'sine':'triangle';osc.frequency.value=174.61*Math.pow(2,step/12);gain.gain.value=[.22,.13,.07][i];osc.connect(gain);gain.connect(this.musicGain);osc.start();return osc});
+        this.musicGain.connect(this.musicFilter);this.musicFilter.connect(this.musicBus);this.pads=this.theme.intervals.map((step,i)=>{const osc=c.createOscillator(),gain=c.createGain();osc.type=this.theme.waves[i];osc.frequency.value=this.theme.roots[0]*Math.pow(2,step/12);gain.gain.value=[.22,.13,.07][i];osc.connect(gain);gain.connect(this.musicGain);osc.start();return osc});
         if(this.mood==='complex')this.hums=[55,60].map((frequency,i)=>{const osc=c.createOscillator(),gain=c.createGain();osc.type=i?'sawtooth':'sine';osc.frequency.value=frequency;gain.gain.value=i?.012:.045;osc.connect(gain);gain.connect(this.musicGain);osc.start();return osc});
       }
       await this.ctx.resume();this.paused=false;this.applyVolume();return true;
@@ -54,7 +63,7 @@ export class WorldAudio {
     source.buffer=this.noise;source.playbackRate.value=.8+Math.random()*.35;
     filter.type='lowpass';filter.frequency.value=wood?700:1800;
     gain.gain.setValueAtTime(.0001,t);gain.gain.linearRampToValueAtTime(wood?.21:.17,t+.006);gain.gain.exponentialRampToValueAtTime(.0001,t+.11);
-    source.connect(filter);filter.connect(gain);gain.connect(this.master);
+    source.connect(filter);filter.connect(gain);gain.connect(this.effectsBus);
     if(this.voice(source,[filter,gain])){source.start(t,Math.random()*2);source.stop(t+.13)}
   }
   chime(){
@@ -63,28 +72,28 @@ export class WorldAudio {
     for(const [note,delay] of [[392,0],[587.33,.24]])for(const [ratio,level] of [[1,.055],[2.76,.017],[5.4,.005]]){
       const t=c.currentTime+delay,osc=c.createOscillator(),gain=c.createGain();osc.type='sine';osc.frequency.value=note*ratio;
       gain.gain.setValueAtTime(.0001,t);gain.gain.linearRampToValueAtTime(level,t+.008);gain.gain.exponentialRampToValueAtTime(.0001,t+2.5/ratio);
-      osc.connect(gain);gain.connect(this.master);
+      osc.connect(gain);gain.connect(this.effectsBus);
       if(this.voice(osc,[gain])){osc.start(t);osc.stop(t+2.5/ratio+.03)}
     }
   }
   flightCue(takeoff=true){
     if(!this.audible)return;
-    const c=this.ctx,t=c.currentTime,osc=c.createOscillator(),gain=c.createGain();osc.type='sine';osc.frequency.setValueAtTime(takeoff?220:520,t);osc.frequency.exponentialRampToValueAtTime(takeoff?880:180,t+.55);gain.gain.setValueAtTime(.0001,t);gain.gain.linearRampToValueAtTime(.07,t+.025);gain.gain.exponentialRampToValueAtTime(.0001,t+.65);osc.connect(gain);gain.connect(this.master);if(this.voice(osc,[gain])){osc.start(t);osc.stop(t+.7)}
+    const c=this.ctx,t=c.currentTime,osc=c.createOscillator(),gain=c.createGain();osc.type='sine';osc.frequency.setValueAtTime(takeoff?220:520,t);osc.frequency.exponentialRampToValueAtTime(takeoff?880:180,t+.55);gain.gain.setValueAtTime(.0001,t);gain.gain.linearRampToValueAtTime(.07,t+.025);gain.gain.exponentialRampToValueAtTime(.0001,t+.65);osc.connect(gain);gain.connect(this.effectsBus);if(this.voice(osc,[gain])){osc.start(t);osc.stop(t+.7)}
   }
   distantPhrase(){
     if(!this.audible)return;
-    const c=this.ctx,start=c.currentTime+.08,melody=[220,261.63,293.66,329.63,392,440,523.25,587.33],fragment=this.environment%4,notes=this.mood==='playroom'?melody.slice(fragment,fragment+3):melody;
+    const c=this.ctx,start=c.currentTime+.08,fragment=this.environment%3,notes=this.mood==='playroom'?this.theme.phrase.slice(fragment,fragment+3):this.theme.phrase;
     for(const [i,note] of notes.entries()){
-      const t=start+i*.54,osc=c.createOscillator(),filter=c.createBiquadFilter(),gain=c.createGain(),delay=c.createDelay(2),echo=c.createGain();
-      osc.type=i%3?'triangle':'sine';osc.frequency.value=note;filter.type='lowpass';filter.frequency.value=720;
+      const t=start+i*this.theme.step,osc=c.createOscillator(),filter=c.createBiquadFilter(),gain=c.createGain(),delay=c.createDelay(2),echo=c.createGain();
+      osc.type=this.theme.phraseWave;osc.frequency.value=note;filter.type='lowpass';filter.frequency.value=this.theme.filter;
       const level=this.mood==='complex'?.038:this.mood==='playroom'?.027:.032;delay.delayTime.value=.42;echo.gain.value=.24;gain.gain.setValueAtTime(.0001,t);gain.gain.linearRampToValueAtTime(level,t+.12);gain.gain.exponentialRampToValueAtTime(.0001,t+2.4);
-      osc.connect(filter);filter.connect(gain);gain.connect(this.master);gain.connect(delay);delay.connect(echo);echo.connect(this.master);
+      osc.connect(filter);filter.connect(gain);gain.connect(this.musicBus);gain.connect(delay);delay.connect(echo);echo.connect(this.musicBus);
       if(this.voice(osc,[filter,gain,delay,echo])){osc.start(t);osc.stop(t+2.5)}
     }
   }
   environmentDetail(){
     if(!this.audible||!['complex','suburb','playroom'].includes(this.mood))return;
-    const c=this.ctx,t=c.currentTime,ranges=this.mood==='complex'?[[560,720],[1500,1850],[280,420],[90,150],[2200,2700]]:this.mood==='playroom'?[[740,920],[370,520],[1040,1320],[260,390],[620,780]]:[[620,880],[310,470],[150,230],[760,1040],[220,330]],range=ranges[this.environment],osc=c.createOscillator(),gain=c.createGain();osc.type=this.environment===2?'triangle':'sine';osc.frequency.value=range[0]+Math.random()*(range[1]-range[0]);gain.gain.setValueAtTime(.0001,t);gain.gain.linearRampToValueAtTime(this.mood==='complex'?.024:this.mood==='playroom'?.014:.018,t+.008);gain.gain.exponentialRampToValueAtTime(.0001,t+1.8);osc.connect(gain);gain.connect(this.master);if(this.voice(osc,[gain])){osc.start(t);osc.stop(t+1.9)}
+    const c=this.ctx,t=c.currentTime,ranges=this.mood==='complex'?[[560,720],[1500,1850],[280,420],[90,150],[2200,2700]]:this.mood==='playroom'?[[740,920],[370,520],[1040,1320],[260,390],[620,780]]:[[620,880],[310,470],[150,230],[760,1040],[220,330]],range=ranges[this.environment],osc=c.createOscillator(),gain=c.createGain();osc.type=this.environment===2?'triangle':'sine';osc.frequency.value=range[0]+Math.random()*(range[1]-range[0]);gain.gain.setValueAtTime(.0001,t);gain.gain.linearRampToValueAtTime(this.mood==='complex'?.024:this.mood==='playroom'?.014:.018,t+.008);gain.gain.exponentialRampToValueAtTime(.0001,t+1.8);osc.connect(gain);gain.connect(this.ambienceBus);if(this.voice(osc,[gain])){osc.start(t);osc.stop(t+1.9)}
   }
   update(dt,speed,flying,grounded,onBridge){
     if(!this.audible){this.distance=0;return}
@@ -97,8 +106,8 @@ export class WorldAudio {
       this.filter.frequency.setTargetAtTime(base+(flying?open*movement:150)+zoneShift+this.altitude*lift,t,.3);this.nextMix=t+.05;
     }
     if(t>=this.nextChord){
-      const progressions={sky:[174.61,146.83,196,164.81],complex:[110,123.47,103.83,130.81],suburb:[146.83,174.61,196,220],playroom:[130.81,164.81,146.83,196]},roots=progressions[this.mood]||progressions.sky,root=roots[Math.floor(t/8)%roots.length];
-      this.pads.forEach((osc,i)=>osc.frequency.setTargetAtTime(root*Math.pow(2,[0,7,14][i]/12),t,1.8));this.nextChord=t+8;
+      const root=this.theme.roots[Math.floor(t/8)%this.theme.roots.length];
+      this.pads.forEach((osc,i)=>osc.frequency.setTargetAtTime(root*Math.pow(2,this.theme.intervals[i]/12),t,1.8));this.nextChord=t+8;
     }
     if(t>=this.nextPhrase){this.distantPhrase();this.nextPhrase=t+(this.mood==='playroom'?9:14)}
     if(t>=this.nextDetail){this.environmentDetail();this.nextDetail=t+7+Math.random()*6}

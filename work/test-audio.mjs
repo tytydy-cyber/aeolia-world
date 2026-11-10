@@ -41,6 +41,9 @@ const c=audio.ctx;
 assert.equal(audio.master.gain.value,.5);
 assert.equal(audio.master.connections[0],audio.limiter,'all audio passes through limiter');
 assert.equal(audio.limiter.connections[0],c.destination);assert.equal(audio.limiter.threshold.value,-6);assert.equal(audio.limiter.ratio.value,12);
+assert.equal(audio.effectsBus.gain.value,.58,'sound effects are reduced below the continuous music bed');
+assert.ok(audio.musicBus.connections.includes(audio.master)&&audio.ambienceBus.connections.includes(audio.master)&&audio.effectsBus.connections.includes(audio.master),'music, ambience and effects use separate buses');
+assert.ok(audio.musicFilter.connections.includes(audio.musicBus)&&audio.windGain.connections.includes(audio.ambienceBus),'continuous music and wind use their own buses');
 for(const value of audio.noise.getChannelData(0))assert.ok(Number.isFinite(value)&&Math.abs(value)<=1,'bounded noise');
 audio.nextPhrase=audio.nextDetail=Infinity;
 
@@ -52,7 +55,7 @@ let before=steps;tick(28,true,false);assert.equal(steps,before,'no footsteps whi
 tick(10,false,false);assert.equal(steps,before,'no footsteps while falling');
 tick(10,false,true,60,true);assert.ok(steps>before);assert.equal(c.nodes.filter(n=>n.type==='lowpass').at(-1).frequency.value,700,'wooden bridge sound');
 
-c.advance(1);audio.chime();assert.equal(audio.voices.size,6,'two-tone bell partials');
+c.advance(1);audio.chime();assert.equal(audio.voices.size,6,'two-tone bell partials');assert.ok(c.nodes.filter(node=>node.connections.includes(audio.effectsBus)).length>=6,'the discovery chime is attenuated by the effects bus');
 c.advance(3);assert.equal(audio.voices.size,0,'finished voices are disconnected');
 for(let i=0;i<20;i++)audio.chime();assert.ok(audio.voices.size<=24,'bounded simultaneous voices');
 c.advance(3);assert.equal(audio.voices.size,0);
@@ -64,10 +67,12 @@ audio.setVolume(Infinity);assert.equal(audio.volume,.35);audio.setVolume(-1);ass
 audio.pause();assert.equal(c.state,'suspended');assert.equal(audio.audible,false);assert.equal(audio.master.gain.value,0);
 await audio.start();assert.ok(audio.audible);assert.equal(Context.count,1);
 assert.equal(await new WorldAudio(null).start(),false,'unsupported audio does not break game');
-audio.distantPhrase();assert.equal(audio.voices.size,8,'world selection schedules one quiet ascending phrase');
-const complex=new WorldAudio(Context,'complex');await complex.start();complex.setEnvironment(3,.4);complex.update(.016,0,true,false,false);assert.equal(complex.hums.length,2,'closed facility has continuous machinery hum');assert.equal(complex.environment,3);assert.equal(complex.voices.size,9,'closed facility schedules melody and one district detail');
+audio.distantPhrase();assert.equal(audio.voices.size,audio.theme.phrase.length,'floating islands schedule their complete airy phrase');
+const complex=new WorldAudio(Context,'complex');await complex.start();complex.setEnvironment(3,.4);complex.update(.016,0,true,false,false);assert.equal(complex.hums.length,2,'closed facility has continuous machinery hum');assert.equal(complex.environment,3);assert.equal(complex.voices.size,complex.theme.phrase.length+1,'closed facility schedules its slow melody and one district detail');
 const suburb=new WorldAudio(Context,'suburb');await suburb.start();suburb.setEnvironment(3,.8);suburb.nextPhrase=Infinity;suburb.update(.016,12,true,false,false);assert.equal(suburb.environment,3);assert.equal(suburb.altitude,.8);assert.equal(suburb.voices.size,1,'suburb district schedules one restrained environmental detail');suburb.setEnvironment(99,-2);assert.equal(suburb.environment,4);assert.equal(suburb.altitude,0,'environment values remain bounded');
 const playroom=new WorldAudio(Context,'playroom');await playroom.start();playroom.setEnvironment(2,.2);playroom.nextDetail=Infinity;playroom.distantPhrase();assert.equal(playroom.voices.size,3,'playroom schedules only a fragment of its shared melody');playroom.nextPhrase=0;playroom.update(.016,0,true,false,false);assert.equal(playroom.nextPhrase,9,'playroom renews its distant phrase before the ambience feels empty');playroom.nextPhrase=Infinity;playroom.nextDetail=0;playroom.update(.016,0,true,false,false);assert.equal(playroom.voices.size,7,'playroom adds a quiet room-specific sound');
+assert.equal(new Set([audio,complex,suburb,playroom].map(world=>world.theme.phrase.join(','))).size,4,'every world has a distinct melody');
+assert.equal(new Set([audio,complex,suburb,playroom].map(world=>world.theme.intervals.join(','))).size,4,'every world has a distinct chord colour');
 const steadyVolume=playroom.master.gain.value;for(const zone of [0,1,2,3,4,1]){playroom.setEnvironment(zone,.2);playroom.nextDetail=0;playroom.update(.016,8,true,false,false);assert.equal(playroom.master.gain.value,steadyVolume,'room changes keep the continuous bed at one volume')}assert.ok(playroom.wind.started&&playroom.pads.every(pad=>pad.started),'wind and three pads prevent silent gaps in every room');
 console.log('PASS: gesture-only start, single context, noise bounds, wind update, stone/wood steps, flight/fall silence, chimes, voice cleanup/cap, mute/volume, pause/resume, unavailable API. Audio output quality is not tested.');
 
